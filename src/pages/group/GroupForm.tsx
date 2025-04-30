@@ -22,7 +22,7 @@ import MultiSelect from "../../components/form/MultiSelect";
 interface GroupFormInput {
     group_name: string;
     area_id: number;
-    staff: String[]
+    staffs: String[]
 }
 
 
@@ -31,76 +31,75 @@ const schema: yup.SchemaOf<GroupFormInput> = yup.object({
         .required('Nama kelompok  wajib diisi'),
     area_id: yup.string()
         .required('Area wajib diisi'),
-    staff: yup.array().of(yup.string().trim()
-        .min(1, 'Silahkan pilih staff')
-        .required('Silahkan pilih staff'))
-        .min(1, "Minimal pilih satu staff")
-        .required('Staff wajib diisi'),
+    staffs: yup.array().of(yup.string().trim()
+        .min(1, 'Silahkan pilih staffs')
+        .required('Silahkan pilih staffs'))
+        .min(1, "Minimal pilih satu staffs")
+        .required('Staffs wajib diisi'),
 });
 
 const GroupForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const [areas, setAreas] = useState<{ label: string, value: string }[]>([]);
-    const [staff, setStaff] = useState<{ text: string, value: string }[]>([]);
+    const [staffs, setStaffs] = useState<{ text: string, value: string }[]>([]);
 
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const { control,
+    const {
         register,
         handleSubmit,
         setError,
         reset,
-        getValues,
         setValue,
+        getValues,
         formState: { errors }
     } = useForm<GroupFormInput>({
-        resolver: yupResolver(schema)
+        resolver: yupResolver(schema),
+        defaultValues: {
+            group_name: "",
+            area_id: undefined,
+            staffs: []
+        }
     });
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: "staff",
-    });
+
     useEffect(() => {
-        reset({ group_name: "Hallo", area_id: 2, staff: ["44"] })
         if (id) {
             axios.get("/api/groups/" + id).then(res => {
-                reset(res.data.group)
+                const data = res.data.group
+                data.staffs = data.staffs.map((d: any) => {
+                    return d.id.toString()
+                });
+                reset(data)
             });
         }
         axios.get("/api/areas").then(res => {
             setAreas(res.data.areas.map((area: AreaProps) => ({ label: area.area_name, value: area.id })))
         });
         axios.get("/api/employees").then(res => {
-            setStaff(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
+            setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
         });
     }, []);
 
-    const handleSelect = (e: any) => {
 
-    }
     const onSubmit = async (data: GroupFormInput) => {
         console.log(data);
-
         try {
             let res;
-            // if (!id) {
-            //     res = await axios.post("/api/groups", data);
-            // } else {
-            //     res = await axios.put("/api/groups/" + id, data)
-            // }
+            if (!id) {
+                res = await axios.post("/api/groups", data);
+            } else {
+                res = await axios.put("/api/groups/" + id, data)
+            }
 
-
-            // if (res.status == 201) {
-            //     if (!id)
-            //         toast.success("Kelompok berhasil ditambah")
-            //     else
-            //         toast.success("Kelompok berhasil diubah")
-            //     navigate("/group")
-            // }
+            if (res.status == 201) {
+                if (!id)
+                    toast.success("Kelompok berhasil ditambah")
+                else
+                    toast.success("Kelompok berhasil diubah")
+                navigate("/group")
+            }
         } catch (error: any) {
-            console.log(error);
-
             if (error.status == 400) {
                 if (error.response.data.errors) {
                     // Jika ada error dalam error.responseponse, setError pada masing-masing field
@@ -129,7 +128,7 @@ const GroupForm: React.FC = () => {
             <PageBreadcrumb pageTitle={!id ? "Tambah Kelompok" : "Ubah Kelompok"} />
             <div className="w-full   mx-auto mb-2">
                 <Link
-                    to="/area"
+                    to="/group"
                     className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
                     <ChevronLeftIcon className="size-5" />
@@ -139,7 +138,6 @@ const GroupForm: React.FC = () => {
 
             <div className="space-y-6">
                 {alert && <div className="mb-4"><Alert variant="error" title="Pemberitahuan" message={alert} /></div>}
-
                 <ComponentCard title={!id ? "Tambah Kelompok" : "Ubah Kelompok"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
@@ -167,18 +165,19 @@ const GroupForm: React.FC = () => {
                         </div>
                         <div className="space-y-4">
                             <Label>
-                                Staff <span className="text-error-500">*</span>
+                                Staffs <span className="text-error-500">*</span>
                             </Label>
                             <MultiSelect
                                 label=""
-                                options={staff}
-                                // defaultSelected={["1", "3"]}
-                                {...register("staff")}
-                                onChange={(val) => setValue("staff", val)}
+                                options={staffs}
+                                defaultSelected={getValues("staffs")}
+                                {...register("staffs")}
+                                onChange={(val) => setValue("staffs", val)}
                             />
 
-                            {errors.staff && typeof errors.staff?.message === 'string' && (
-                                <p className="mt-1 text-sm text-red-500">{errors.staff?.message}</p>
+
+                            {errors.staffs && typeof errors.staffs?.message === 'string' && (
+                                <p className="mt-1 text-sm text-red-500">{errors.staffs?.message}</p>
                             )}
 
 

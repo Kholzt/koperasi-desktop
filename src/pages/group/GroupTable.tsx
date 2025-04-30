@@ -90,7 +90,7 @@ const GroupTable: React.FC<GroupTableProps> = ({ data, pagination, setPaginate }
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.staff.map(s => s.complete_name).join(",")}
+                                        {user.staffs.map(s => s.complete_name).join(", ")}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">

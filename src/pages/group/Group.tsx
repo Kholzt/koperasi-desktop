@@ -47,7 +47,7 @@ const Group: React.FC = () => {
             <PageBreadcrumb pageTitle="Kelompok" />
 
             <div className="space-y-6">
-                <ComponentCard title="Group" option={
+                <ComponentCard title="Kelompok" option={
                     <div className="flex gap-4">
                         <div className="relative">
                             <Input

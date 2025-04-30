@@ -9,8 +9,14 @@
   },
   "files": [
     "dist",
-    "dist-electron"
+    "dist-electron",
+     {
+    "from": "dist-electron/server",
+    "to": "server"
+  }
   ],
+  "asar": true
+,
   "mac": {
     "target": [
       "dmg"
@@ -40,11 +46,5 @@
     ],
     "artifactName": "${productName}-Linux-${version}.${ext}"
   },
-  "extraResources": [
-  {
-    "from": "server",
-    "to": "server",
-    "filter": ["**/*"]
-  }
-]
+
 }

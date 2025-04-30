@@ -35,7 +35,7 @@ export interface GroupProps{
     id:number,
     group_name:string,
     area_id:string,
-    staff:UserProps[],
+    staffs:UserProps[],
     area:AreaProps,
     created_at:Date,
     updated_at:Date,

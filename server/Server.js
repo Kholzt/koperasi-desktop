@@ -4,6 +4,7 @@ import cors  from "cors"
 import AuthController from './controllers/AuthController';
 import EmployeController from './controllers/EmployeController';
 import AreaController from './controllers/AreaController';
+import GroupController from './controllers/GroupController';
 // const express = require('express');
 const app = express();
 const port = import.meta.env.VITE_APP_PORT;
@@ -43,6 +44,13 @@ app.post('/api/areas', AreaController.store);
 app.get('/api/areas/:id', AreaController.show);
 app.put('/api/areas/:id', AreaController.update);
 app.delete('/api/areas/:id', AreaController.delete);
+
+// Group
+app.get('/api/groups', GroupController.index);
+app.post('/api/groups', GroupController.store);
+app.get('/api/groups/:id', GroupController.show);
+app.put('/api/groups/:id', GroupController.update);
+app.delete('/api/groups/:id', GroupController.delete);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
