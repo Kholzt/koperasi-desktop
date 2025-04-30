@@ -190,9 +190,13 @@ export default class GroupController {
         [group_name, area_id, id]
       );
 
+    //   await db.query(
+    //     "UPDATE group_details SET deleted_at = ? WHERE group_id = ?",
+    //     [new Date(), id]
+    //   );
       await db.query(
-        "UPDATE group_details SET deleted_at = ? WHERE group_id = ?",
-        [new Date(), id]
+        "DELETE FROM group_details  WHERE group_id = ?",
+        [id]
       );
 
       await Promise.all(

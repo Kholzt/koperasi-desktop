@@ -165,9 +165,9 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
         <Dropdown
             isOpen={isOpenDropdown}
             onClose={closeDropdown}
-            className="absolute right-20 mt-[17px] flex w-[200px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+            className="absolute right-20 mt-[17px] flex w-40 flex-col rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
         >
-            <ul className="flex flex-col gap-1 pt-4 pb-3 ">
+            <ul className="flex flex-col gap-1  ">
                 <li>
                     <DropdownItem
                         onItemClick={closeDropdown}

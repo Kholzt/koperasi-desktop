@@ -7,6 +7,7 @@ import {
     CalenderIcon,
     ChevronDownIcon,
     GridIcon,
+    GroupIcon,
     HorizontaLDots,
     ListIcon,
     LocationIcon,
@@ -33,23 +34,20 @@ const navItems: NavItem[] = [
         name: "Dashboard",
         path: "/dashboard"
     },
+];
+const masterDataItems: NavItem[] = [
     {
-        icon: <CalenderIcon />,
-        name: "Calendar",
-        path: "/calendar",
-    },
-    {
-        icon: <UserIcon />,
+        icon: <GroupIcon />,
         name: "Pengguna",
         path: "/user",
     },
     {
-        icon: <UserIcon />,
+        icon: <GroupIcon />,
         name: "Karyawan",
         path: "/employe",
     },
     {
-        icon: <UserIcon />,
+        icon: <GroupIcon />,
         name: "Anggota",
         path: "/profile",
     },
@@ -63,25 +61,62 @@ const navItems: NavItem[] = [
         name: "Group",
         path: "/group",
     },
-    {
-        name: "Forms",
-        icon: <ListIcon />,
-        subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-    },
-    {
-        name: "Tables",
-        icon: <TableIcon />,
-        subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-    },
-    {
-        name: "Pages",
-        icon: <PageIcon />,
-        subItems: [
-            { name: "Blank Page", path: "/blank", pro: false },
-            { name: "404 Error", path: "/error-404", pro: false },
-        ],
-    },
 ];
+// const navItems: NavItem[] = [
+//     {
+//         icon: <GridIcon />,
+//         name: "Dashboard",
+//         path: "/dashboard"
+//     },
+//     {
+//         icon: <CalenderIcon />,
+//         name: "Calendar",
+//         path: "/calendar",
+//     },
+//     {
+//         icon: <UserIcon />,
+//         name: "Pengguna",
+//         path: "/user",
+//     },
+//     {
+//         icon: <UserIcon />,
+//         name: "Karyawan",
+//         path: "/employe",
+//     },
+//     {
+//         icon: <UserIcon />,
+//         name: "Anggota",
+//         path: "/profile",
+//     },
+//     {
+//         icon: <LocationIcon />,
+//         name: "Area",
+//         path: "/area",
+//     },
+//     {
+//         icon: <LocationIcon />,
+//         name: "Group",
+//         path: "/group",
+//     },
+// {
+//     name: "Forms",
+//     icon: <ListIcon />,
+//     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+// },
+// {
+//     name: "Tables",
+//     icon: <TableIcon />,
+//     subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
+// },
+// {
+//     name: "Pages",
+//     icon: <PageIcon />,
+//     subItems: [
+//         { name: "Blank Page", path: "/blank", pro: false },
+//         { name: "404 Error", path: "/error-404", pro: false },
+//     ],
+// },
+// ];
 
 const othersItems: NavItem[] = [
     {
@@ -112,6 +147,24 @@ const othersItems: NavItem[] = [
             { name: "Sign Up", path: "/signup", pro: false },
         ],
     },
+    {
+        name: "Forms",
+        icon: <ListIcon />,
+        subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    },
+    {
+        name: "Tables",
+        icon: <TableIcon />,
+        subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
+    },
+    {
+        name: "Pages",
+        icon: <PageIcon />,
+        subItems: [
+            { name: "Blank Page", path: "/blank", pro: false },
+            { name: "404 Error", path: "/error-404", pro: false },
+        ],
+    },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -119,7 +172,7 @@ const AppSidebar: React.FC = () => {
     const location = useLocation();
 
     const [openSubmenu, setOpenSubmenu] = useState<{
-        type: "main" | "others";
+        type: "main" | "Master Data" | "Laporan" | "others";
         index: number;
     } | null>(null);
     const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
@@ -142,7 +195,7 @@ const AppSidebar: React.FC = () => {
                     nav.subItems.forEach((subItem) => {
                         if (isActive(subItem.path)) {
                             setOpenSubmenu({
-                                type: menuType as "main" | "others",
+                                type: menuType as "main" | "Master Data" | "Laporan" | "others",
                                 index,
                             });
                             submenuMatched = true;
@@ -169,7 +222,7 @@ const AppSidebar: React.FC = () => {
         }
     }, [openSubmenu]);
 
-    const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
+    const handleSubmenuToggle = (index: number, menuType: "main" | "Master Data" | "Laporan" | "others") => {
         setOpenSubmenu((prevOpenSubmenu) => {
             if (
                 prevOpenSubmenu &&
@@ -182,7 +235,7 @@ const AppSidebar: React.FC = () => {
         });
     };
 
-    const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
+    const renderMenuItems = (items: NavItem[], menuType: "main" | "Master Data" | "Laporan" | "others") => (
         <ul className="flex flex-col gap-4">
             {items.map((nav, index) => (
                 <li key={nav.name}>
@@ -353,12 +406,27 @@ const AppSidebar: React.FC = () => {
                                     }`}
                             >
                                 {isExpanded || isHovered || isMobileOpen ? (
-                                    "Menu"
+                                    "Dashboard"
                                 ) : (
                                     <HorizontaLDots className="size-6" />
                                 )}
                             </h2>
                             {renderMenuItems(navItems, "main")}
+                        </div>
+                        <div>
+                            <h2
+                                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
+                                    ? "lg:justify-center"
+                                    : "justify-start"
+                                    }`}
+                            >
+                                {isExpanded || isHovered || isMobileOpen ? (
+                                    "Master Data"
+                                ) : (
+                                    <HorizontaLDots className="size-6" />
+                                )}
+                            </h2>
+                            {renderMenuItems(masterDataItems, "Master Data")}
                         </div>
                         <div className="">
                             <h2

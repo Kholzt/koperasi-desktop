@@ -41,7 +41,7 @@ layer(base);
   --color-white: #ffffff;
   --color-black: #101828;
 
-  --color-brand-25: #f2f7ff;
+  /* --color-brand-25: #f2f7ff;
   --color-brand-50: #ecf3ff;
   --color-brand-100: #dde9ff;
   --color-brand-200: #c2d6ff;
@@ -52,7 +52,36 @@ layer(base);
   --color-brand-700: #2a31d8;
   --color-brand-800: #252dae;
   --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  --color-brand-950: #161950; */
+
+  --color-primary-50:  #f0faff;
+  --color-primary-100: #ccf0ff;
+  --color-primary-200: #99e0ff;
+  --color-primary-300: #66d1ff;
+  --color-primary-400: #33c2ff;
+  --color-primary-500: #00b3ff;
+  --color-primary-600: #0090cc;
+  --color-primary-700: #006699;
+  --color-primary-800: #004466;
+  --color-primary-900: #002233;
+
+
+  --color-brand-25:  #f6faff;
+  --color-brand-50:  #edf6fe;
+  --color-brand-100: #d7e8fc;
+  --color-brand-200: #bdd9f9;
+  --color-brand-300: #9ac4f3;
+  --color-brand-400: #76adeb;
+  --color-brand-500: #5395e1;
+  --color-brand-600: #3a7ac7;
+  --color-brand-700: #2d60a1;
+  --color-brand-800: #264d7e;
+  --color-brand-900: #223f66;
+  --color-brand-950: #16283f;
+
+
+  --color-halo-950: #fff;
+
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
