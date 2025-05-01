@@ -49,7 +49,7 @@ const masterDataItems: NavItem[] = [
     {
         icon: <GroupIcon />,
         name: "Anggota",
-        path: "/profile",
+        path: "/member",
     },
     {
         icon: <LocationIcon />,

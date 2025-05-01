@@ -26,6 +26,8 @@ import Area from './pages/area/Area';
 import AreaForm from './pages/area/AreaForm';
 import Group from './pages/group/Group';
 import GroupForm from './pages/group/GroupForm';
+import Member from './pages/member/Member';
+import MemberForm from './pages/member/MemberForm';
 
 export default function App() {
     return (
@@ -54,6 +56,10 @@ export default function App() {
                         <Route path="/group" element={<Group />} />
                         <Route path="/group/create" element={<GroupForm />} />
                         <Route path="/group/:id/edit" element={<GroupForm />} />
+
+                        <Route path="/member" element={<Member />} />
+                        <Route path="/member/create" element={<MemberForm />} />
+                        <Route path="/member/:id/edit" element={<MemberForm />} />
 
                         <Route path="/calendar" element={<Calendar />} />
                         <Route path="/blank" element={<Blank />} />

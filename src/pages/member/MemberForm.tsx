@@ -19,29 +19,25 @@ import { toast } from 'react-toastify';
 import { AreaProps, EmployeProps, UserProps } from "../../utils/types";
 import MultiSelect from "../../components/form/MultiSelect";
 
-interface GroupFormInput {
-    group_name: string;
+interface MemberFormInput {
+    complete_name: string;
     area_id: number;
-    staffs: String[]
+    address: string
 }
 
 
-const schema: yup.SchemaOf<GroupFormInput> = yup.object({
-    group_name: yup.string()
+const schema: yup.SchemaOf<MemberFormInput> = yup.object({
+    complete_name: yup.string()
         .required('Nama kelompok  wajib diisi'),
     area_id: yup.string()
-        .required('Wilayah wajib diisi'),
-    staffs: yup.array().of(yup.string().trim()
-        .min(1, 'Silahkan pilih staffs')
-        .required('Silahkan pilih staffs'))
-        .min(1, "Minimal pilih satu staffs")
-        .required('Staffs wajib diisi'),
+        .required('Area wajib diisi'),
+    address: yup.string().required('Alamat  wajib diisi'),
+
 });
 
-const GroupForm: React.FC = () => {
+const MemberForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const [areas, setAreas] = useState<{ label: string, value: string }[]>([]);
-    const [staffs, setStaffs] = useState<{ text: string, value: string }[]>([]);
 
     const { id } = useParams();
     const navigate = useNavigate();
@@ -54,50 +50,46 @@ const GroupForm: React.FC = () => {
         setValue,
         getValues,
         formState: { errors }
-    } = useForm<GroupFormInput>({
+    } = useForm<MemberFormInput>({
         resolver: yupResolver(schema),
         defaultValues: {
-            group_name: "",
+            complete_name: "",
             area_id: undefined,
-            staffs: []
+            address: ""
         }
     });
 
     useEffect(() => {
         if (id) {
-            axios.get("/api/groups/" + id).then(res => {
-                const data = res.data.group
-                data.staffs = data.staffs.map((d: any) => {
-                    return d.id.toString()
-                });
+            axios.get("/api/members/" + id).then(res => {
+                const data = res.data.member
+                console.log(data);
+
                 reset(data)
             });
         }
         axios.get("/api/areas").then(res => {
             setAreas(res.data.areas.map((area: AreaProps) => ({ label: area.area_name, value: area.id })))
         });
-        axios.get("/api/employees").then(res => {
-            setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
-        });
     }, []);
 
 
-    const onSubmit = async (data: GroupFormInput) => {
+    const onSubmit = async (data: MemberFormInput) => {
         console.log(data);
         try {
             let res;
             if (!id) {
-                res = await axios.post("/api/groups", data);
+                res = await axios.post("/api/members", data);
             } else {
-                res = await axios.put("/api/groups/" + id, data)
+                res = await axios.put("/api/members/" + id, data)
             }
 
             if (res.status == 201) {
                 if (!id)
-                    toast.success("Kelompok berhasil ditambah")
+                    toast.success("Anggota berhasil ditambah")
                 else
-                    toast.success("Kelompok berhasil diubah")
-                navigate("/group")
+                    toast.success("Anggota berhasil diubah")
+                navigate("/member")
             }
         } catch (error: any) {
             if (error.status == 400) {
@@ -121,66 +113,57 @@ const GroupForm: React.FC = () => {
     return (
         <>
             <PageMeta
-                title={`${!id ? "Tambah Kelompok" : "Ubah Kelompok"} | ${import.meta.env.VITE_APP_NAME}`}
+                title={`${!id ? "Tambah Anggota" : "Ubah Anggota"} | ${import.meta.env.VITE_APP_NAME}`}
                 description=""
 
             />
-            <PageBreadcrumb pageTitle={!id ? "Tambah Kelompok" : "Ubah Kelompok"} />
+            <PageBreadcrumb pageTitle={!id ? "Tambah Anggota" : "Ubah Anggota"} />
             <div className="w-full   mx-auto mb-2">
                 <Link
-                    to="/group"
+                    to="/member"
                     className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
                     <ChevronLeftIcon className="size-5" />
-                    Kembali ke Kelompok
+                    Kembali ke Anggota
                 </Link>
             </div>
 
             <div className="space-y-6">
                 {alert && <div className="mb-4"><Alert variant="error" title="Pemberitahuan" message={alert} /></div>}
-                <ComponentCard title={!id ? "Tambah Kelompok" : "Ubah Kelompok"}>
+                <ComponentCard title={!id ? "Tambah Anggota" : "Ubah Anggota"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
-                            <div>
-                                <Label>
-                                    Nama kelompok <span className="text-error-500">*</span>
-                                </Label>
-                                <Input
-                                    placeholder="Masukkan nama lengkap"
-                                    {...register("group_name")}
-                                />
-                                {errors.group_name && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.group_name.message}</p>
-                                )}
-                            </div>
-                            <div>
-                                <Label>
-                                    Wilayah <span className="text-error-500">*</span>
-                                </Label>
-                                <Select options={areas} placeholder="Pilih area" {...register("area_id")} />
-                                {errors.area_id && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.area_id.message}</p>
-                                )}
-                            </div>
-                        </div>
-                        <div className="space-y-4">
+                        <div>
                             <Label>
-                                Staffs <span className="text-error-500">*</span>
+                                Nama  <span className="text-error-500">*</span>
                             </Label>
-                            <MultiSelect
-                                label=""
-                                options={staffs}
-                                defaultSelected={getValues("staffs")}
-                                {...register("staffs")}
-                                onChange={(val) => setValue("staffs", val)}
+                            <Input
+                                placeholder="Masukkan nama lengkap"
+                                {...register("complete_name")}
                             />
-
-
-                            {errors.staffs && typeof errors.staffs?.message === 'string' && (
-                                <p className="mt-1 text-sm text-red-500">{errors.staffs?.message}</p>
+                            {errors.complete_name && (
+                                <p className="mt-1 text-sm text-red-500">{errors.complete_name.message}</p>
                             )}
-
-
+                        </div>
+                        <div>
+                            <Label>
+                                Wilayah <span className="text-error-500">*</span>
+                            </Label>
+                            <Select options={areas} placeholder="Pilih area" {...register("area_id")} />
+                            {errors.area_id && (
+                                <p className="mt-1 text-sm text-red-500">{errors.area_id.message}</p>
+                            )}
+                        </div>
+                        <div>
+                            <Label>
+                                Alamat <span className="text-error-500">*</span>
+                            </Label>
+                            <Input
+                                placeholder="Masukkan alamat"
+                                {...register("address")}
+                            />
+                            {errors.address && (
+                                <p className="mt-1 text-sm text-red-500">{errors.address.message}</p>
+                            )}
                         </div>
 
                         <div>
@@ -194,4 +177,4 @@ const GroupForm: React.FC = () => {
     );
 }
 
-export default GroupForm;
+export default MemberForm;

@@ -31,6 +31,16 @@ export interface AreaProps{
     updated_at:Date,
     deleted_at:Date
     }
+export interface MemberProps{
+    id:number,
+    complete_name:string,
+    address:string,
+    area_id:number,
+    area:AreaProps,
+    created_at:Date,
+    updated_at:Date,
+    deleted_at:Date
+    }
 export interface GroupProps{
     id:number,
     group_name:string,

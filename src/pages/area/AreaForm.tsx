@@ -28,7 +28,7 @@ interface AreaFormInput {
 
 
 const schema: yup.SchemaOf<AreaFormInput> = yup.object({
-    area_name: yup.string().required('Nama area  wajib diisi'),
+    area_name: yup.string().required('Nama wilayah  wajib diisi'),
     city: yup.string().required('Kota   wajib diisi'),
     subdistrict: yup.string().required('Kecamatan  wajib diisi'),
     village: yup.string().required('Desa  wajib diisi'),
@@ -101,31 +101,31 @@ const AreaForm: React.FC = () => {
     return (
         <>
             <PageMeta
-                title={`${!id ? "Tambah Area" : "Ubah Area"} | ${import.meta.env.VITE_APP_NAME}`}
+                title={`${!id ? "Tambah Wilayah" : "Ubah Wilayah"} | ${import.meta.env.VITE_APP_NAME}`}
                 description=""
             />
-            <PageBreadcrumb pageTitle={!id ? "Tambah Area" : "Ubah Area"} />
+            <PageBreadcrumb pageTitle={!id ? "Tambah Wilayah" : "Ubah Wilayah"} />
             <div className="w-full   mx-auto mb-2">
                 <Link
                     to="/area"
                     className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
                     <ChevronLeftIcon className="size-5" />
-                    Kembali ke Area
+                    Kembali ke Wilayah
                 </Link>
             </div>
 
             <div className="space-y-6">
                 {alert && <div className="mb-4"><Alert variant="error" title="Pemberitahuan" message={alert} /></div>}
 
-                <ComponentCard title={!id ? "Tambah Area" : "Ubah Area"}>
+                <ComponentCard title={!id ? "Tambah Wilayah" : "Ubah Wilayah"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div>
                             <Label>
-                                Nama area <span className="text-error-500">*</span>
+                                Nama wilayah <span className="text-error-500">*</span>
                             </Label>
                             <Input
-                                placeholder="Masukkan nama lengkap"
+                                placeholder="Masukkan nama wilayah"
                                 {...register("area_name")}
                             />
                             {errors.area_name && (

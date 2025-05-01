@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -9,6 +9,7 @@ import Button from "../ui/button/Button";
 import axios from "../../utils/axios";
 import { useNavigate, Link } from "react-router";
 import Alert from "../ui/alert/Alert";
+import { useUser } from "../../hooks/useUser";
 
 // 1. Tipe untuk data form
 interface SignInFormInputs {
@@ -26,7 +27,7 @@ export default function SignInForm() {
     const navigate = useNavigate()
     const [showPassword, setShowPassword] = useState(false);
     const [hasError, setHasError] = useState(false);
-
+    const { saveUser, user } = useUser()
     const {
         register,
         handleSubmit,
@@ -35,6 +36,12 @@ export default function SignInForm() {
         resolver: yupResolver(schema)
     });
 
+    useEffect(() => {
+        if (user) {
+            navigate("/dashboard");
+        }
+    }, [user]);
+
     const onSubmit = async (data: SignInFormInputs) => {
         try {
             const res = await axios.post("/api/login",
@@ -42,7 +49,7 @@ export default function SignInForm() {
             );
 
             if (res.status === 200) {
-                localStorage.setItem("userLogin", JSON.stringify(res.data.user));
+                saveUser(res.data.user);
                 navigate("/dashboard");
             } else {
                 setHasError(true)

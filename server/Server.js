@@ -5,6 +5,7 @@ import AuthController from './controllers/AuthController';
 import EmployeController from './controllers/EmployeController';
 import AreaController from './controllers/AreaController';
 import GroupController from './controllers/GroupController';
+import MemberController from './controllers/MemberController';
 // const express = require('express');
 const app = express();
 const port = import.meta.env.VITE_APP_PORT;
@@ -51,6 +52,13 @@ app.post('/api/groups', GroupController.store);
 app.get('/api/groups/:id', GroupController.show);
 app.put('/api/groups/:id', GroupController.update);
 app.delete('/api/groups/:id', GroupController.delete);
+
+// Group
+app.get('/api/members', MemberController.index);
+app.post('/api/members', MemberController.store);
+app.get('/api/members/:id', MemberController.show);
+app.put('/api/members/:id', MemberController.update);
+app.delete('/api/members/:id', MemberController.delete);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
