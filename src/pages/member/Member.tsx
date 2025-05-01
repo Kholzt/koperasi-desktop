@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import ComponentCard from "../../components/common/ComponentCard";
-import PageMeta from "../../components/common/PageMeta";
-import { MemberProps, PaginationProps, UserProps } from "../../utils/types";
-import Table from "./MemberTable";
-import axios from "../../utils/axios";
-import Button from "../../components/ui/button/Button";
 import { Link } from "react-router";
-import { useTheme } from "../../context/ThemeContext";
+import ComponentCard from "../../components/common/ComponentCard";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
 import Input from "../../components/form/input/InputField";
+import Button from "../../components/ui/button/Button";
+import { useTheme } from "../../context/ThemeContext";
 import { SearchIcon } from "../../icons";
+import axios from "../../utils/axios";
+import { MemberProps, PaginationProps } from "../../utils/types";
+import Table from "./MemberTable";
 const Member: React.FC = () => {
     const [search, setSearch] = useState<String | null>("");
     const [members, setMembers] = useState<MemberProps[]>([]);

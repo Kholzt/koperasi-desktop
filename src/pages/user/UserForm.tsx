@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
 
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import ComponentCard from "../../components/common/ComponentCard";
-import PageMeta from "../../components/common/PageMeta";
-import axios from "../../utils/axios";
-import Button from "../../components/ui/button/Button";
-import { Link, useNavigate, useParams } from "react-router";
-import { useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useForm } from "react-hook-form";
+import { Link, useNavigate, useParams } from "react-router";
+import { toast } from 'react-toastify';
 import * as yup from 'yup';
+import ComponentCard from "../../components/common/ComponentCard";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
 import Form from "../../components/form/Form";
 import Label from "../../components/form/Label";
-import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
+import Input from "../../components/form/input/InputField";
 import Alert from "../../components/ui/alert/Alert";
+import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
-import { toast } from 'react-toastify';
+import axios from "../../utils/axios";
 
 interface UserFormInput {
     complete_name: string;

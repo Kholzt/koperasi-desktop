@@ -1,4 +1,10 @@
-import React, { Fragment, useState } from "react";
+import React, { useState } from "react";
+import { toast } from 'react-toastify';
+import Pagination from '../../components/tables/BasicTables/Pagination';
+import Badge from "../../components/ui/badge/Badge";
+import { Dropdown } from "../../components/ui/dropdown/Dropdown";
+import { DropdownItem } from "../../components/ui/dropdown/DropdownItem";
+import { Modal } from "../../components/ui/modal";
 import {
     Table, // Ubah nama komponen yang diimpor
     TableBody,
@@ -6,17 +12,11 @@ import {
     TableHeader,
     TableRow,
 } from "../../components/ui/table";
-import { PaginationProps, UserProps } from "../../utils/types";
-import Badge from "../../components/ui/badge/Badge"
-import Pagination from '../../components/tables/BasicTables/Pagination';
-import { Dropdown } from "../../components/ui/dropdown/Dropdown";
-import { DropdownItem } from "../../components/ui/dropdown/DropdownItem";
-import { PencilIcon, TrashBinIcon } from "../../icons";
-import { Modal } from "../../components/ui/modal";
-import { useModal } from "../../hooks/useModal";
-import axios from "../../utils/axios";
-import { toast } from 'react-toastify';
 import { useTheme } from "../../context/ThemeContext";
+import { useModal } from "../../hooks/useModal";
+import { PencilIcon, TrashBinIcon } from "../../icons";
+import axios from "../../utils/axios";
+import { PaginationProps, UserProps } from "../../utils/types";
 // import { toast } from 'react-hot-toast';
 interface EmployeTableProps {
     data: UserProps[],

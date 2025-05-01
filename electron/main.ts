@@ -90,9 +90,11 @@ function startExpressServer() {
     const serverPath = path.join(process.env.APP_ROOT!, 'server', 'Server.js');
 
     const child = spawn('node', [serverPath], {
-      stdio: 'inherit',
-      shell: true,
+    //   stdio: 'inherit',
+      stdio: 'ignore',
+    //   shell: true,
       detached: true,
+      windowsHide: true
     });
 
     child.on('error', (err) => {
