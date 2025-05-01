@@ -120,6 +120,15 @@ const masterDataItems: NavItem[] = [
 
 const othersItems: NavItem[] = [
     {
+        icon: <CalenderIcon />,
+        name: "Jadwal Kunjungan",
+        path: "/schedule"
+        // subItems: [
+        //     { name: "Line Chart", path: "/line-chart", pro: false },
+        //     { name: "Bar Chart", path: "/bar-chart", pro: false },
+        // ],
+    },
+    {
         icon: <PieChartIcon />,
         name: "Charts",
         subItems: [

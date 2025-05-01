@@ -6,6 +6,7 @@ import EmployeController from './controllers/EmployeController';
 import AreaController from './controllers/AreaController';
 import GroupController from './controllers/GroupController';
 import MemberController from './controllers/MemberController';
+import ScheduleController from './controllers/ScheduleController';
 // const express = require('express');
 const app = express();
 const port = import.meta.env.VITE_APP_PORT;
@@ -59,6 +60,13 @@ app.post('/api/members', MemberController.store);
 app.get('/api/members/:id', MemberController.show);
 app.put('/api/members/:id', MemberController.update);
 app.delete('/api/members/:id', MemberController.delete);
+
+// Schedule
+app.get('/api/schedule', ScheduleController.index);
+app.post('/api/schedule', ScheduleController.store);
+app.get('/api/schedule/:id', ScheduleController.show);
+app.put('/api/schedule/:id', ScheduleController.update);
+app.delete('/api/schedule/:id', ScheduleController.delete);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

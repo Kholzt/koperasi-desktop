@@ -67,7 +67,7 @@ const MemberForm: React.FC = () => {
                 reset(data)
             });
         }
-        axios.get("/api/areas").then(res => {
+        axios.get("/api/areas?limit=2000").then(res => {
             setAreas(res.data.areas.map((area: AreaProps) => ({ label: area.area_name, value: area.id })))
         });
     }, []);

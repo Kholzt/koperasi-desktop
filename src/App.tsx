@@ -1,33 +1,34 @@
-import { HashRouter as Router, Routes, Route } from "react-router";
+import { Route, HashRouter as Router, Routes } from "react-router";
+import { ScrollToTop } from "./components/common/ScrollToTop";
+import AppLayout from "./layout/AppLayout";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
-import NotFound from "./pages/OtherPage/NotFound";
-import UserProfiles from "./pages/UserProfiles";
-import Videos from "./pages/UiElements/Videos";
-import Images from "./pages/UiElements/Images";
-import Alerts from "./pages/UiElements/Alerts";
-import Badges from "./pages/UiElements/Badges";
-import Avatars from "./pages/UiElements/Avatars";
-import Buttons from "./pages/UiElements/Buttons";
-import LineChart from "./pages/Charts/LineChart";
-import BarChart from "./pages/Charts/BarChart";
-import Calendar from "./pages/Calendar";
-import BasicTables from "./pages/Tables/BasicTables";
-import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
-import AppLayout from "./layout/AppLayout";
-import { ScrollToTop } from "./components/common/ScrollToTop";
+import Calendar from "./pages/Calendar";
+import BarChart from "./pages/Charts/BarChart";
+import LineChart from "./pages/Charts/LineChart";
 import Home from "./pages/Dashboard/Home";
-import User from "./pages/user/User";
-import Employe from "./pages/employe/Employe";
-import UserForm from './pages/user/UserForm';
-import EmployeForm from './pages/employe/EmployeForm';
+import FormElements from "./pages/Forms/FormElements";
+import NotFound from "./pages/OtherPage/NotFound";
+import BasicTables from "./pages/Tables/BasicTables";
+import Alerts from "./pages/UiElements/Alerts";
+import Avatars from "./pages/UiElements/Avatars";
+import Badges from "./pages/UiElements/Badges";
+import Buttons from "./pages/UiElements/Buttons";
+import Images from "./pages/UiElements/Images";
+import Videos from "./pages/UiElements/Videos";
 import Area from './pages/area/Area';
 import AreaForm from './pages/area/AreaForm';
+import Employe from "./pages/employe/Employe";
+import EmployeForm from './pages/employe/EmployeForm';
 import Group from './pages/group/Group';
 import GroupForm from './pages/group/GroupForm';
 import Member from './pages/member/Member';
 import MemberForm from './pages/member/MemberForm';
+import Schedule from './pages/schedule/Schedule';
+import ScheduleForm from './pages/schedule/ScheduleForm';
+import User from "./pages/user/User";
+import UserForm from './pages/user/UserForm';
 
 export default function App() {
     return (
@@ -60,6 +61,10 @@ export default function App() {
                         <Route path="/member" element={<Member />} />
                         <Route path="/member/create" element={<MemberForm />} />
                         <Route path="/member/:id/edit" element={<MemberForm />} />
+
+                        <Route path="/schedule" element={<Schedule />} />
+                        <Route path="/schedule/create" element={<ScheduleForm />} />
+                        <Route path="/schedule/:id/edit" element={<ScheduleForm />} />
 
                         <Route path="/calendar" element={<Calendar />} />
                         <Route path="/blank" element={<Blank />} />

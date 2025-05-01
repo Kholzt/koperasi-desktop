@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { toast } from 'react-toastify';
 import Pagination from '../../components/tables/BasicTables/Pagination';
+import Badge from "../../components/ui/badge/Badge";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../components/ui/dropdown/DropdownItem";
 import { Modal } from "../../components/ui/modal";
@@ -15,15 +16,15 @@ import { useTheme } from "../../context/ThemeContext";
 import { useModal } from "../../hooks/useModal";
 import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { MemberProps, PaginationProps } from "../../utils/types";
+import { ScheduleProps, PaginationProps } from "../../utils/types";
 // import { toast } from 'react-hot-toast';
-interface MemberTableProps {
-    data: MemberProps[],
+interface ScheduleTableProps {
+    data: ScheduleProps[],
     pagination: PaginationProps,
     setPaginate: (page: number) => void
 }
 
-const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate }) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = ({ data, pagination, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
     console.log(data);
 
@@ -45,25 +46,19 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Nama Member
+                                Area
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Alamat
+                                Kelompok
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Wilayah
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Nomor Urut
+                                Hari
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -76,7 +71,7 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
 
                     {/* Table Body */}
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                        {data.map((user: MemberProps, index: number) => (
+                        {data.map((user: ScheduleProps, index: number) => (
                             <TableRow key={user.id}>
                                 <TableCell className="px-5 py-4 sm:px-6 text-start">
                                     <div className="flex items-center gap-3">
@@ -88,26 +83,28 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    {user.complete_name}
+                                    {user.area.area_name}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.address}
+                                        {user.group.group_name}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.area.area_name}
+                                        {user.day}
                                     </span>
                                 </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.sequence_number}
-                                    </span>
-                                </TableCell>
-
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Action id={user.id} member_name={user.complete_name} />
+                                    <Badge
+                                        size="sm"
+                                        color={user.status === "aktif" ? "success" : "error"}
+                                    >
+                                        {user.status}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
+                                    <Action id={user.id} schedule={user.area.area_name} />
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -122,7 +119,7 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
 
 
 
-function Action({ id, member_name }: { id: number, member_name: string }) {
+function Action({ id, schedule }: { id: number, schedule: string }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const openDropdown = () => setIsOpenDropdown(true);
     const closeDropdown = () => setIsOpenDropdown(false);
@@ -130,8 +127,8 @@ function Action({ id, member_name }: { id: number, member_name: string }) {
     const { setReload, reload } = useTheme();
     const deleteAction = async () => {
         try {
-            let res = await axios.delete("/api/members/" + id);
-            toast.success("Member berhasil dihapus")
+            let res = await axios.delete("/api/schedule/" + id);
+            toast.success("Schedule berhasil dihapus")
             setReload(!reload);
             closeModal();
         } catch (error: any) {
@@ -155,7 +152,7 @@ function Action({ id, member_name }: { id: number, member_name: string }) {
                     <DropdownItem
                         onItemClick={closeDropdown}
                         tag="a"
-                        to={`/member/${id}/edit`}
+                        to={`/schedule/${id}/edit`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                         <PencilIcon fontSize={20} />
@@ -166,7 +163,7 @@ function Action({ id, member_name }: { id: number, member_name: string }) {
                     <DropdownItem
                         onItemClick={openModal}
                         tag="button"
-                        to={`/member/${id}/edit`}
+                        to={`/schedule/${id}/edit`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                         <TrashBinIcon fontSize={20} />
@@ -188,7 +185,7 @@ function Action({ id, member_name }: { id: number, member_name: string }) {
                         Pemberitahuan
                     </h5>
                     <p className="text-base text-gray-800 dark:text-gray-400 ">
-                        Apakah Anda yakin untuk menghapus member {member_name}?
+                        Apakah Anda yakin untuk menghapus schedule {schedule}?
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                         Data yang dihapus dapat dikembalikan nanti
@@ -214,4 +211,4 @@ function Action({ id, member_name }: { id: number, member_name: string }) {
         </Modal>
     </div>
 }
-export default MemberTable;
+export default ScheduleTable;

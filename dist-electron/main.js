@@ -49232,6 +49232,7 @@ class MemberController {
             id: row.member_id,
             complete_name: row.complete_name,
             address: row.address,
+            sequence_number: row.sequence_number,
             area_id: row.area_id,
             area: {
               id: row.area_id,
@@ -49346,11 +49347,163 @@ class MemberController {
         [/* @__PURE__ */ new Date(), id]
       );
       res.status(200).json({
-        message: "Group berhasil dihapus",
+        message: "Anggota berhasil dihapus",
         member: member[0]
       });
     } catch (error) {
       res.status(500).json({ error: "An error occurred while deleting the member. " + error.message });
+    }
+  }
+}
+class ScheduleController {
+  static async index(req, res) {
+    try {
+      const { page = 1, limit = 10, area = "", group = "" } = req.query;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      const [rows] = await pool.query(
+        "SELECT `schedule`.id,day,`schedule`.status,`groups`.id as group_id,`groups`.group_name,`areas`.id as area_id,`areas`.area_name FROM `schedule` JOIN areas ON `schedule`.`area_id` = areas.id JOIN `groups` ON `schedule`.`group_id` = `groups`.id WHERE `schedule`.deleted_at is null ORDER BY `schedule`.id  DESC LIMIT ? OFFSET ?",
+        [parseInt(limit), offset]
+      );
+      const [[{ total }]] = await pool.query("SELECT COUNT(*) as total FROM `schedule` WHERE deleted_at is null");
+      const map = /* @__PURE__ */ new Map();
+      for (const row of rows) {
+        if (!map.has(row.id)) {
+          map.set(row.id, {
+            id: row.id,
+            day: row.day,
+            status: row.status,
+            area: {
+              id: row.area_id,
+              area_name: row.area_name
+            },
+            group: {
+              id: row.group_id,
+              group_name: row.group_name
+            }
+          });
+        }
+      }
+      const schedule = Array.from(map.values());
+      res.status(200).json({
+        schedule,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  // Menampilkan detail area berdasarkan ID
+  static async show(req, res) {
+    try {
+      const { id } = req.params;
+      const [schedule] = await pool.query(
+        "SELECT * FROM `schedule` WHERE id = ?",
+        [id]
+      );
+      if (!schedule || schedule.length === 0) {
+        return res.status(404).json({ error: "Schedule tidak ditemukan" });
+      }
+      res.status(200).json({
+        schedule: schedule[0]
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while retrieving the area." });
+    }
+  }
+  // Menyimpan area baru dengan validasi dan enkripsi password
+  static async store(req, res) {
+    await libExports$1.body("area_id").notEmpty().withMessage("Wilayah wajib diisi").run(req);
+    await libExports$1.body("group_id").notEmpty().withMessage("Kelompok wajib diisi").run(req);
+    await libExports$1.body("day").notEmpty().withMessage("Hari wajib diisi").run(req);
+    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    const errors2 = libExports$1.validationResult(req);
+    if (!errors2.isEmpty()) {
+      const formattedErrors = errors2.array().reduce((acc, error) => {
+        acc[error.param] = error.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formattedErrors });
+    }
+    try {
+      const { area_id, group_id, day, status } = req.body;
+      const [areaByScheduleName] = await pool.query("SELECT * FROM `schedule` JOIN areas ON `schedule`.`area_id` = areas.id JOIN `groups` ON `schedule`.`group_id` = `groups`.id WHERE `schedule`.area_id = ? AND `schedule`.group_id = ? AND day = ? ", [area_id, group_id, day]);
+      if (areaByScheduleName.length > 0) {
+        return res.status(409).json({ error: `Jadwal konflik dengan kelompok ${areaByScheduleName[0].group_name}  di wilayah ${areaByScheduleName[0].area_name} pada hari ${day} ` });
+      }
+      const result = await pool.query(
+        "INSERT INTO `schedule` (area_id,group_id,day, status) VALUES (?, ?, ?, ?)",
+        [area_id, group_id, day, status]
+      );
+      const newSchedule = await pool.query("SELECT * FROM `schedule` WHERE id = ?", [result.insertId]);
+      res.status(201).json({
+        message: "Schedule berhasil dibuat",
+        area: newSchedule[0]
+        // Mengembalikan data area yang baru saja dibuat
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while creating the area." + error.message });
+    }
+  }
+  // Mengupdate data area dengan pengecekan dan enkripsi password jika ada perubahan
+  static async update(req, res) {
+    await libExports$1.body("area_id").notEmpty().withMessage("Wilayah wajib diisi").run(req);
+    await libExports$1.body("group_id").notEmpty().withMessage("Kelompok wajib diisi").run(req);
+    await libExports$1.body("day").notEmpty().withMessage("Hari wajib diisi").run(req);
+    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    const errors2 = libExports$1.validationResult(req);
+    if (!errors2.isEmpty()) {
+      const formattedErrors = errors2.array().reduce((acc, error) => {
+        acc[error.param] = error.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formattedErrors });
+    }
+    try {
+      const { id } = req.params;
+      const { area_id, group_id, day, status } = req.body;
+      const [existingSchedule] = await pool.query("SELECT * FROM `schedule` WHERE id = ?", [id]);
+      if (!existingSchedule || existingSchedule.length === 0) {
+        return res.status(404).json({ error: "Schedule tidak ditemukan" });
+      }
+      const [areaByScheduleName] = await pool.query("SELECT * FROM `schedule` JOIN areas ON `schedule`.`area_id` = areas.id JOIN `groups` ON `schedule`.`group_id` = `groups`.id WHERE `schedule`.area_id = ? AND `schedule`.group_id = ? AND day = ? AND `schedule`.id <> ?", [area_id, group_id, day, id]);
+      if (areaByScheduleName.length > 0) {
+        return res.status(409).json({ error: `Jadwal konflik dengan kelompok ${areaByScheduleName[0].group_name}  di wilayah ${areaByScheduleName[0].area_name} pada hari ${day} ` });
+      }
+      let updateData = [area_id, group_id, day, status, id];
+      await pool.query(
+        "UPDATE `schedule` SET area_id = ?, group_id = ?, day = ?, status = ?  WHERE id = ?",
+        updateData
+      );
+      res.status(201).json({ message: "Schedule updated successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while updating the area." + error.message });
+    }
+  }
+  // Menampilkan detail area berdasarkan ID
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const [area] = await pool.query(
+        "SELECT * FROM `schedule` WHERE id = ?",
+        [id]
+      );
+      if (!area || area.length === 0) {
+        return res.status(404).json({ error: "Schedule tidak ditemukan" });
+      }
+      await pool.query(
+        "UPDATE `schedule` SET deleted_at = ? WHERE id = ${id}",
+        /* @__PURE__ */ new Date()
+      );
+      res.status(200).json({
+        area: area[0]
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while retrieving the area." });
     }
   }
 }
@@ -49393,6 +49546,11 @@ app.post("/api/members", MemberController.store);
 app.get("/api/members/:id", MemberController.show);
 app.put("/api/members/:id", MemberController.update);
 app.delete("/api/members/:id", MemberController.delete);
+app.get("/api/schedule", ScheduleController.index);
+app.post("/api/schedule", ScheduleController.store);
+app.get("/api/schedule/:id", ScheduleController.show);
+app.put("/api/schedule/:id", ScheduleController.update);
+app.delete("/api/schedule/:id", ScheduleController.delete);
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });

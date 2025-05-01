@@ -24,15 +24,14 @@ export default class MemberController {
             id: row.member_id,
             complete_name: row.complete_name,
             address: row.address,
+            sequence_number: row.sequence_number,
             area_id: row.area_id,
             area: {
               id: row.area_id,
               area_name: row.area_name
             },
-
           });
         }
-
       }
 
       const members = Array.from(map.values());
@@ -102,9 +101,6 @@ export default class MemberController {
       const { complete_name, area_id,address } = req.body;
       const [member] = await db.query("SELECT sequence_number FROM `members` ORDER BY created_at DESC LIMIT 1");
 
-    //   if (sequence_number.length > 0) {
-    //     return res.status(400).json({ errors: { group_name: "Nama sudah ada" } });
-    //   }
     const sequence_number = member[0] ? member[0]?.sequence_number + 1:1;
       const [result] = await db.query(
         "INSERT INTO `members` (complete_name, area_id,address,sequence_number) VALUES (?, ?,?,?)",
@@ -139,13 +135,6 @@ export default class MemberController {
       const { id } = req.params;
       const { complete_name, area_id, address } = req.body;
 
-    //   const [existingGroup] = await db.query("SELECT * FROM `members` WHERE id = ?", [id]);
-
-    //   if (!existingGroup || existingGroup.length === 0) {
-    //     return res.status(404).json({ error: "Anggota tidak ditemukan" });
-    //   }
-
-
       await db.query(
         "UPDATE `members` SET complete_name = ?, area_id = ?, address = ? WHERE id = ?",
         [complete_name, area_id,address, id]
@@ -171,7 +160,7 @@ export default class MemberController {
       );
 
       res.status(200).json({
-        message: "Group berhasil dihapus",
+        message: "Anggota berhasil dihapus",
         member: member[0],
       });
     } catch (error) {

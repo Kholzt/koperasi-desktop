@@ -31,12 +31,25 @@ export interface AreaProps{
     updated_at:Date,
     deleted_at:Date
     }
+export interface ScheduleProps{
+    id:number,
+    area_id:number,
+    area:AreaProps,
+    group_id:number,
+    group:GroupProps,
+    day:"senin"|"selasa"|"rabu"|"kamis"|"jum'at"|"sabtu"|"minggu",
+    status:"aktif"|"nonAktif",
+    created_at:Date,
+    updated_at:Date,
+    deleted_at:Date
+    }
 export interface MemberProps{
     id:number,
     complete_name:string,
     address:string,
     area_id:number,
     area:AreaProps,
+    sequence_number:number,
     created_at:Date,
     updated_at:Date,
     deleted_at:Date
