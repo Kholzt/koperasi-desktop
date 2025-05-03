@@ -4,10 +4,10 @@ import { UserProps } from "../utils/types";
 
 // useUser.ts
 export function useUser() {
-    const [user, setUser] = useState<UserProps>(null);
+    const [user, setUser] = useState<UserProps|null>(null);
 
     useEffect(() => {
-        const userLoc = JSON.parse(localStorage.getItem("userLogin")??"");
+        const userLoc =localStorage.getItem("userLogin")? JSON.parse(localStorage.getItem("userLogin")??""):null;
         if(userLoc){
             axios.get("/api/user?id="+userLoc.id).then(res => setUser(res.data.user));
         }
