@@ -10,7 +10,7 @@ export default class UserController {
 
       const offset = (parseInt(page) - 1) * parseInt(limit);
       const [users] = await db.query(
-        `SELECT * FROM users   WHERE deleted_at is null AND complete_name like ? ORDER BY id AND access_apps = ? DESC LIMIT ? OFFSET ?`,
+        `SELECT * FROM users   WHERE deleted_at is null AND complete_name like ?  AND access_apps = ? ORDER BY id DESC LIMIT ? OFFSET ?`,
         [`%${search}%`,"access",parseInt(limit), offset]
       );
 
@@ -56,7 +56,7 @@ export default class UserController {
     await body('complete_name').notEmpty().withMessage('Complete name is required').run(req);
     await body('role').notEmpty().withMessage('Role is required').run(req);
     // await body('access_apps').notEmpty().withMessage('Access apps is required').run(req);
-    await body('position').notEmpty().withMessage('Position is required').run(req);
+    // await body('position').notEmpty().withMessage('Position is required').run(req);
     await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status must be active or inactive').run(req);
     await body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long').run(req);
 
@@ -107,7 +107,7 @@ export default class UserController {
     await body('complete_name').notEmpty().withMessage('Complete name is required').run(req);
     await body('role').notEmpty().withMessage('Role is required').run(req);
     // await body('access_apps').notEmpty().withMessage('Access apps is required').run(req);
-    await body('position').notEmpty().withMessage('Position is required').run(req);
+    // await body('position').notEmpty().withMessage('Position is required').run(req);
     await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status must be active or inactive').run(req);
 
     const errors = validationResult(req);

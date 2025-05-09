@@ -43,6 +43,35 @@ export interface ScheduleProps{
     updated_at:Date,
     deleted_at:Date
     }
+export interface AngsuranProps{
+    id:number,
+    jumlah_bayar:number,
+    tanggal_pembayaran:Date,
+    }
+export interface LoanProps{
+    id: number;
+    anggota_id: number;
+    anggota:MemberProps,
+    kode: string;
+    jumlah_pinjaman: number;
+    persen_bunga: number;
+    total_bunga: number;
+    total_pinjaman: number;
+    jumlah_angsuran: number;
+    tanggal_angsuran_pertama: string;
+    modal_do: number;
+    penanggung_jawab: string;
+    penanggungJawab:UserProps,
+    petugas_input: string;
+    petugas:UserProps,
+    sisa_pembayaran: number;
+    besar_tunggakan: number;
+    angsuran:AngsuranProps[];
+    status: 'aktif' | 'lunas' | 'menunggak';
+    created_at: string;
+    updated_at: string;
+    deleted_at?: string | null;
+    }
 export interface MemberProps{
     id:number,
     complete_name:string,

@@ -34,6 +34,11 @@ const navItems: NavItem[] = [
         name: "Dashboard",
         path: "/dashboard"
     },
+    {
+        icon: <GridIcon />,
+        name: "Pinjaman",
+        path: "/loan"
+    },
 ];
 const masterDataItems: NavItem[] = [
     {
@@ -53,12 +58,12 @@ const masterDataItems: NavItem[] = [
     },
     {
         icon: <LocationIcon />,
-        name: "Area",
+        name: "Wilayah",
         path: "/area",
     },
     {
         icon: <LocationIcon />,
-        name: "Group",
+        name: "Kelompok",
         path: "/group",
     },
 ];

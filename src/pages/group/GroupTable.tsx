@@ -49,7 +49,7 @@ const GroupTable: React.FC<GroupTableProps> = ({ data, pagination, setPaginate }
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Area
+                                Wilayah
                             </TableCell>
                             <TableCell
                                 isHeader

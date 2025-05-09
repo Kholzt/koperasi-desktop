@@ -29,6 +29,9 @@ import Schedule from './pages/schedule/Schedule';
 import ScheduleForm from './pages/schedule/ScheduleForm';
 import User from "./pages/user/User";
 import UserForm from './pages/user/UserForm';
+import Loan from './pages/loan/Loan';
+import LoanForm from './pages/loan/LoanForm';
+import LoanDetail from './pages/loan/LoanDetail';
 
 export default function App() {
     return (
@@ -65,6 +68,11 @@ export default function App() {
                         <Route path="/schedule" element={<Schedule />} />
                         <Route path="/schedule/create" element={<ScheduleForm />} />
                         <Route path="/schedule/:id/edit" element={<ScheduleForm />} />
+
+                        <Route path="/loan" element={<Loan />} />
+                        <Route path="/loan/create" element={<LoanForm />} />
+                        <Route path="/loan/:id/edit" element={<LoanForm />} />
+                        <Route path="/loan/:id" element={<LoanDetail />} />
 
                         <Route path="/calendar" element={<Calendar />} />
                         <Route path="/blank" element={<Blank />} />

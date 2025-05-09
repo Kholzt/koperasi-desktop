@@ -22,8 +22,8 @@ interface UserFormInput {
     username: string;
     password: string;
     role: 'staff' | 'controller' | 'pusat';
-    access_apps: 'access' | 'noAccess';
-    position: string;
+    // access_apps: 'access' | 'noAccess';
+    // position: string;
     status: 'aktif' | 'nonAktif';
 }
 

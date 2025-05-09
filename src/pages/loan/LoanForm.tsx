@@ -1,0 +1,276 @@
+import React, { useEffect, useState } from "react";
+
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useForm, useWatch } from "react-hook-form";
+import { Link, useNavigate, useParams } from "react-router";
+import { toast } from 'react-toastify';
+import * as yup from 'yup';
+
+import ComponentCard from "../../components/common/ComponentCard";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
+import Form from "../../components/form/Form";
+import Label from "../../components/form/Label";
+import Select from "../../components/form/Select";
+import Input from "../../components/form/input/InputField";
+import Alert from "../../components/ui/alert/Alert";
+import Button from "../../components/ui/button/Button";
+import { ChevronLeftIcon } from "../../icons";
+import axios from "../../utils/axios";
+import { MemberProps, UserProps } from "../../utils/types";
+import { formatCurrency, unformatCurrency } from "../../utils/helpers";
+import { useUser } from "../../hooks/useUser";
+
+interface LoanFormInput {
+    kode: string;
+    jumlah_pinjaman: string;
+    persen_bunga: string;
+    anggota_id: string;
+    total_pinjaman: string;
+    jumlah_angsuran: string;
+    tanggal_angsuran_pertama?: string;
+    modal_do: string;
+    penanggung_jawab: string;
+    petugas_input: string;
+    sisa_pembayaran: string;
+    besar_tunggakan: string;
+    status: 'aktif' | 'lunas' | 'menunggak';
+}
+
+const schema: yup.SchemaOf<LoanFormInput> = yup.object({
+    kode: yup.string().required('Kode wajib diisi'),
+    jumlah_pinjaman: yup.number().required('Jumlah pinjaman wajib diisi').min(0),
+    persen_bunga: yup.number().required('Persen bunga wajib diisi').min(0).max(100),
+    anggota_id: yup.string().required('Anggota wajib dipilih'),
+    total_pinjaman: yup.number().required(),
+    jumlah_angsuran: yup.number().required(),
+    modal_do: yup.number().required('Modal DO wajib diisi').min(0),
+    penanggung_jawab: yup.string().required('Penanggung jawab wajib diisi'),
+    status: yup.mixed<'aktif' | 'lunas' | 'menunggak'>().oneOf(['aktif', 'lunas', "menunggak"]).required('Status wajib dipilih'),
+});
+
+const LoanForm: React.FC = () => {
+    const [alert, setAlert] = useState("");
+    const [anggota, setAnggota] = useState<{ label: string, value: string }[]>([]);
+    const [users, setUsers] = useState<{ label: string, value: string }[]>([]);
+    const { user } = useUser();
+    const { id } = useParams();
+    const isUpdate = !!id;
+
+    const {
+        register,
+        handleSubmit,
+        setError,
+        reset,
+        watch,
+        setValue,
+        formState: { errors }
+    } = useForm<LoanFormInput>({
+        resolver: yupResolver(schema),
+        defaultValues: {
+            jumlah_angsuran: "0",
+            jumlah_pinjaman: "0",
+            persen_bunga: "30",
+            total_pinjaman: "0",
+            modal_do: "0",
+            sisa_pembayaran: "0",
+            besar_tunggakan: "0",
+            petugas_input: user?.id.toString() ?? ""
+        }
+    });
+
+    const jumlah_pinjaman = watch("jumlah_pinjaman");
+    const persen_bunga = watch("persen_bunga");
+    const anggotaId = watch("anggota_id");
+
+    useEffect(() => {
+        const pinjaman = unformatCurrency(jumlah_pinjaman.toString());
+        const bunga = unformatCurrency(persen_bunga.toString());
+
+        if (!isNaN(pinjaman) && !isNaN(bunga)) {
+            const total = pinjaman + (pinjaman * bunga / 100);
+            const angsuran = total / 10;
+
+            setValue("total_pinjaman", formatCurrency(total, false));
+            setValue("jumlah_angsuran", formatCurrency(angsuran, false));
+            setValue("jumlah_pinjaman", formatCurrency(pinjaman, false));
+            setValue("sisa_pembayaran", formatCurrency(total, false));
+            setValue("besar_tunggakan", "0");
+            setValue("modal_do", formatCurrency((pinjaman * (13 / 100)), false));
+            if (bunga < 0) {
+                setValue("persen_bunga", "0");
+            } else if (bunga > 100) {
+                setValue("persen_bunga", "100");
+            } else {
+                setValue("persen_bunga", bunga.toString());
+            }
+        }
+    }, [jumlah_pinjaman, persen_bunga]);
+    console.log(anggotaId);
+
+    useEffect(() => {
+        if (anggotaId) {
+            axios.get("/api/loans/" + anggotaId + "/code").then(res => {
+                setValue("kode", res.data.code);
+            });
+        }
+    }, [anggotaId]);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (id) {
+            axios.get("/api/loans/" + id).then(res => {
+                reset(res.data.loan);
+            });
+        }
+        axios.get("/api/members?limit=2000").then(res => {
+            setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name, value: member.id })));
+        });
+        axios.get("/api/users?limit=2000").then(res => {
+            setUsers(res.data.users.map((user: UserProps) => ({ label: user.complete_name, value: user.id })));
+        });
+    }, []);
+
+    const onSubmit = async (data: LoanFormInput) => {
+        try {
+            let res;
+            if (!id) {
+                res = await axios.post("/api/loans", data);
+            } else {
+                res = await axios.put("/api/loans/" + id, data);
+            }
+
+            if (res.status === 201 || res.status === 200) {
+                toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
+                navigate("/loan");
+            }
+        } catch (error: any) {
+            console.error(error);
+            if (error.status === 400 && error.response.data.errors) {
+                Object.keys(error.response.data.errors).forEach((key: any) => {
+                    setError(key as any, {
+                        type: 'manual',
+                        message: error.response.data.errors[key],
+                    });
+                });
+            } else {
+                setAlert("Terjadi kesalahan dengan server");
+            }
+        }
+    };
+
+    return (
+        <>
+            <PageMeta title={`${!id ? "Tambah Peminjaman" : "Ubah Peminjaman"} | ${import.meta.env.VITE_APP_NAME}`} description="" />
+            <PageBreadcrumb pageTitle={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"} />
+            <div className="w-full mx-auto mb-2">
+                <Link to="/loan" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                    <ChevronLeftIcon className="size-5" />
+                    Kembali ke Peminjaman
+                </Link>
+            </div>
+
+            <div className="space-y-6">
+                {alert && <Alert variant="error" title="Pemberitahuan" message={alert} />}
+
+                <ComponentCard title={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"}>
+                    <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                        <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
+                            <div className="md:col-span-2">
+                                <Label htmlFor="kode">Kode</Label>
+                                <Input readOnly id="kode" {...register("kode")} placeholder="Masukkan kode pinjaman" />
+                                {errors.kode && <p className="text-sm text-red-500 mt-1">{errors.kode.message}</p>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="jumlah_pinjaman">Jumlah Pinjaman</Label>
+                                <div className="relative">
+                                    <Input id="jumlah_pinjaman" type="text" {...register("jumlah_pinjaman")} className="pl-[62px]" />
+                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                        Rp
+                                    </span>
+                                </div>
+                                {errors.jumlah_pinjaman && <p className="text-sm text-red-500 mt-1">{errors.jumlah_pinjaman.message}</p>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="persen_bunga">Persen Bunga (%)</Label>
+                                <div className="relative">
+                                    <Input id="persen_bunga" maxLength={3} type="text" {...register("persen_bunga")} className="pl-[62px]" />
+                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                        %
+                                    </span>
+                                </div>
+                                {errors.persen_bunga && <p className="text-sm text-red-500 mt-1">{errors.persen_bunga.message}</p>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="total_pinjaman">Total Pinjaman</Label>
+                                <div className="relative">
+                                    <Input id="total_pinjaman" type="text" readOnly {...register("total_pinjaman")} className="pl-[62px]" />
+                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                        Rp
+                                    </span>
+                                </div>
+                                {errors.total_pinjaman && <p className="text-sm text-red-500 mt-1">{errors.total_pinjaman.message}</p>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="jumlah_angsuran">Jumlah Angsuran</Label>
+                                <div className="relative">
+                                    <Input id="jumlah_angsuran" type="text" readOnly {...register("jumlah_angsuran")} className="pl-[62px]" />
+                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                        Rp
+                                    </span>
+                                </div>
+                                {errors.jumlah_angsuran && <p className="text-sm text-red-500 mt-1">{errors.jumlah_angsuran.message}</p>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="modal_do">Modal DO</Label>
+                                <div className="relative">
+                                    <Input id="modal_do" type="text" {...register("modal_do")} className="pl-[62px]" />
+                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                        Rp
+                                    </span>
+                                </div>
+                                {errors.modal_do && <p className="text-sm text-red-500 mt-1">{errors.modal_do.message}</p>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="anggota_id">Anggota</Label>
+                                <Select options={anggota} {...register("anggota_id")} placeholder="Pilih anggota" />
+                                {errors.anggota_id && <p className="text-sm text-red-500 mt-1">{errors.anggota_id.message}</p>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="penanggung_jawab">Penanggung Jawab</Label>
+                                <Select options={users} {...register("penanggung_jawab")} placeholder="Pilih penanggung jawab" />
+                                {errors.penanggung_jawab && <p className="text-sm text-red-500 mt-1">{errors.penanggung_jawab.message}</p>}
+                            </div>
+
+
+                            <div>
+                                <Label htmlFor="status">Status</Label>
+                                <Select
+                                    {...register("status")}
+                                    options={[
+                                        { label: "Aktif", value: "aktif" },
+                                        { label: "Lunas", value: "lunas" },
+                                        { label: "Menunggak", value: "menunggak" }
+                                    ]}
+                                    placeholder="Pilih status"
+                                />
+                                {errors.status && <p className="text-sm text-red-500 mt-1">{errors.status.message}</p>}
+                            </div>
+                        </div>
+
+                        <Button size="sm">Simpan</Button>
+                    </Form>
+                </ComponentCard>
+            </div>
+        </>
+    );
+};
+
+export default LoanForm;

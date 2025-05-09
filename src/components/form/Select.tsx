@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEventHandler, useState } from "react";
 
 interface Option {
     value: string;
@@ -8,7 +8,7 @@ interface Option {
 interface SelectProps {
     options: Option[];
     placeholder?: string;
-    onChange: (value: string) => void;
+    onChange: ChangeEventHandler<HTMLSelectElement>;
     className?: string;
     defaultValue?: string | String;
     value?: string | String;
@@ -26,6 +26,7 @@ const Select: React.FC<SelectProps> = ({
     return (
         <select
             {...rest}
+            onChange={onChange}
             className={`h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 text-gray-800  ${className}`}
 
         >

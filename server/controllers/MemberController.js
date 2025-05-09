@@ -83,6 +83,7 @@ export default class MemberController {
   }
 
 
+
   static async store(req, res) {
     await body("complete_name").notEmpty().withMessage("Nama wajib diisi").run(req);
     await body("area_id").notEmpty().withMessage("Area wajib diisi").run(req);

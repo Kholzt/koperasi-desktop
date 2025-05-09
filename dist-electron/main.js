@@ -48302,7 +48302,7 @@ class UserController {
       const { page = 1, limit = 10, search = "" } = req.query;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       const [users] = await pool.query(
-        `SELECT * FROM users   WHERE deleted_at is null AND complete_name like ? ORDER BY id AND access_apps = ? DESC LIMIT ? OFFSET ?`,
+        `SELECT * FROM users   WHERE deleted_at is null AND complete_name like ?  AND access_apps = ? ORDER BY id DESC LIMIT ? OFFSET ?`,
         [`%${search}%`, "access", parseInt(limit), offset]
       );
       const [[{ total }]] = await pool.query("SELECT COUNT(*) as total FROM users WHERE deleted_at is null AND complete_name like ? AND access_apps = ?", [`%${search}%`, "access"]);
@@ -48342,7 +48342,6 @@ class UserController {
     await libExports$1.body("username").notEmpty().withMessage("Username is required").run(req);
     await libExports$1.body("complete_name").notEmpty().withMessage("Complete name is required").run(req);
     await libExports$1.body("role").notEmpty().withMessage("Role is required").run(req);
-    await libExports$1.body("position").notEmpty().withMessage("Position is required").run(req);
     await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
     await libExports$1.body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters long").run(req);
     const errors2 = libExports$1.validationResult(req);
@@ -48379,7 +48378,6 @@ class UserController {
     await libExports$1.body("username").notEmpty().withMessage("Username is required").run(req);
     await libExports$1.body("complete_name").notEmpty().withMessage("Complete name is required").run(req);
     await libExports$1.body("role").notEmpty().withMessage("Role is required").run(req);
-    await libExports$1.body("position").notEmpty().withMessage("Position is required").run(req);
     await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
@@ -49507,6 +49505,222 @@ class ScheduleController {
     }
   }
 }
+class LoanController {
+  // Menampilkan daftar area dengan pagination
+  static async index(req, res) {
+    try {
+      const { page = 1, limit = 10, search = "" } = req.query;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+      const [loans] = await pool.query(
+        `SELECT pinjaman.*,JSON_OBJECT('complete_name', members.complete_name) as anggota FROM pinjaman JOIN members ON pinjaman.anggota_id = members.id WHERE pinjaman.deleted_at is null ORDER BY pinjaman.id  DESC LIMIT ? OFFSET ?`,
+        [parseInt(limit), offset]
+      );
+      const [[{ total }]] = await pool.query("SELECT COUNT(*) as total FROM pinjaman WHERE deleted_at is null");
+      res.status(200).json({
+        loans,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  // Menampilkan detail area berdasarkan ID
+  static async show(req, res) {
+    try {
+      const { id } = req.params;
+      const [rows] = await pool.query(
+        `SELECT
+            pinjaman.*,
+            members.complete_name AS anggota_nama,
+            pj.complete_name AS pj_nama,
+            pit.complete_name AS pit_nama,
+            angsuran.jumlah_bayar,
+            angsuran.tanggal_pembayaran
+         FROM pinjaman
+         JOIN members ON pinjaman.anggota_id = members.id
+         JOIN users AS pj ON pinjaman.penanggung_jawab = pj.id
+         JOIN users AS pit ON pinjaman.petugas_input = pit.id
+         JOIN angsuran ON pinjaman.id = angsuran.id_pinjaman
+         WHERE pinjaman.deleted_at IS NULL AND pinjaman.id = ?
+         ORDER BY pinjaman.id
+        `,
+        [id]
+      );
+      const map = /* @__PURE__ */ new Map();
+      for (const row of rows) {
+        if (!map.has(row.id)) {
+          map.set(row.id, {
+            ...row,
+            anggota: {
+              complete_name: row.anggota_nama
+            },
+            penanggungJawab: {
+              complete_name: row.pj_nama
+            },
+            petugas: {
+              complete_name: row.pit_nama
+            },
+            angsuran: []
+          });
+        }
+        const pinjaman = map.get(row.id);
+        pinjaman.angsuran.push({
+          jumlah_bayar: row.jumlah_bayar,
+          tanggal_pembayaran: row.tanggal_pembayaran
+        });
+      }
+      const loan = Array.from(map.values());
+      res.status(200).json({
+        loan: loan[0]
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while retrieving the area." });
+    }
+  }
+  static async getCode(req, res) {
+    try {
+      const { id } = req.params;
+      const [rows] = await pool.query(
+        `SELECT * FROM pinjaman WHERE  anggota_id = ? `,
+        [id]
+      );
+      const [member] = await pool.query(
+        `SELECT sequence_number FROM members WHERE id = ? `,
+        [id]
+      );
+      let num = rows.length + 1;
+      const roman = [
+        ["M", 1e3],
+        ["CM", 900],
+        ["D", 500],
+        ["CD", 400],
+        ["C", 100],
+        ["XC", 90],
+        ["L", 50],
+        ["XL", 40],
+        ["X", 10],
+        ["IX", 9],
+        ["V", 5],
+        ["IV", 4],
+        ["I", 1]
+      ];
+      let result = "";
+      for (const [letter, value] of roman) {
+        while (num >= value) {
+          result += letter;
+          num -= value;
+        }
+      }
+      const romanLength = result;
+      const code = `${romanLength}/${member[0].sequence_number}`;
+      res.status(200).json({
+        code
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while retrieving the area." + error.message });
+    }
+  }
+  // Menyimpan area baru dengan validasi dan enkripsi password
+  static async store(req, res) {
+    await libExports$1.body("area_name").notEmpty().withMessage("Nama Area wajib diisi").run(req);
+    await libExports$1.body("city").notEmpty().withMessage("Kota wajib diisi").run(req);
+    await libExports$1.body("subdistrict").notEmpty().withMessage("Kecamatan wajib diisi").run(req);
+    await libExports$1.body("village").notEmpty().withMessage("Desa wajib diisi").run(req);
+    await libExports$1.body("address").notEmpty().withMessage("Alamat wajib diisi").run(req);
+    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    const errors2 = libExports$1.validationResult(req);
+    if (!errors2.isEmpty()) {
+      const formattedErrors = errors2.array().reduce((acc, error) => {
+        acc[error.param] = error.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formattedErrors });
+    }
+    try {
+      const { area_name, city, subdistrict, village, address, status } = req.body;
+      const [existingArea] = await pool.query("SELECT * FROM areas WHERE area_name = ?", [area_name]);
+      if (existingArea.length > 0) {
+        return res.status(400).json({ errors: { area_name: "Nama area sudah ada" } });
+      }
+      const result = await pool.query(
+        "INSERT INTO areas (area_name, city, subdistrict, village, address, status) VALUES (?, ?, ?, ?, ?, ?)",
+        [area_name, city, subdistrict, village, address, status]
+      );
+      const newArea = await pool.query("SELECT * FROM areas WHERE id = ?", [result.insertId]);
+      res.status(201).json({
+        message: "Area berhasil dibuat",
+        area: newArea[0]
+        // Mengembalikan data area yang baru saja dibuat
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while creating the area." + error.message });
+    }
+  }
+  // Mengupdate data area dengan pengecekan dan enkripsi password jika ada perubahan
+  static async update(req, res) {
+    await libExports$1.body("area_name").notEmpty().withMessage("Nama Area wajib diisi").run(req);
+    await libExports$1.body("city").notEmpty().withMessage("Kota wajib diisi").run(req);
+    await libExports$1.body("subdistrict").notEmpty().withMessage("Kecamatan wajib diisi").run(req);
+    await libExports$1.body("village").notEmpty().withMessage("Desa wajib diisi").run(req);
+    await libExports$1.body("address").notEmpty().withMessage("Alamat wajib diisi").run(req);
+    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    const errors2 = libExports$1.validationResult(req);
+    if (!errors2.isEmpty()) {
+      const formattedErrors = errors2.array().reduce((acc, error) => {
+        acc[error.param] = error.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formattedErrors });
+    }
+    try {
+      const { id } = req.params;
+      const { area_name, city, subdistrict, village, address, status } = req.body;
+      const [existingArea] = await pool.query("SELECT * FROM areas WHERE id = ?", [id]);
+      if (!existingArea || existingArea.length === 0) {
+        return res.status(404).json({ error: "Area tidak ditemukan" });
+      }
+      const [areaByAreaName] = await pool.query("SELECT * FROM areas WHERE area_name = ? AND id <> ?", [area_name, id]);
+      if (areaByAreaName.length > 0) {
+        return res.status(400).json({ errors: { area_name: "Nama area sudah terdaftar" } });
+      }
+      let updateData = [area_name, city, subdistrict, village, address, status, id];
+      await pool.query(
+        `UPDATE areas SET area_name = ?, city = ?, subdistrict = ?, village = ?, address = ?, status = ?  WHERE id = ?`,
+        updateData
+      );
+      res.status(201).json({ message: "Area updated successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while updating the area." });
+    }
+  }
+  // Menampilkan detail area berdasarkan ID
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const [area] = await pool.query(
+        "SELECT * FROM areas WHERE id = ?",
+        [id]
+      );
+      if (!area || area.length === 0) {
+        return res.status(404).json({ error: "Area tidak ditemukan" });
+      }
+      await pool.query(
+        `UPDATE areas SET deleted_at = ? WHERE id = ${id}`,
+        /* @__PURE__ */ new Date()
+      );
+      res.status(200).json({
+        area: area[0]
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while retrieving the area." });
+    }
+  }
+}
 const app = express();
 const port = "5000";
 app.use(cors());
@@ -49551,6 +49765,12 @@ app.post("/api/schedule", ScheduleController.store);
 app.get("/api/schedule/:id", ScheduleController.show);
 app.put("/api/schedule/:id", ScheduleController.update);
 app.delete("/api/schedule/:id", ScheduleController.delete);
+app.get("/api/loans", LoanController.index);
+app.post("/api/loans", LoanController.store);
+app.get("/api/loans/:id", LoanController.show);
+app.get("/api/loans/:id/code", LoanController.getCode);
+app.put("/api/loans/:id", LoanController.update);
+app.delete("/api/loans/:id", LoanController.delete);
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
@@ -51718,6 +51938,7 @@ const size = {
 function createWindow() {
   win = new BrowserWindow({
     ...size,
+    titleBarStyle: "hidden",
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       preload: path.join(__dirname$1, "preload.mjs")

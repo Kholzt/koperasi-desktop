@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { toast } from 'react-toastify';
+import Pagination from '../../components/tables/BasicTables/Pagination';
 import Badge from "../../components/ui/badge/Badge";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../components/ui/dropdown/DropdownItem";
@@ -15,17 +16,20 @@ import { useTheme } from "../../context/ThemeContext";
 import { useModal } from "../../hooks/useModal";
 import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { PaginationProps, UserProps } from "../../utils/types";
-import Pagination from './../../components/tables/BasicTables/Pagination';
+import { LoanProps, PaginationProps } from "../../utils/types";
+import { formatCurrency, formatLongDate } from "../../utils/helpers";
+
 // import { toast } from 'react-hot-toast';
-interface UserTableProps {
-    data: UserProps[],
+interface LoanTableProps {
+    data: LoanProps[],
     pagination: PaginationProps,
     setPaginate: (page: number) => void
 }
 
-const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) => {
+const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
+    console.log(data);
+
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
 
@@ -44,25 +48,37 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Nama
+                                Nama Anggota
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Role
+                                Jumlah Pinjaman
                             </TableCell>
-                            {/* <TableCell
+                            <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Posisi
-                            </TableCell> */}
+                                Sisa Pembayaran
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                Tunggakan
+                            </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
                                 Status
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                Tanggal Peminjaman
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -75,7 +91,7 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
 
                     {/* Table Body */}
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                        {data.map((user: UserProps, index: number) => (
+                        {data.map((user: LoanProps, index: number) => (
                             <TableRow key={user.id}>
                                 <TableCell className="px-5 py-4 sm:px-6 text-start">
                                     <div className="flex items-center gap-3">
@@ -87,18 +103,23 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    {user.complete_name}
+                                    {user.anggota.complete_name}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.role}
+                                        {formatCurrency(user.jumlah_pinjaman)}
                                     </span>
                                 </TableCell>
-                                {/* <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.position}
+                                        {formatCurrency(user.sisa_pembayaran)}
                                     </span>
-                                </TableCell> */}
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {formatCurrency(user.besar_tunggakan)}
+                                    </span>
+                                </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
                                     <Badge
                                         size="sm"
@@ -107,8 +128,14 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
                                         {user.status}
                                     </Badge>
                                 </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {formatLongDate(user.created_at)}
+                                    </span>
+                                </TableCell>
+
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Action id={user.id} complete_name={user.complete_name} />
+                                    <Action id={user.id} area_name={user.anggota.complete_name} />
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -123,7 +150,7 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
 
 
 
-function Action({ id, complete_name }: { id: number, complete_name: string }) {
+function Action({ id, area_name }: { id: number, area_name: string }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const openDropdown = () => setIsOpenDropdown(true);
     const closeDropdown = () => setIsOpenDropdown(false);
@@ -131,8 +158,8 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
     const { setReload, reload } = useTheme();
     const deleteAction = async () => {
         try {
-            let res = await axios.delete("/api/users/" + id);
-            toast.success("Pengguna berhasil dihapus")
+            let res = await axios.delete("/api/loads/" + id);
+            toast.success("Loan berhasil dihapus")
             setReload(!reload);
             closeModal();
         } catch (error: any) {
@@ -156,7 +183,7 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
                     <DropdownItem
                         onItemClick={closeDropdown}
                         tag="a"
-                        to={`/user/${id}/edit`}
+                        to={`/loan/${id}/edit`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                         <PencilIcon fontSize={20} />
@@ -165,9 +192,31 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
                 </li>
                 <li>
                     <DropdownItem
+                        onItemClick={closeDropdown}
+                        tag="a"
+                        to={`/loan/${id}`}
+                        className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                    >
+                        <PencilIcon fontSize={20} />
+                        Detail
+                    </DropdownItem>
+                </li>
+                <li>
+                    <DropdownItem
+                        onItemClick={closeDropdown}
+                        tag="a"
+                        to={`/loan/${id}/edit`}
+                        className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                    >
+                        <PencilIcon fontSize={20} />
+                        Angsuran
+                    </DropdownItem>
+                </li>
+                <li>
+                    <DropdownItem
                         onItemClick={openModal}
                         tag="button"
-                        to={`/user/${id}/edit`}
+                        to={`/loan/${id}/edit`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                         <TrashBinIcon fontSize={20} />
@@ -183,13 +232,13 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
             onClose={closeModal}
             className="max-w-[600px] p-6 lg:p-10"
         >
-            <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
+            <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar normal-case">
                 <div>
                     <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
                         Pemberitahuan
                     </h5>
-                    <p className="text-base text-gray-800 dark:text-gray-400">
-                        Apakah Anda yakin untuk menghapus pengguna {complete_name}?
+                    <p className="text-base text-gray-800 dark:text-gray-400 ">
+                        Apakah Anda yakin untuk menghapus area {area_name}?
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                         Data yang dihapus dapat dikembalikan nanti
@@ -215,4 +264,4 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
         </Modal>
     </div>
 }
-export default UserTable;
+export default LoanTable;

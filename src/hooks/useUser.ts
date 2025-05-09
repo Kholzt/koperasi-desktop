@@ -16,5 +16,8 @@ export function useUser() {
     const saveUser = (data:any)=>{
         localStorage.setItem("userLogin", JSON.stringify(data));
     }
-    return {user,saveUser};
+    const removeUser = ()=>{
+        localStorage.clear();
+    }
+    return {user,saveUser,removeUser};
   }
