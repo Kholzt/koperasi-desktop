@@ -133,52 +133,52 @@ const othersItems: NavItem[] = [
         //     { name: "Bar Chart", path: "/bar-chart", pro: false },
         // ],
     },
-    {
-        icon: <PieChartIcon />,
-        name: "Charts",
-        subItems: [
-            { name: "Line Chart", path: "/line-chart", pro: false },
-            { name: "Bar Chart", path: "/bar-chart", pro: false },
-        ],
-    },
-    {
-        icon: <BoxCubeIcon />,
-        name: "UI Elements",
-        subItems: [
-            { name: "Alerts", path: "/alerts", pro: false },
-            { name: "Avatar", path: "/avatars", pro: false },
-            { name: "Badge", path: "/badge", pro: false },
-            { name: "Buttons", path: "/buttons", pro: false },
-            { name: "Images", path: "/images", pro: false },
-            { name: "Videos", path: "/videos", pro: false },
-        ],
-    },
-    {
-        icon: <PlugInIcon />,
-        name: "Authentication",
-        subItems: [
-            { name: "Sign In", path: "/signin", pro: false },
-            { name: "Sign Up", path: "/signup", pro: false },
-        ],
-    },
-    {
-        name: "Forms",
-        icon: <ListIcon />,
-        subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-    },
-    {
-        name: "Tables",
-        icon: <TableIcon />,
-        subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-    },
-    {
-        name: "Pages",
-        icon: <PageIcon />,
-        subItems: [
-            { name: "Blank Page", path: "/blank", pro: false },
-            { name: "404 Error", path: "/error-404", pro: false },
-        ],
-    },
+    // {
+    //     icon: <PieChartIcon />,
+    //     name: "Charts",
+    //     subItems: [
+    //         { name: "Line Chart", path: "/line-chart", pro: false },
+    //         { name: "Bar Chart", path: "/bar-chart", pro: false },
+    //     ],
+    // },
+    // {
+    //     icon: <BoxCubeIcon />,
+    //     name: "UI Elements",
+    //     subItems: [
+    //         { name: "Alerts", path: "/alerts", pro: false },
+    //         { name: "Avatar", path: "/avatars", pro: false },
+    //         { name: "Badge", path: "/badge", pro: false },
+    //         { name: "Buttons", path: "/buttons", pro: false },
+    //         { name: "Images", path: "/images", pro: false },
+    //         { name: "Videos", path: "/videos", pro: false },
+    //     ],
+    // },
+    // {
+    //     icon: <PlugInIcon />,
+    //     name: "Authentication",
+    //     subItems: [
+    //         { name: "Sign In", path: "/signin", pro: false },
+    //         { name: "Sign Up", path: "/signup", pro: false },
+    //     ],
+    // },
+    // {
+    //     name: "Forms",
+    //     icon: <ListIcon />,
+    //     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    // },
+    // {
+    //     name: "Tables",
+    //     icon: <TableIcon />,
+    //     subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
+    // },
+    // {
+    //     name: "Pages",
+    //     icon: <PageIcon />,
+    //     subItems: [
+    //         { name: "Blank Page", path: "/blank", pro: false },
+    //         { name: "404 Error", path: "/error-404", pro: false },
+    //     ],
+    // },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -382,7 +382,8 @@ const AppSidebar: React.FC = () => {
                     }`}
             >
                 <Link to="/">
-                    {isExpanded || isHovered || isMobileOpen ? (
+                    {/* Koperasi */}
+                    {/* {isExpanded || isHovered || isMobileOpen ? (
                         <>
                             <img
                                 className="dark:hidden"
@@ -406,7 +407,7 @@ const AppSidebar: React.FC = () => {
                             width={32}
                             height={32}
                         />
-                    )}
+                    )} */}
                 </Link>
             </div>
             <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
@@ -450,7 +451,7 @@ const AppSidebar: React.FC = () => {
                                     }`}
                             >
                                 {isExpanded || isHovered || isMobileOpen ? (
-                                    "Others"
+                                    "Pengaturan"
                                 ) : (
                                     <HorizontaLDots />
                                 )}
