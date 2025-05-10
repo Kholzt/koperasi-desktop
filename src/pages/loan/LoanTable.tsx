@@ -158,12 +158,12 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
     const { setReload, reload } = useTheme();
     const deleteAction = async () => {
         try {
-            let res = await axios.delete("/api/loads/" + id);
-            toast.success("Loan berhasil dihapus")
+            let res = await axios.delete("/api/loans/" + id);
+            toast.success("Pinjaman berhasil dihapus")
             setReload(!reload);
             closeModal();
         } catch (error: any) {
-
+            toast.error("Pinjaman gagal dihapus")
         }
     }
     return <div className="">
@@ -238,7 +238,7 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
                         Pemberitahuan
                     </h5>
                     <p className="text-base text-gray-800 dark:text-gray-400 ">
-                        Apakah Anda yakin untuk menghapus area {area_name}?
+                        Apakah Anda yakin untuk menghapus pinjaman {area_name}?
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                         Data yang dihapus dapat dikembalikan nanti

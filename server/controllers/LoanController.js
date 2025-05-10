@@ -278,7 +278,7 @@ export default class LoanController {
         try {
             const { id } = req.params;
             const [pinjaman] = await db.query(
-                'SELECT * FROM  pinjaman id = ?',
+                'SELECT * FROM  pinjaman WHERE id = ?',
                 [id]
             );
             if (!pinjaman || pinjaman.length === 0) {
@@ -293,7 +293,7 @@ export default class LoanController {
                 pinjaman: pinjaman[0],
             });
         } catch (error) {
-            res.status(500).json({ error: 'An error occurred while retrieving the area.' });
+            res.status(500).json({ error: 'An error occurred while retrieving the pinjaman.' ,errorss:error});
         }
     }
 }

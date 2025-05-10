@@ -49797,7 +49797,7 @@ class LoanController {
     try {
       const { id } = req.params;
       const [pinjaman] = await pool.query(
-        "SELECT * FROM  pinjaman id = ?",
+        "SELECT * FROM  pinjaman WHERE id = ?",
         [id]
       );
       if (!pinjaman || pinjaman.length === 0) {
@@ -49811,7 +49811,7 @@ class LoanController {
         pinjaman: pinjaman[0]
       });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred while retrieving the area." });
+      res.status(500).json({ error: "An error occurred while retrieving the pinjaman.", errorss: error });
     }
   }
 }
