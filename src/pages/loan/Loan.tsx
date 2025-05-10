@@ -49,7 +49,7 @@ const Loan: React.FC = () => {
             <div className="space-y-6">
                 <ComponentCard title="Peminjaman" option={
                     <div className="flex gap-4">
-                        <div className="relative">
+                        {/* <div className="relative">
                             <Input
                                 onChange={searchAction}
                                 placeholder="Pencarian"
@@ -59,11 +59,12 @@ const Loan: React.FC = () => {
                             <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
                                 <SearchIcon className="size-6 text-gray-600" fill="#787878" color="#fff" />
                             </span>
-                        </div>
+                        </div> */}
                         <Link to={"/loan/create"}>
                             <Button size="sm">
                                 Tambah Peminjaman
-                            </Button></Link></div>}>
+                            </Button></Link></div>}
+                >
                     <Table
                         pagination={pagination}
                         data={areas}

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router";
-import { toast } from 'react-toastify';
 import * as yup from 'yup';
 
 import ComponentCard from "../../components/common/ComponentCard";
@@ -15,23 +14,26 @@ import Select from "../../components/form/Select";
 import Input from "../../components/form/input/InputField";
 import Alert from "../../components/ui/alert/Alert";
 import Button from "../../components/ui/button/Button";
+import { useUser } from "../../hooks/useUser";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { MemberProps, UserProps } from "../../utils/types";
 import { formatCurrency, unformatCurrency } from "../../utils/helpers";
-import { useUser } from "../../hooks/useUser";
+import { MemberProps, UserProps } from "../../utils/types";
+import { toast } from "react-toastify";
 
 interface LoanFormInput {
     kode: string;
     jumlah_pinjaman: string;
     persen_bunga: string;
+    total_bunga: string;
     anggota_id: string;
     total_pinjaman: string;
+    total_pinjaman_diterima: string;
     jumlah_angsuran: string;
     tanggal_angsuran_pertama?: string;
     modal_do: string;
     penanggung_jawab: string;
-    petugas_input: string;
+    petugas_input: number;
     sisa_pembayaran: string;
     besar_tunggakan: string;
     status: 'aktif' | 'lunas' | 'menunggak';
@@ -39,14 +41,19 @@ interface LoanFormInput {
 
 const schema: yup.SchemaOf<LoanFormInput> = yup.object({
     kode: yup.string().required('Kode wajib diisi'),
-    jumlah_pinjaman: yup.number().required('Jumlah pinjaman wajib diisi').min(0),
+    jumlah_pinjaman: yup.string().required('Jumlah pinjaman wajib diisi').min(0),
+    total_pinjaman_diterima: yup.string().required('Jumlah pinjaman wajib diisi').min(0),
     persen_bunga: yup.number().required('Persen bunga wajib diisi').min(0).max(100),
+    total_bunga: yup.string().required('Total bunga wajib diisi').min(0).max(100),
     anggota_id: yup.string().required('Anggota wajib dipilih'),
-    total_pinjaman: yup.number().required(),
-    jumlah_angsuran: yup.number().required(),
-    modal_do: yup.number().required('Modal DO wajib diisi').min(0),
-    penanggung_jawab: yup.string().required('Penanggung jawab wajib diisi'),
-    status: yup.mixed<'aktif' | 'lunas' | 'menunggak'>().oneOf(['aktif', 'lunas', "menunggak"]).required('Status wajib dipilih'),
+    total_pinjaman: yup.string().required(),
+    jumlah_angsuran: yup.string().required(),
+    modal_do: yup.string().required('Modal DO wajib diisi').min(0),
+    penanggung_jawab: yup.string().required('Penanggung jawab wajib dipilih'),
+    status: yup
+        .mixed<'aktif' | 'lunas' | 'menunggak'>()
+        .oneOf(['aktif', 'lunas', 'menunggak'], 'Status harus salah satu dari: aktif, lunas, atau menunggak')
+        .required('Status wajib dipilih'),
 });
 
 const LoanForm: React.FC = () => {
@@ -74,8 +81,7 @@ const LoanForm: React.FC = () => {
             total_pinjaman: "0",
             modal_do: "0",
             sisa_pembayaran: "0",
-            besar_tunggakan: "0",
-            petugas_input: user?.id.toString() ?? ""
+            besar_tunggakan: "0"
         }
     });
 
@@ -88,15 +94,18 @@ const LoanForm: React.FC = () => {
         const bunga = unformatCurrency(persen_bunga.toString());
 
         if (!isNaN(pinjaman) && !isNaN(bunga)) {
-            const total = pinjaman + (pinjaman * bunga / 100);
+            const totalBunga = (pinjaman * bunga / 100);
+            const total = pinjaman + totalBunga;
             const angsuran = total / 10;
+            const modalDo = (pinjaman * (13 / 100));
+            const totalTerima = pinjaman - modalDo;
 
             setValue("total_pinjaman", formatCurrency(total, false));
             setValue("jumlah_angsuran", formatCurrency(angsuran, false));
             setValue("jumlah_pinjaman", formatCurrency(pinjaman, false));
-            setValue("sisa_pembayaran", formatCurrency(total, false));
-            setValue("besar_tunggakan", "0");
-            setValue("modal_do", formatCurrency((pinjaman * (13 / 100)), false));
+            setValue("total_bunga", formatCurrency(totalBunga, false));
+            setValue("total_pinjaman_diterima", formatCurrency(totalTerima, false));
+            setValue("modal_do", formatCurrency(modalDo, false));
             if (bunga < 0) {
                 setValue("persen_bunga", "0");
             } else if (bunga > 100) {
@@ -106,8 +115,8 @@ const LoanForm: React.FC = () => {
             }
         }
     }, [jumlah_pinjaman, persen_bunga]);
-    console.log(anggotaId);
 
+    //get code peminjaman
     useEffect(() => {
         if (anggotaId) {
             axios.get("/api/loans/" + anggotaId + "/code").then(res => {
@@ -120,7 +129,8 @@ const LoanForm: React.FC = () => {
     useEffect(() => {
         if (id) {
             axios.get("/api/loans/" + id).then(res => {
-                reset(res.data.loan);
+                const loan = res.data.loan
+                reset(loan);
             });
         }
         axios.get("/api/members?limit=2000").then(res => {
@@ -133,6 +143,15 @@ const LoanForm: React.FC = () => {
 
     const onSubmit = async (data: LoanFormInput) => {
         try {
+            data.besar_tunggakan = unformatCurrency(data.besar_tunggakan).toString();
+            data.jumlah_angsuran = unformatCurrency(data.jumlah_angsuran).toString();
+            data.jumlah_pinjaman = unformatCurrency(data.jumlah_pinjaman).toString();
+            data.total_pinjaman = unformatCurrency(data.total_pinjaman).toString();
+            data.total_pinjaman_diterima = unformatCurrency(data.total_pinjaman_diterima).toString();
+            data.total_bunga = unformatCurrency(data.total_bunga).toString();
+            data.petugas_input = user?.id ?? 1;
+            console.log(data);
+
             let res;
             if (!id) {
                 res = await axios.post("/api/loans", data);
@@ -172,7 +191,6 @@ const LoanForm: React.FC = () => {
 
             <div className="space-y-6">
                 {alert && <Alert variant="error" title="Pemberitahuan" message={alert} />}
-
                 <ComponentCard title={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
@@ -203,12 +221,32 @@ const LoanForm: React.FC = () => {
                                 </div>
                                 {errors.persen_bunga && <p className="text-sm text-red-500 mt-1">{errors.persen_bunga.message}</p>}
                             </div>
+                            <div>
+                                <Label htmlFor="persen_bunga">Total Bunga</Label>
+                                <div className="relative">
+                                    <Input readOnly id="total_bunga" maxLength={3} type="text" {...register("total_bunga")} className="pl-[62px]" />
+                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                        %
+                                    </span>
+                                </div>
+                                {errors.total_bunga && <p className="text-sm text-red-500 mt-1">{errors.total_bunga.message}</p>}
+                            </div>
 
+                            <div>
+                                <Label htmlFor="total_pinjaman">Total Pinjaman Diterima</Label>
+                                <div className="relative">
+                                    <Input hint="Total pinjaman yang diterima anggota" id="total_pinjaman_diterima" type="text" readOnly {...register("total_pinjaman_diterima")} className="pl-[62px]" />
+                                    <span className="absolute left-0 top-[35%] -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                        Rp
+                                    </span>
+                                </div>
+                                {errors.total_pinjaman_diterima && <p className="text-sm text-red-500 mt-1">{errors.total_pinjaman_diterima.message}</p>}
+                            </div>
                             <div>
                                 <Label htmlFor="total_pinjaman">Total Pinjaman</Label>
                                 <div className="relative">
-                                    <Input id="total_pinjaman" type="text" readOnly {...register("total_pinjaman")} className="pl-[62px]" />
-                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                    <Input hint="Total pinjaman yang harus dikembalikan anggota" id="total_pinjaman" type="text" readOnly {...register("total_pinjaman")} className="pl-[62px]" />
+                                    <span className="absolute left-0 top-[35%] -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
                                         Rp
                                     </span>
                                 </div>
@@ -229,7 +267,7 @@ const LoanForm: React.FC = () => {
                             <div>
                                 <Label htmlFor="modal_do">Modal DO</Label>
                                 <div className="relative">
-                                    <Input id="modal_do" type="text" {...register("modal_do")} className="pl-[62px]" />
+                                    <Input readOnly id="modal_do" type="text" {...register("modal_do")} className="pl-[62px]" />
                                     <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
                                         Rp
                                     </span>

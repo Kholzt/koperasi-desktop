@@ -57,6 +57,7 @@ export interface LoanProps{
     persen_bunga: number;
     total_bunga: number;
     total_pinjaman: number;
+    total_pinjaman_diterima: number;
     jumlah_angsuran: number;
     tanggal_angsuran_pertama: string;
     modal_do: number;
