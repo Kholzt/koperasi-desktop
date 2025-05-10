@@ -62,7 +62,7 @@ const masterDataItems: NavItem[] = [
         path: "/area",
     },
     {
-        icon: <LocationIcon />,
+        icon: <GroupIcon />,
         name: "Kelompok",
         path: "/group",
     },

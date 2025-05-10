@@ -54,6 +54,18 @@ export default class GroupController {
       res.status(500).json({ error: error.message });
     }
   }
+  static async count(req, res) {
+    try {
+      const [[{ total }]] = await db.query(
+        "SELECT COUNT(*) as total FROM `groups` WHERE deleted_at IS NULL "
+      );
+      res.status(200).json({
+        total,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 
   static async show(req, res) {
     try {

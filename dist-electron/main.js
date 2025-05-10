@@ -48774,6 +48774,16 @@ class EmployeController {
       res.status(500).json({ error: error.message });
     }
   }
+  static async count(req, res) {
+    try {
+      const [[{ total }]] = await pool.query("SELECT COUNT(*) as total FROM users WHERE deleted_at is null");
+      res.status(200).json({
+        total
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
   // Menampilkan detail pengguna berdasarkan ID
   static async show(req, res) {
     try {
@@ -48893,6 +48903,16 @@ class AreaController {
           limit: parseInt(limit),
           totalPages: Math.ceil(total / limit)
         }
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async count(req, res) {
+    try {
+      const [[{ total }]] = await pool.query("SELECT COUNT(*) as total FROM areas WHERE deleted_at is null ");
+      res.status(200).json({
+        total
       });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -49060,6 +49080,18 @@ class GroupController {
       res.status(500).json({ error: error.message });
     }
   }
+  static async count(req, res) {
+    try {
+      const [[{ total }]] = await pool.query(
+        "SELECT COUNT(*) as total FROM `groups` WHERE deleted_at IS NULL "
+      );
+      res.status(200).json({
+        total
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
   static async show(req, res) {
     try {
       const { id } = req.params;
@@ -49220,7 +49252,7 @@ class MemberController {
         [`%${search}%`, parseInt(limit), offset]
       );
       const [[{ total }]] = await pool.query(
-        "SELECT COUNT(*) as total FROM `groups` WHERE deleted_at IS NULL AND group_name LIKE ?",
+        "SELECT COUNT(*) as total FROM `members` WHERE deleted_at IS NULL AND complete_name LIKE ?",
         [`%${search}%`]
       );
       const map = /* @__PURE__ */ new Map();
@@ -49248,6 +49280,18 @@ class MemberController {
           limit: parseInt(limit),
           totalPages: Math.ceil(total / limit)
         }
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async count(req, res) {
+    try {
+      const [[{ total }]] = await pool.query(
+        "SELECT COUNT(*) as total FROM `members` WHERE deleted_at IS NULL "
+      );
+      res.status(200).json({
+        total
       });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -49742,21 +49786,25 @@ app.get("/api/users/:id", UserController.show);
 app.put("/api/users/:id", UserController.update);
 app.delete("/api/users/:id", UserController.delete);
 app.get("/api/employees", EmployeController.index);
+app.get("/api/employees/count", EmployeController.count);
 app.post("/api/employees", EmployeController.store);
 app.get("/api/employees/:id", EmployeController.show);
 app.put("/api/employees/:id", EmployeController.update);
 app.delete("/api/employees/:id", EmployeController.delete);
 app.get("/api/areas", AreaController.index);
+app.get("/api/areas/count", AreaController.count);
 app.post("/api/areas", AreaController.store);
 app.get("/api/areas/:id", AreaController.show);
 app.put("/api/areas/:id", AreaController.update);
 app.delete("/api/areas/:id", AreaController.delete);
 app.get("/api/groups", GroupController.index);
+app.get("/api/groups/count", GroupController.count);
 app.post("/api/groups", GroupController.store);
 app.get("/api/groups/:id", GroupController.show);
 app.put("/api/groups/:id", GroupController.update);
 app.delete("/api/groups/:id", GroupController.delete);
 app.get("/api/members", MemberController.index);
+app.get("/api/members/count", MemberController.count);
 app.post("/api/members", MemberController.store);
 app.get("/api/members/:id", MemberController.show);
 app.put("/api/members/:id", MemberController.update);

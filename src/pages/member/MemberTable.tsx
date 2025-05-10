@@ -111,6 +111,10 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 </TableCell>
                             </TableRow>
                         ))}
+                        {data.length === 0 && <TableRow >
+                            <TableCell colSpan={3} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                                Tidak ada data
+                            </TableCell></TableRow>}
                     </TableBody>
                 </Table>
             </div>

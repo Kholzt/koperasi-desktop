@@ -29,6 +29,17 @@ export default class EmployeController {
       res.status(500).json({ error: error.message });
     }
   }
+  static async count(req, res) {
+    try {
+
+      const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM users WHERE deleted_at is null');
+      res.status(200).json({
+        total,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 
   // Menampilkan detail pengguna berdasarkan ID
   static async show(req, res) {
