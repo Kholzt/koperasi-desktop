@@ -16,6 +16,7 @@ import Alert from "../../components/ui/alert/Alert";
 import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
+import Loading from "../../components/ui/Loading"
 
 interface UserFormInput {
     complete_name: string;
@@ -49,6 +50,8 @@ const schema: yup.SchemaOf<UserFormInput> = yup.object({
 const UserForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const { id } = useParams();
+    const [loading, setLoading] = useState(true);
+
     const isUpdate = !!id;
     const {
         register,
@@ -62,9 +65,13 @@ const UserForm: React.FC = () => {
     const navigate = useNavigate();
     useEffect(() => {
         if (id) {
+            setLoading(true);
+
             axios.get("/api/users/" + id).then(res => {
                 console.log(res);
-                reset(res.data.user)
+                setTimeout(() => {
+                    setLoading(false)
+                }, 1000);
             });
         }
     }, []);
@@ -105,6 +112,8 @@ const UserForm: React.FC = () => {
         }
 
     }
+
+    if (loading) return <Loading />;
 
     return (
         <>

@@ -18,7 +18,7 @@ import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { AreaProps, UserProps } from "../../utils/types";
-
+import Loading from "../../components/ui/Loading"
 interface GroupFormInput {
     group_name: string;
     area_id: number;
@@ -42,6 +42,7 @@ const GroupForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const [areas, setAreas] = useState<{ label: string, value: string }[]>([]);
     const [staffs, setStaffs] = useState<{ text: string, value: string }[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const { id } = useParams();
     const navigate = useNavigate();
@@ -65,12 +66,16 @@ const GroupForm: React.FC = () => {
 
     useEffect(() => {
         if (id) {
+            setLoading(true);
             axios.get("/api/groups/" + id).then(res => {
                 const data = res.data.group
                 data.staffs = data.staffs.map((d: any) => {
                     return d.id.toString()
                 });
                 reset(data)
+                setTimeout(() => {
+                    setLoading(false)
+                }, 1000);
             });
         }
         axios.get("/api/areas?limit=2000").then(res => {
@@ -117,7 +122,7 @@ const GroupForm: React.FC = () => {
         }
 
     }
-
+    if (loading) return <Loading />;
     return (
         <>
             <PageMeta

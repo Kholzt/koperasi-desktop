@@ -17,6 +17,7 @@ import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { AreaProps, GroupProps } from "../../utils/types";
+import Loading from "../../components/ui/Loading"
 
 interface ScheduleFormInput {
     area_id: number;
@@ -39,6 +40,7 @@ const ScheduleForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const [areas, setAreas] = useState<{ label: string, value: string }[]>([]);
     const [groups, setGroups] = useState<{ label: string, value: string }[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const { id } = useParams();
     const isUpdate = !!id;
@@ -54,9 +56,15 @@ const ScheduleForm: React.FC = () => {
     const navigate = useNavigate();
     useEffect(() => {
         if (id) {
+            setLoading(true);
+
             axios.get("/api/schedule/" + id).then(res => {
                 reset(res.data.schedule)
+                setTimeout(() => {
+                    setLoading(false)
+                }, 1000);
             });
+
         }
 
         axios.get("/api/areas?limit=2000").then(res => {
@@ -122,6 +130,8 @@ const ScheduleForm: React.FC = () => {
         { label: "Minggu", value: "minggu" }
     ];
 
+
+    if (loading) return <Loading />;
 
     return (
         <>

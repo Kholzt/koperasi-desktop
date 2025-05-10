@@ -20,6 +20,7 @@ import axios from "../../utils/axios";
 import { formatCurrency, unformatCurrency } from "../../utils/helpers";
 import { MemberProps, UserProps } from "../../utils/types";
 import { toast } from "react-toastify";
+import Loading from "../../components/ui/Loading"
 
 interface LoanFormInput {
     kode: string;
@@ -60,6 +61,8 @@ const LoanForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const [anggota, setAnggota] = useState<{ label: string, value: string }[]>([]);
     const [users, setUsers] = useState<{ label: string, value: string }[]>([]);
+    const [loading, setLoading] = useState(true);
+
     const { user } = useUser();
     const { id } = useParams();
     const isUpdate = !!id;
@@ -90,31 +93,57 @@ const LoanForm: React.FC = () => {
     const anggotaId = watch("anggota_id");
 
     useEffect(() => {
+        // Unformat nilai pinjaman dan bunga
         const pinjaman = unformatCurrency(jumlah_pinjaman.toString());
-        const bunga = unformatCurrency(persen_bunga.toString());
+        // let persenBungaSplit = persen_bunga.split(",");
+        // const persenBungaFormat = persenBungaSplit.length > 2 ? persenBungaSplit[0] + "," + persenBungaSplit[1] : persen_bunga;
+        let bunga = parseFloat(persen_bunga.replace(",", '.'));  // Unformat input bunga
+        // console.log(persenBungaSplit);
 
+        // Validasi jika pinjaman dan bunga adalah angka
         if (!isNaN(pinjaman) && !isNaN(bunga)) {
+            // Ambil konfigurasi dari environment
+            const totalBulanAngsuran = import.meta.env.VITE_APP_BULAN ?? 10;
+            const modalDoPersen = import.meta.env.VITE_APP_MODAL_DO ?? 13;
+
+            // Hitung total bunga, total pinjaman, angsuran per bulan, dll.
             const totalBunga = (pinjaman * bunga / 100);
             const total = pinjaman + totalBunga;
-            const angsuran = total / 10;
-            const modalDo = (pinjaman * (13 / 100));
+            const angsuran = total / totalBulanAngsuran;
+            const modalDo = (pinjaman * (modalDoPersen / 100));
             const totalTerima = pinjaman - modalDo;
 
+            // Set nilai hasil perhitungan ke form
             setValue("total_pinjaman", formatCurrency(total, false));
             setValue("jumlah_angsuran", formatCurrency(angsuran, false));
             setValue("jumlah_pinjaman", formatCurrency(pinjaman, false));
             setValue("total_bunga", formatCurrency(totalBunga, false));
             setValue("total_pinjaman_diterima", formatCurrency(totalTerima, false));
             setValue("modal_do", formatCurrency(modalDo, false));
-            if (bunga < 0) {
-                setValue("persen_bunga", "0");
+
+
+
+
+            // Validasi bunga
+            if (isNaN(bunga) || bunga < 0) {
+                setValue("persen_bunga", "0");  // Nilai negatif dianggap 0
             } else if (bunga > 100) {
-                setValue("persen_bunga", "100");
+                setValue("persen_bunga", "100");  // Nilai lebih dari 100 dianggap 100
             } else {
-                setValue("persen_bunga", bunga.toString());
+                const persenStr = persen_bunga.toString();
+                const komaCount = (persenStr.match(/,/g) || []).length;
+                const titikCount = (persenStr.match(/\./g) || []).length;
+
+                if (komaCount <= 1 && titikCount <= 1) {
+                    setValue("persen_bunga", persenStr.replace(",", "."));
+                } else {
+                    setValue("persen_bunga", persenStr.replace(",", ".").slice(0, -1));
+
+                }
             }
         }
-    }, [jumlah_pinjaman, persen_bunga]);
+    }, [jumlah_pinjaman, persen_bunga]);  // Hanya dipanggil jika jumlah_pinjaman atau persen_bunga berubah
+
 
     //get code peminjaman
     useEffect(() => {
@@ -128,9 +157,16 @@ const LoanForm: React.FC = () => {
 
     useEffect(() => {
         if (id) {
+            setLoading(true);
+
+            console.log(id);
             axios.get("/api/loans/" + id).then(res => {
                 const loan = res.data.loan
-                reset(loan);
+                reset({ ...loan, besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
+
+                setTimeout(() => {
+                    setLoading(false)
+                }, 1000);
             });
         }
         axios.get("/api/members?limit=2000").then(res => {
@@ -143,14 +179,15 @@ const LoanForm: React.FC = () => {
 
     const onSubmit = async (data: LoanFormInput) => {
         try {
+            console.log(data);
             data.besar_tunggakan = unformatCurrency(data.besar_tunggakan).toString();
             data.jumlah_angsuran = unformatCurrency(data.jumlah_angsuran).toString();
             data.jumlah_pinjaman = unformatCurrency(data.jumlah_pinjaman).toString();
             data.total_pinjaman = unformatCurrency(data.total_pinjaman).toString();
             data.total_pinjaman_diterima = unformatCurrency(data.total_pinjaman_diterima).toString();
+            data.modal_do = unformatCurrency(data.modal_do).toString();
             data.total_bunga = unformatCurrency(data.total_bunga).toString();
             data.petugas_input = user?.id ?? 1;
-            console.log(data);
 
             let res;
             if (!id) {
@@ -177,6 +214,8 @@ const LoanForm: React.FC = () => {
             }
         }
     };
+
+    if (loading) return <Loading />;
 
     return (
         <>
@@ -214,7 +253,7 @@ const LoanForm: React.FC = () => {
                             <div>
                                 <Label htmlFor="persen_bunga">Persen Bunga (%)</Label>
                                 <div className="relative">
-                                    <Input id="persen_bunga" maxLength={3} type="text" {...register("persen_bunga")} className="pl-[62px]" />
+                                    <Input id="persen_bunga" maxLength={5} type="text" {...register("persen_bunga")} className="pl-[62px]" />
                                     <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
                                         %
                                     </span>
@@ -277,7 +316,7 @@ const LoanForm: React.FC = () => {
 
                             <div>
                                 <Label htmlFor="anggota_id">Anggota</Label>
-                                <Select options={anggota} {...register("anggota_id")} placeholder="Pilih anggota" />
+                                <Select disabled={isUpdate} options={anggota} {...register("anggota_id")} placeholder="Pilih anggota" />
                                 {errors.anggota_id && <p className="text-sm text-red-500 mt-1">{errors.anggota_id.message}</p>}
                             </div>
 

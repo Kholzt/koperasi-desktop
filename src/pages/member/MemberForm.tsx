@@ -17,6 +17,7 @@ import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { AreaProps } from "../../utils/types";
+import Loading from "../../components/ui/Loading"
 
 interface MemberFormInput {
     complete_name: string;
@@ -37,6 +38,7 @@ const schema: yup.SchemaOf<MemberFormInput> = yup.object({
 const MemberForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const [areas, setAreas] = useState<{ label: string, value: string }[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const { id } = useParams();
     const navigate = useNavigate();
@@ -60,11 +62,16 @@ const MemberForm: React.FC = () => {
 
     useEffect(() => {
         if (id) {
+            setLoading(true);
+
             axios.get("/api/members/" + id).then(res => {
                 const data = res.data.member
                 console.log(data);
 
                 reset(data)
+                setTimeout(() => {
+                    setLoading(false)
+                }, 1000);
             });
         }
         axios.get("/api/areas?limit=2000").then(res => {
@@ -108,6 +115,7 @@ const MemberForm: React.FC = () => {
         }
 
     }
+    if (loading) return <Loading />;
 
     return (
         <>

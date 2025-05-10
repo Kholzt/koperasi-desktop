@@ -49590,7 +49590,7 @@ class LoanController {
          JOIN members ON pinjaman.anggota_id = members.id
          JOIN users AS pj ON pinjaman.penanggung_jawab = pj.id
          JOIN users AS pit ON pinjaman.petugas_input = pit.id
-         JOIN angsuran ON pinjaman.id = angsuran.id_pinjaman
+         LEFT JOIN angsuran ON pinjaman.id = angsuran.id_pinjaman
          WHERE pinjaman.deleted_at IS NULL AND pinjaman.id = ?
          ORDER BY pinjaman.id
         `,
@@ -49714,12 +49714,16 @@ class LoanController {
   }
   // Mengupdate data area dengan pengecekan dan enkripsi password jika ada perubahan
   static async update(req, res) {
-    await libExports$1.body("area_name").notEmpty().withMessage("Nama Area wajib diisi").run(req);
-    await libExports$1.body("city").notEmpty().withMessage("Kota wajib diisi").run(req);
-    await libExports$1.body("subdistrict").notEmpty().withMessage("Kecamatan wajib diisi").run(req);
-    await libExports$1.body("village").notEmpty().withMessage("Desa wajib diisi").run(req);
-    await libExports$1.body("address").notEmpty().withMessage("Alamat wajib diisi").run(req);
-    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    await libExports$1.body("jumlah_pinjaman").notEmpty().withMessage("Jumlah pinjaman wajib diisi").isFloat({ min: 0 }).withMessage("Jumlah pinjaman harus berupa angka dan minimal 0").run(req);
+    await libExports$1.body("total_pinjaman_diterima").notEmpty().withMessage("Total pinjaman diterima wajib diisi").isFloat({ min: 0 }).withMessage("Total pinjaman diterima harus berupa angka dan minimal 0").run(req);
+    await libExports$1.body("persen_bunga").notEmpty().withMessage("Persen bunga wajib diisi").isFloat({ min: 0, max: 100 }).withMessage("Persen bunga harus berupa angka antara 0 hingga 100").run(req);
+    await libExports$1.body("total_bunga").notEmpty().withMessage("Total bunga wajib diisi").run(req);
+    await libExports$1.body("total_pinjaman").notEmpty().withMessage("Total pinjaman wajib diisi").run(req);
+    await libExports$1.body("jumlah_angsuran").notEmpty().withMessage("Jumlah angsuran wajib diisi").isNumeric().withMessage("Jumlah angsuran harus berupa angka").run(req);
+    await libExports$1.body("modal_do").notEmpty().withMessage("Modal DO wajib diisi").isFloat({ min: 0 }).withMessage("Modal DO harus berupa angka dan minimal 0").run(req);
+    await libExports$1.body("penanggung_jawab").notEmpty().withMessage("Penanggung jawab wajib dipilih").run(req);
+    await libExports$1.body("petugas_input").notEmpty().withMessage("Petugas input wajib dipilih").run(req);
+    await libExports$1.body("status").notEmpty().withMessage("Status wajib dipilih").isIn(["aktif", "lunas", "menunggak"]).withMessage("Status harus salah satu dari: aktif, lunas, atau menunggak").run(req);
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
@@ -49729,43 +49733,82 @@ class LoanController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { id } = req.params;
-      const { area_name, city, subdistrict, village, address, status } = req.body;
-      const [existingArea] = await pool.query("SELECT * FROM areas WHERE id = ?", [id]);
-      if (!existingArea || existingArea.length === 0) {
-        return res.status(404).json({ error: "Area tidak ditemukan" });
+      const id = req.params.id;
+      const {
+        jumlah_pinjaman,
+        total_pinjaman_diterima,
+        anggota_id,
+        kode,
+        penanggung_jawab,
+        modal_do,
+        jumlah_angsuran,
+        total_pinjaman,
+        persen_bunga,
+        status,
+        petugas_input,
+        total_bunga
+      } = req.body;
+      const [existing] = await pool.query("SELECT * FROM pinjaman WHERE id = ?", [id]);
+      if (existing.length === 0) {
+        return res.status(404).json({ error: "Data pinjaman tidak ditemukan." });
       }
-      const [areaByAreaName] = await pool.query("SELECT * FROM areas WHERE area_name = ? AND id <> ?", [area_name, id]);
-      if (areaByAreaName.length > 0) {
-        return res.status(400).json({ errors: { area_name: "Nama area sudah terdaftar" } });
+      const [kodeCek] = await pool.query("SELECT * FROM pinjaman WHERE kode = ? AND id != ?", [kode, id]);
+      if (kodeCek.length > 0) {
+        return res.status(400).json({ errors: { kode: "Kode sudah digunakan oleh pinjaman lain." } });
       }
-      let updateData = [area_name, city, subdistrict, village, address, status, id];
       await pool.query(
-        `UPDATE areas SET area_name = ?, city = ?, subdistrict = ?, village = ?, address = ?, status = ?  WHERE id = ?`,
-        updateData
+        `UPDATE pinjaman SET
+                jumlah_pinjaman = ?,
+                total_pinjaman_diterima = ?,
+                penanggung_jawab = ?,
+                modal_do = ?,
+                jumlah_angsuran = ?,
+                total_pinjaman = ?,
+                persen_bunga = ?,
+                status = ?,
+                petugas_input = ?,
+                total_bunga = ?
+             WHERE id = ?`,
+        [
+          jumlah_pinjaman,
+          total_pinjaman_diterima,
+          penanggung_jawab,
+          modal_do,
+          jumlah_angsuran,
+          total_pinjaman,
+          persen_bunga,
+          status,
+          petugas_input,
+          total_bunga,
+          id
+        ]
       );
-      res.status(201).json({ message: "Area updated successfully" });
+      const [updatedPinjaman] = await pool.query("SELECT * FROM pinjaman WHERE id = ?", [id]);
+      res.status(200).json({
+        message: "Data pinjaman berhasil diperbarui",
+        pinjaman: updatedPinjaman[0]
+      });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred while updating the area." });
+      res.status(500).json({ error: "Terjadi kesalahan saat memperbarui data: " + error.message });
     }
   }
   // Menampilkan detail area berdasarkan ID
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const [area] = await pool.query(
-        "SELECT * FROM areas WHERE id = ?",
+      const [pinjaman] = await pool.query(
+        "SELECT * FROM  pinjaman id = ?",
         [id]
       );
-      if (!area || area.length === 0) {
+      if (!pinjaman || pinjaman.length === 0) {
         return res.status(404).json({ error: "Area tidak ditemukan" });
       }
       await pool.query(
-        `UPDATE areas SET deleted_at = ? WHERE id = ${id}`,
+        `UPDATE pinjaman SET deleted_at = ? WHERE id = ${id}`,
         /* @__PURE__ */ new Date()
       );
       res.status(200).json({
-        area: area[0]
+        pinjaman: pinjaman[0]
       });
     } catch (error) {
       res.status(500).json({ error: "An error occurred while retrieving the area." });

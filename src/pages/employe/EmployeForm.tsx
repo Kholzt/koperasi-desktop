@@ -16,7 +16,7 @@ import Alert from "../../components/ui/alert/Alert";
 import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
-
+import Loading from "../../components/ui/Loading"
 interface EmployeFormInput {
     complete_name: string;
     // username: string;
@@ -49,6 +49,7 @@ const schema: yup.SchemaOf<EmployeFormInput> = yup.object({
 const EmployeForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const { id } = useParams();
+    const [loading, setLoading] = useState(true);
     const isUpdate = !!id;
     const {
         register,
@@ -62,9 +63,13 @@ const EmployeForm: React.FC = () => {
     const navigate = useNavigate();
     useEffect(() => {
         if (id) {
+            setLoading(true)
             axios.get("/api/employees/" + id).then(res => {
                 console.log(res);
                 reset(res.data.user)
+                setTimeout(() => {
+                    setLoading(false)
+                }, 1000);
             });
         }
     }, []);
@@ -104,7 +109,7 @@ const EmployeForm: React.FC = () => {
         }
 
     }
-
+    if (loading) return <Loading />
     return (
         <>
             <PageMeta

@@ -16,6 +16,7 @@ import Alert from "../../components/ui/alert/Alert";
 import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
+import Loading from "../../components/ui/Loading"
 
 interface AreaFormInput {
     area_name: string;
@@ -41,6 +42,8 @@ const schema: yup.SchemaOf<AreaFormInput> = yup.object({
 const AreaForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const { id } = useParams();
+    const [loading, setLoading] = useState(true);
+
     const isUpdate = !!id;
     const {
         register,
@@ -54,9 +57,12 @@ const AreaForm: React.FC = () => {
     const navigate = useNavigate();
     useEffect(() => {
         if (id) {
+            setLoading(true)
             axios.get("/api/areas/" + id).then(res => {
-                console.log(res);
                 reset(res.data.area)
+                setTimeout(() => {
+                    setLoading(false)
+                }, 500);
             });
         }
     }, []);
@@ -97,6 +103,9 @@ const AreaForm: React.FC = () => {
         }
 
     }
+
+
+    if (loading) return <Loading />
 
     return (
         <>

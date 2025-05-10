@@ -14,7 +14,7 @@ import {
 } from "../../components/ui/table";
 import { useTheme } from "../../context/ThemeContext";
 import { useModal } from "../../hooks/useModal";
-import { PencilIcon, TrashBinIcon } from "../../icons";
+import { DollarLineIcon, InfoIcon, PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { LoanProps, PaginationProps } from "../../utils/types";
 import { formatCurrency, formatLongDate } from "../../utils/helpers";
@@ -197,7 +197,7 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
                         to={`/loan/${id}`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
-                        <PencilIcon fontSize={20} />
+                        <InfoIcon fontSize={20} />
                         Detail
                     </DropdownItem>
                 </li>
@@ -208,7 +208,7 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
                         to={`/loan/${id}/edit`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
-                        <PencilIcon fontSize={20} />
+                        <DollarLineIcon fontSize={20} />
                         Angsuran
                     </DropdownItem>
                 </li>
