@@ -49355,11 +49355,12 @@ class MemberController {
 }
 class ScheduleController {
   static async index(req, res) {
+    const { page = 1, limit = 10, area = "", group = "", day } = req.query;
+    const sql = "SELECT `schedule`.id,day,`schedule`.status,`groups`.id as group_id,`groups`.group_name,`areas`.id as area_id,`areas`.area_name FROM `schedule` JOIN areas ON `schedule`.`area_id` = areas.id JOIN `groups` ON `schedule`.`group_id` = `groups`.id  WHERE " + (day ? `day='${day}' AND` : "") + "   `schedule`.deleted_at is null ORDER BY `schedule`.id  DESC LIMIT ? OFFSET ?";
     try {
-      const { page = 1, limit = 10, area = "", group = "" } = req.query;
       const offset = (parseInt(page) - 1) * parseInt(limit);
       const [rows] = await pool.query(
-        "SELECT `schedule`.id,day,`schedule`.status,`groups`.id as group_id,`groups`.group_name,`areas`.id as area_id,`areas`.area_name FROM `schedule` JOIN areas ON `schedule`.`area_id` = areas.id JOIN `groups` ON `schedule`.`group_id` = `groups`.id WHERE `schedule`.deleted_at is null ORDER BY `schedule`.id  DESC LIMIT ? OFFSET ?",
+        sql,
         [parseInt(limit), offset]
       );
       const [[{ total }]] = await pool.query("SELECT COUNT(*) as total FROM `schedule` WHERE deleted_at is null");
@@ -49392,7 +49393,7 @@ class ScheduleController {
         }
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message, sql });
     }
   }
   // Menampilkan detail area berdasarkan ID
@@ -51938,7 +51939,7 @@ const size = {
 function createWindow() {
   win = new BrowserWindow({
     ...size,
-    titleBarStyle: "hidden",
+    //    titleBarStyle: 'hidden',
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       preload: path.join(__dirname$1, "preload.mjs")

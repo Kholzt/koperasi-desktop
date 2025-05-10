@@ -54,24 +54,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ data, pagination, setPagi
                             >
                                 Kelompok
                             </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Hari
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Status
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Aksi
-                            </TableCell>
+
                         </TableRow>
                     </TableHeader>
 
@@ -96,22 +79,8 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ data, pagination, setPagi
                                         {user.group.group_name}
                                     </span>
                                 </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.day}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Badge
-                                        size="sm"
-                                        color={user.status === "aktif" ? "success" : "error"}
-                                    >
-                                        {user.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Action id={user.id} schedule={user.area.area_name} />
-                                </TableCell>
+
+
                             </TableRow>
                         ))}
                     </TableBody>
