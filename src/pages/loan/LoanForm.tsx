@@ -265,7 +265,7 @@ const LoanForm: React.FC = () => {
                                 <div className="relative">
                                     <Input readOnly id="total_bunga" maxLength={3} type="text" {...register("total_bunga")} className="pl-[62px]" />
                                     <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                                        %
+                                        Rp
                                     </span>
                                 </div>
                                 {errors.total_bunga && <p className="text-sm text-red-500 mt-1">{errors.total_bunga.message}</p>}

@@ -48347,7 +48347,7 @@ class UserController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -48382,7 +48382,7 @@ class UserController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -48810,7 +48810,7 @@ class EmployeController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -48839,7 +48839,7 @@ class EmployeController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -48947,7 +48947,7 @@ class AreaController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -48983,7 +48983,7 @@ class AreaController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -49142,7 +49142,7 @@ class GroupController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -49182,7 +49182,7 @@ class GroupController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -49331,7 +49331,7 @@ class MemberController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -49360,10 +49360,10 @@ class MemberController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
-      return res.status(400).json({ errors: formattedErrors });
+      return res.status(400).json({ errors: formattedErrors, errorss: errors2 });
     }
     try {
       const { id } = req.params;
@@ -49467,7 +49467,7 @@ class ScheduleController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -49501,7 +49501,7 @@ class ScheduleController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -49687,7 +49687,7 @@ class LoanController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -49727,7 +49727,7 @@ class LoanController {
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });

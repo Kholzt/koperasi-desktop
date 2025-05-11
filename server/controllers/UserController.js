@@ -63,7 +63,7 @@ export default class UserController {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         const formattedErrors = errors.array().reduce((acc, error) => {
-            acc[error.param] = error.msg; // key = field name, value = error message
+            acc[error.path] = error.msg; // key = field name, value = error message
             return acc;
         }, {});
 
@@ -113,11 +113,11 @@ export default class UserController {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         const formattedErrors = errors.array().reduce((acc, error) => {
-            acc[error.param] = error.msg; // key = field name, value = error message
+            acc[error.path] = error.msg; // key = field name, value = error message
             return acc;
         }, {});
 
-      return res.status(400).json({ errors: formattedErrors });
+      return res.status(400).json({ errors: formattedErrors});
     }
 
     try {

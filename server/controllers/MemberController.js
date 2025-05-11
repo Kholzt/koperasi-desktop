@@ -107,7 +107,7 @@ export default class MemberController {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
       return res.status(400).json({ errors: formattedErrors });
@@ -141,10 +141,10 @@ export default class MemberController {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
-        acc[error.param] = error.msg;
+        acc[error.path] = error.msg;
         return acc;
       }, {});
-      return res.status(400).json({ errors: formattedErrors });
+      return res.status(400).json({ errors: formattedErrors ,errorss:errors});
     }
 
     try {

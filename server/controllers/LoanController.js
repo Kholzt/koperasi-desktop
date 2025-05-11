@@ -158,7 +158,7 @@ export default class LoanController {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const formattedErrors = errors.array().reduce((acc, error) => {
-                acc[error.param] = error.msg; // key = field name, value = error message
+                acc[error.path] = error.msg; // key = field name, value = error message
                 return acc;
             }, {});
 
@@ -212,7 +212,7 @@ export default class LoanController {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         const formattedErrors = errors.array().reduce((acc, error) => {
-            acc[error.param] = error.msg;
+            acc[error.path] = error.msg;
             return acc;
         }, {});
         return res.status(400).json({ errors: formattedErrors });
