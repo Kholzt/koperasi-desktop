@@ -215,7 +215,7 @@ const LoanForm: React.FC = () => {
         }
     };
 
-    if (loading) return <Loading />;
+    if (loading && isUpdate) return <Loading />;
 
     return (
         <>

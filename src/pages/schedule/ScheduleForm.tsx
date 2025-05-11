@@ -74,7 +74,6 @@ const ScheduleForm: React.FC = () => {
             setGroups(res.data.groups.map((group: GroupProps) => ({ label: group.group_name, value: group.id })))
         });
     }, []);
-    console.log(groups);
 
     const onSubmit = async (data: ScheduleFormInput) => {
         try {
@@ -131,7 +130,7 @@ const ScheduleForm: React.FC = () => {
     ];
 
 
-    if (loading) return <Loading />;
+    if (loading && isUpdate) return <Loading />;
 
     return (
         <>

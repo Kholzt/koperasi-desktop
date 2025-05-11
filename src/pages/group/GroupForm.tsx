@@ -28,14 +28,14 @@ interface GroupFormInput {
 
 const schema: yup.SchemaOf<GroupFormInput> = yup.object({
     group_name: yup.string()
-        .required('Nama kelompok  wajib diisi'),
+        .required('Nama kelompok  wajib dipilih'),
     area_id: yup.string()
         .required('Wilayah wajib diisi'),
     staffs: yup.array().of(yup.string().trim()
-        .min(1, 'Silahkan pilih staffs')
-        .required('Silahkan pilih staffs'))
-        .min(1, "Minimal pilih satu staffs")
-        .required('Staffs wajib diisi'),
+        .min(1, 'Silahkan pilih karyawan')
+        .required('Silahkan pilih karyawan'))
+        .min(1, "Minimal pilih satu karyawan")
+        .required('Karyawan wajib dipilih'),
 });
 
 const GroupForm: React.FC = () => {
@@ -45,6 +45,7 @@ const GroupForm: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     const { id } = useParams();
+    const isUpdate = !!id;
     const navigate = useNavigate();
 
     const {
@@ -122,7 +123,7 @@ const GroupForm: React.FC = () => {
         }
 
     }
-    if (loading) return <Loading />;
+    if (loading && isUpdate) return <Loading />;
     return (
         <>
             <PageMeta
@@ -168,12 +169,13 @@ const GroupForm: React.FC = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="space-y-4">
+                        <div >
                             <Label>
-                                Staffs <span className="text-error-500">*</span>
+                                Karyawan <span className="text-error-500">*</span>
                             </Label>
                             <MultiSelect
                                 label=""
+                                placeholder="Pilih karyawan"
                                 options={staffs}
                                 defaultSelected={getValues("staffs")}
                                 {...register("staffs")}

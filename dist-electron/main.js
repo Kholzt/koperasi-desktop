@@ -48339,11 +48339,11 @@ class UserController {
   }
   // Menyimpan pengguna baru dengan validasi dan enkripsi password
   static async store(req, res) {
-    await libExports$1.body("username").notEmpty().withMessage("Username is required").run(req);
-    await libExports$1.body("complete_name").notEmpty().withMessage("Complete name is required").run(req);
-    await libExports$1.body("role").notEmpty().withMessage("Role is required").run(req);
-    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
-    await libExports$1.body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters long").run(req);
+    await libExports$1.body("username").notEmpty().withMessage("Username wajib diisi").run(req);
+    await libExports$1.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
+    await libExports$1.body("role").notEmpty().withMessage("Role wajib diisi").run(req);
+    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif atau nonAktif").run(req);
+    await libExports$1.body("password").isLength({ min: 6 }).withMessage("Password harus 6 karakter atau lebih").run(req);
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
@@ -48375,10 +48375,10 @@ class UserController {
   }
   // Mengupdate data pengguna dengan pengecekan dan enkripsi password jika ada perubahan
   static async update(req, res) {
-    await libExports$1.body("username").notEmpty().withMessage("Username is required").run(req);
-    await libExports$1.body("complete_name").notEmpty().withMessage("Complete name is required").run(req);
-    await libExports$1.body("role").notEmpty().withMessage("Role is required").run(req);
-    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    await libExports$1.body("username").notEmpty().withMessage("Username wajib diisi").run(req);
+    await libExports$1.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
+    await libExports$1.body("role").notEmpty().withMessage("Role wajib diisi").run(req);
+    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif atau nonAktif").run(req);
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
@@ -48804,9 +48804,9 @@ class EmployeController {
   }
   // Menyimpan pengguna baru dengan validasi dan enkripsi password
   static async store(req, res) {
-    await libExports$1.body("complete_name").notEmpty().withMessage("Complete name is required").run(req);
-    await libExports$1.body("position").notEmpty().withMessage("Position is required").run(req);
-    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    await libExports$1.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
+    await libExports$1.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
+    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {
@@ -48833,9 +48833,9 @@ class EmployeController {
   }
   // Mengupdate data pengguna dengan pengecekan dan enkripsi password jika ada perubahan
   static async update(req, res) {
-    await libExports$1.body("complete_name").notEmpty().withMessage("Complete name is required").run(req);
-    await libExports$1.body("position").notEmpty().withMessage("Position is required").run(req);
-    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    await libExports$1.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
+    await libExports$1.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
+    await libExports$1.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
     const errors2 = libExports$1.validationResult(req);
     if (!errors2.isEmpty()) {
       const formattedErrors = errors2.array().reduce((acc, error) => {

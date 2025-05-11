@@ -41,6 +41,7 @@ const MemberForm: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     const { id } = useParams();
+    const isUpdate = !!id;
     const navigate = useNavigate();
 
     const {
@@ -115,7 +116,7 @@ const MemberForm: React.FC = () => {
         }
 
     }
-    if (loading) return <Loading />;
+    if (loading && isUpdate) return <Loading />;
 
     return (
         <>

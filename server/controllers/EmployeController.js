@@ -63,9 +63,9 @@ export default class EmployeController {
   // Menyimpan pengguna baru dengan validasi dan enkripsi password
   static async store(req, res) {
     // Validasi input menggunakan express-validator
-    await body('complete_name').notEmpty().withMessage('Complete name is required').run(req);
-    await body('position').notEmpty().withMessage('Position is required').run(req);
-    await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status must be active or inactive').run(req);
+    await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
+    await body('position').notEmpty().withMessage('Posisi wajib diisi').run(req);
+    await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif dan nonAktif').run(req);
     // await body('role').notEmpty().withMessage('Role is required').run(req);
 
     const errors = validationResult(req);
@@ -102,11 +102,11 @@ export default class EmployeController {
   // Mengupdate data pengguna dengan pengecekan dan enkripsi password jika ada perubahan
   static async update(req, res) {
     // Validasi input menggunakan express-validator
-    await body('complete_name').notEmpty().withMessage('Complete name is required').run(req);
+    await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
     // await body('role').notEmpty().withMessage('Role is required').run(req);
     // await body('access_apps').notEmpty().withMessage('Access apps is required').run(req);
-    await body('position').notEmpty().withMessage('Position is required').run(req);
-    await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status must be active or inactive').run(req);
+    await body('position').notEmpty().withMessage('Posisi wajib diisi').run(req);
+    await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif dan nonAktif').run(req);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

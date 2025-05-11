@@ -68,7 +68,7 @@ const UserForm: React.FC = () => {
             setLoading(true);
 
             axios.get("/api/users/" + id).then(res => {
-                console.log(res);
+                reset(res.data.user)
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
@@ -113,7 +113,7 @@ const UserForm: React.FC = () => {
 
     }
 
-    if (loading) return <Loading />;
+    if (loading && isUpdate) return <Loading />;
 
     return (
         <>
