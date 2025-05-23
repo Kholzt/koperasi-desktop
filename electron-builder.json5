@@ -17,12 +17,13 @@
    "!*.env"
   ],
   "asar": true,
-   "extraResources": [
-    {
-      "from": ".env",    // folder config tetap di luar asar
-      "to": ".env"
-    }
-  ],
+  "extraFiles": [
+  {
+    "from": ".env",
+    "to": "."
+  }
+]
+,
   "mac": {
     "target": [
       "dmg"

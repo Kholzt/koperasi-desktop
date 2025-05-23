@@ -1,15 +1,18 @@
+import cors from "cors";
+import dotenv from 'dotenv';
 import express from 'express';
-import UserController from './controllers/UserController';
-import cors from "cors"
+import AngsuranController from './controllers/AngsuranController';
+import AreaController from './controllers/AreaController';
 import AuthController from './controllers/AuthController';
 import EmployeController from './controllers/EmployeController';
-import AreaController from './controllers/AreaController';
 import GroupController from './controllers/GroupController';
+import LoanController from './controllers/LoanController';
 import MemberController from './controllers/MemberController';
 import ScheduleController from './controllers/ScheduleController';
-import LoanController from './controllers/LoanController';
-import AngsuranController from './controllers/AngsuranController';
-import { isHoliday } from './config/holidays';
+import UserController from './controllers/UserController';
+
+
+dotenv.config();
 // const express = require('express');
 const app = express();
 const port = import.meta.env.VITE_APP_PORT || 5000;
@@ -87,6 +90,12 @@ app.delete('/api/loans/:id', LoanController.delete);
 app.get('/api/angsuran/:id', AngsuranController.index);
 app.post('/api/angsuran/:idPinjaman', AngsuranController.store);
 app.put('/api/angsuran/:id', AngsuranController.update);
+
+app.get('/api/configLoan', (req, res) => {
+    const totalBulan = process.env.VITE_APP_BULAN;
+    const modalDo = process.env.VITE_APP_MODAL_DO;
+    return res.json({ config: { totalBulan, modalDo } })
+});
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

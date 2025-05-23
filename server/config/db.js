@@ -2,6 +2,7 @@
 import knex from 'knex';
 import dotenv from 'dotenv';
 
+
 dotenv.config();
 
 /**
@@ -21,6 +22,8 @@ if (!globalThis.__knexInstance) {
         pool: { min: 2, max: 10 },
     });
 }
+
+console.log(process.env.VITE_APP_DBHOST);
 
 db = globalThis.__knexInstance;
 

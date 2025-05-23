@@ -56,6 +56,7 @@ export default function SignInForm() {
                 setHasError(true)
             }
         } catch (error: any) {
+            console.log(error);
             if (error.status === 404) {
                 setHasError(true);
             } else if (error.response.data.error.sqlState == "28000") {

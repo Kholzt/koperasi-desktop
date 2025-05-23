@@ -63,6 +63,10 @@ const LoanForm: React.FC = () => {
     const [users, setUsers] = useState<{ label: string, value: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [disabled, setDisabled] = useState(false);
+    const [configLoan, setConfigLoan] = useState({
+        totalBulan: 10,
+        modalDo: 30
+    });
 
     const { user } = useUser();
     const { id } = useParams();
@@ -76,7 +80,7 @@ const LoanForm: React.FC = () => {
         watch,
         setValue,
         formState: { errors }
-} = useForm<LoanFormInput>({
+    } = useForm<LoanFormInput>({
         resolver: yupResolver(schema),
         defaultValues: {
             jumlah_angsuran: "0",
@@ -104,13 +108,13 @@ const LoanForm: React.FC = () => {
         // Validasi jika pinjaman dan bunga adalah angka
         if (!isNaN(pinjaman) && !isNaN(bunga)) {
             // Ambil konfigurasi dari environment
-            const totalBulanAngsuran = import.meta.env.VITE_APP_BULAN ?? 10;
-            const modalDoPersen = import.meta.env.VITE_APP_MODAL_DO ?? 13;
-
+            const totalBulanAngsuran = configLoan.totalBulan;
+            const modalDoPersen = configLoan.modalDo;
+            console.log(configLoan);
             // Hitung total bunga, total pinjaman, angsuran per bulan, dll.
             const totalBunga = (pinjaman * bunga / 100);
             const total = pinjaman + totalBunga;
-            const angsuran = total / totalBulanAngsuran;
+            const angsuran = parseFloat((total / totalBulanAngsuran).toFixed(2));
             const modalDo = (pinjaman * (modalDoPersen / 100));
             const totalTerima = pinjaman - modalDo;
 
@@ -182,6 +186,9 @@ const LoanForm: React.FC = () => {
                 }, 1000);
             });
         }
+        axios.get("/api/configLoan").then(res => {
+            setConfigLoan(res.data.config);
+        });
         axios.get("/api/members?limit=2000").then(res => {
             setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name, value: member.id })));
         });
