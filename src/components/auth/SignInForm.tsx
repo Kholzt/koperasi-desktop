@@ -10,6 +10,7 @@ import axios from "../../utils/axios";
 import { useNavigate, Link } from "react-router";
 import Alert from "../ui/alert/Alert";
 import { useUser } from "../../hooks/useUser";
+import { toast } from "react-toastify";
 
 // 1. Tipe untuk data form
 interface SignInFormInputs {
@@ -55,8 +56,12 @@ export default function SignInForm() {
                 setHasError(true)
             }
         } catch (error: any) {
-            if (error.status === 404)
+            if (error.status === 404) {
                 setHasError(true);
+            } else if (error.response.data.error.sqlState == "28000") {
+                // toast.error(error.response.data.error.sqlMessage)
+                toast.error("Terdapat kesalahan pada konfigurasi Database");
+            }
         }
 
     };

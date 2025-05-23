@@ -24274,7 +24274,7 @@ class JA {
       const { username: t, password: r } = e.body, o = await we.findByUsername(t);
       return o ? await KA.compare(r, o.password) ? a.json({ message: "Berhasil login", user: o }) : a.status(404).json({ message: "Pengguna tidak ditemukan" }) : a.status(404).json({ message: "Pengguna tidak ditemukan" });
     } catch (t) {
-      console.error(t), a.status(500).json({ message: "Server error" });
+      console.error(t), a.status(500).json({ message: "Server error", error: t });
     }
   }
   static async getUser(e, a) {
@@ -63067,11 +63067,11 @@ class bu {
     }
   }
 }
-const C0 = OM(), Af = "5000";
+const C0 = OM(), Af = 5e3;
 C0.use(OL());
 C0.use(OM.json());
 C0.use(OM.urlencoded({ extended: !0 }));
-C0.use((n, e, a) => n.headers["x-app-secret"] === "123412321123" ? a() : e.status(403).send("Forbidden"));
+C0.use((n, e, a) => n.headers["x-app-secret"] == "123412321123" ? a() : e.status(403).send("Forbidden"));
 C0.post("/api/login", JA.login);
 C0.get("/api/user", JA.getUser);
 C0.get("/api/users", Vt.index);

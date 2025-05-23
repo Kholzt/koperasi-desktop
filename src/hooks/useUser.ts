@@ -9,7 +9,11 @@ export function useUser() {
     useEffect(() => {
         const userLoc =localStorage.getItem("userLogin")? JSON.parse(localStorage.getItem("userLogin")??""):null;
         if(userLoc){
-            axios.get("/api/user?id="+userLoc.id).then(res => setUser(res.data.user));
+            try {
+                axios.get("/api/user?id="+userLoc.id).then(res => setUser(res.data.user));
+            } catch (error) {
+                console.log(error);
+            }
         }
     }, []);
 

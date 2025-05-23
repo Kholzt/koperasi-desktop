@@ -1,6 +1,6 @@
 import axiosLib from 'axios';
 
-const PORT = import.meta.env.VITE_APP_PORT
+const PORT = import.meta.env.VITE_APP_PORT || 5000
 // Buat instance axios
 const axios = axiosLib.create({
   baseURL: `http://localhost:${PORT}`, // Ganti sesuai API yang digunakan
@@ -20,7 +20,8 @@ axios.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    config.headers['x-app-secret'] = import.meta.env.VITE_APP_SECRET;
+    config.headers['x-app-secret'] = "123412321123";
+    // config.headers['x-app-secret'] = import.meta.env.VITE_APP_SECRET;
 
     return config;
   },

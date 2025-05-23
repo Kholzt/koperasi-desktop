@@ -13,10 +13,16 @@
      {
     "from": "dist-electron/server",
     "to": "server"
-  }
+  },
+   "!*.env"
   ],
-  "asar": true
-,
+  "asar": true,
+   "extraResources": [
+    {
+      "from": ".env",    // folder config tetap di luar asar
+      "to": ".env"
+    }
+  ],
   "mac": {
     "target": [
       "dmg"
