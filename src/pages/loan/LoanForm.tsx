@@ -62,6 +62,7 @@ const LoanForm: React.FC = () => {
     const [anggota, setAnggota] = useState<{ label: string, value: string }[]>([]);
     const [users, setUsers] = useState<{ label: string, value: string }[]>([]);
     const [loading, setLoading] = useState(true);
+    const [disabled, setDisabled] = useState(false);
 
     const { user } = useUser();
     const { id } = useParams();
@@ -75,7 +76,7 @@ const LoanForm: React.FC = () => {
         watch,
         setValue,
         formState: { errors }
-    } = useForm<LoanFormInput>({
+} = useForm<LoanFormInput>({
         resolver: yupResolver(schema),
         defaultValues: {
             jumlah_angsuran: "0",
@@ -147,9 +148,21 @@ const LoanForm: React.FC = () => {
 
     //get code peminjaman
     useEffect(() => {
-        if (anggotaId) {
+        if (anggotaId && !isUpdate) {
             axios.get("/api/loans/" + anggotaId + "/code").then(res => {
                 setValue("kode", res.data.code);
+            });
+            axios.get("/api/loans/" + anggotaId + "/status-pinjaman").then(res => {
+                let pesan = "";
+                setDisabled(false)
+                if (res.data.punyaTunggakan) {
+                    pesan = "Pengguna masih memiliki tunggakan";
+                    setDisabled(true)
+                }
+                setError("anggota_id", {
+                    type: 'manual',
+                    message: pesan,
+                })
             });
         }
     }, [anggotaId]);
@@ -172,8 +185,8 @@ const LoanForm: React.FC = () => {
         axios.get("/api/members?limit=2000").then(res => {
             setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name, value: member.id })));
         });
-        axios.get("/api/users?limit=2000").then(res => {
-            setUsers(res.data.users.map((user: UserProps) => ({ label: user.complete_name, value: user.id })));
+        axios.get("/api/employees?limit=2000").then(res => {
+            setUsers(res.data.employees.map((user: UserProps) => ({ label: user.complete_name, value: user.id })));
         });
     }, []);
 
@@ -253,7 +266,7 @@ const LoanForm: React.FC = () => {
                             <div>
                                 <Label htmlFor="persen_bunga">Persen Bunga (%)</Label>
                                 <div className="relative">
-                                    <Input id="persen_bunga" maxLength={5} type="text" {...register("persen_bunga")} className="pl-[62px]" />
+                                    <Input id="persen_bunga" maxLength={5} readOnly value={30} type="text" {...register("persen_bunga")} className="pl-[62px]" />
                                     <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
                                         %
                                     </span>
@@ -342,7 +355,7 @@ const LoanForm: React.FC = () => {
                             </div>
                         </div>
 
-                        <Button size="sm">Simpan</Button>
+                        <Button size="sm" disabled={disabled}>Simpan</Button>
                     </Form>
                 </ComponentCard>
             </div>

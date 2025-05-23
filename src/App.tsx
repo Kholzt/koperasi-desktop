@@ -32,6 +32,7 @@ import UserForm from './pages/user/UserForm';
 import Loan from './pages/loan/Loan';
 import LoanForm from './pages/loan/LoanForm';
 import LoanDetail from './pages/loan/LoanDetail';
+import Angsuran from './pages/loan/Angsuran';
 
 export default function App() {
     return (
@@ -73,6 +74,10 @@ export default function App() {
                         <Route path="/loan/create" element={<LoanForm />} />
                         <Route path="/loan/:id/edit" element={<LoanForm />} />
                         <Route path="/loan/:id" element={<LoanDetail />} />
+
+                        <Route path="/loan/:id/angsuran" element={<Angsuran />} />
+                        <Route path="/loan/:id/angsuran/:idAngsuran" element={<Angsuran />} />
+
 
                         <Route path="/calendar" element={<Calendar />} />
                         <Route path="/blank" element={<Blank />} />

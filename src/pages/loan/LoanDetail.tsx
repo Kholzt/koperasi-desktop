@@ -7,7 +7,7 @@ import PageMeta from "../../components/common/PageMeta";
 import axios from "../../utils/axios";
 import { AngsuranProps, LoanProps } from "../../utils/types";
 import { formatCurrency, formatDate, formatLongDate } from "../../utils/helpers";
-import { ChevronLeftIcon } from "../../icons";
+import { ChevronLeftIcon, PencilIcon } from "../../icons";
 const LoanDetail: React.FC = () => {
     const { id } = useParams();
     const [loan, setLoan] = useState<LoanProps | null>(null);
@@ -59,7 +59,7 @@ const LoanDetail: React.FC = () => {
                         <div className="bg-white p-3 font-medium border-b">{formatCurrency(loan?.total_pinjaman)}</div>
 
                         <div className="bg-gray-50 p-3  border-b text-gray-700">Jumlah Angsuran</div>
-                        <div className="bg-white p-3 font-medium border-b">{loan?.jumlah_angsuran}</div>
+                        <div className="bg-white p-3 font-medium border-b">{formatCurrency(loan?.jumlah_angsuran)}</div>
 
                         <div className="bg-gray-50 p-3  border-b text-gray-700">Tanggal Angsuran Pertama</div>
                         <div className="bg-white p-3 font-medium border-b">{formatDate(loan?.tanggal_angsuran_pertama)}</div>
@@ -91,20 +91,46 @@ const LoanDetail: React.FC = () => {
 
                 </ComponentCard>
                 <ComponentCard title="Detail Angsuran">
-                    <div className="grid grid-cols-2 gap-px border rounded-md overflow-hidden text-sm">
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Jumlah Bayar</div>
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Tanggal Bayar</div>
+                    <table className="min-w-full text-sm border rounded-md overflow-hidden">
+                        <thead className="bg-gray-50 text-gray-700">
+                            <tr>
+                                <th className="p-3 border-b text-left">Jumlah Bayar</th>
+                                <th className="p-3 border-b text-left">Penagih</th>
+                                <th className="p-3 border-b text-left">Keterangan</th>
+                                <th className="p-3 border-b text-left">Tanggal Bayar</th>
+                                <th className="p-3 border-b text-left">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {(loan?.angsuran?.length ?? 0) > 0 ? (
+                                loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => (
+                                    <tr
+                                        key={index}
+                                        className={angsuran.asal_pembayaran === "anggota" ? "bg-blue-100" : (angsuran.asal_pembayaran == "penagih" ? "bg-red-100" : (angsuran.status == "libur" ? "bg-gray-100" : "bg-white"))}
+                                    >
+                                        <td className="p-3 border-b font-medium">{formatCurrency(angsuran.jumlah_bayar)}</td>
+                                        <td className="p-3 border-b capitalize">{angsuran?.penagih.length > 0 ? angsuran?.penagih?.map((p: any) => {
+                                            return p.complete_name;
+                                        }).join(",") : "-"}</td>
+                                        <td className="p-3 border-b capitalize">{angsuran.status ?? "-"}</td>
+                                        <td className="p-3 border-b capitalize">
+                                            {angsuran.tanggal_pembayaran ? formatLongDate(angsuran.tanggal_pembayaran) : "-"}
+                                        </td>
+                                        <td className="p-3 border-b capitalize">
+                                            {angsuran.status == "lunas" && <Link to={`/loan/${loan.id}/angsuran/${angsuran.id}`}><PencilIcon fontSize={20} /></Link>}
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={4} className="p-3 border-b text-center">
+                                        Tidak ada angsuran
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
 
-                        {loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => {
-                            return <>
-                                <div key={index} className="bg-white p-3 font-medium border-b capitalize">{formatCurrency(angsuran.jumlah_bayar)}</div>
-                                <div className="bg-white p-3 font-medium border-b capitalize">{formatLongDate(angsuran.tanggal_pembayaran)}</div>
-                            </>;
-                        })}
-
-
-
-                    </div>
 
                 </ComponentCard>
             </div>

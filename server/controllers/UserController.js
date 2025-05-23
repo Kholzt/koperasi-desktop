@@ -1,28 +1,24 @@
 import { body, validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
-import db from "../config/db.js";
+import User from '../models/User.js';
 
 export default class UserController {
-  // Menampilkan daftar pengguna dengan pagination
   static async index(req, res) {
     try {
-      const { page = 1, limit = 10 ,search = ""} = req.query;
-
-      const offset = (parseInt(page) - 1) * parseInt(limit);
-      const [users] = await db.query(
-        `SELECT * FROM users   WHERE deleted_at is null AND complete_name like ?  AND access_apps = ? ORDER BY id DESC LIMIT ? OFFSET ?`,
-        [`%${search}%`,"access",parseInt(limit), offset]
-      );
-
-      const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM users WHERE deleted_at is null AND complete_name like ? AND access_apps = ?',[`%${search}%`,"access"]);
+      const { page = 1, limit = 10, search = '' } = req.query;
+      const pagination = await User.findAll({
+        page: parseInt(page),
+        limit: parseInt(limit),
+        search,
+      });
 
       res.status(200).json({
-        users,
+        users: pagination.users,
         pagination: {
-          total,
+          total: pagination.total,
           page: parseInt(page),
           limit: parseInt(limit),
-          totalPages: Math.ceil(total / limit),
+          totalPages: Math.ceil(pagination.total / limit),
         },
       });
     } catch (error) {
@@ -30,146 +26,108 @@ export default class UserController {
     }
   }
 
-  // Menampilkan detail pengguna berdasarkan ID
   static async show(req, res) {
     try {
       const { id } = req.params;
-      const [user] = await db.query(
-        'SELECT * FROM users WHERE id = ?',
-        [id]
-      );
-      if (!user || user.length === 0) {
-        return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
-      }
-      res.status(200).json({
-        user: user[0],
-      });
+      const user = await User.findById(id);
+      if (!user) return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
+
+      res.status(200).json({ user });
     } catch (error) {
       res.status(500).json({ error: 'An error occurred while retrieving the user.' });
     }
   }
 
-  // Menyimpan pengguna baru dengan validasi dan enkripsi password
   static async store(req, res) {
-    // Validasi input menggunakan express-validator
     await body('username').notEmpty().withMessage('Username wajib diisi').run(req);
     await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
     await body('role').notEmpty().withMessage('Role wajib diisi').run(req);
-    // await body('access_apps').notEmpty().withMessage('Access apps is required').run(req);
-    // await body('position').notEmpty().withMessage('Position is required').run(req);
     await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif atau nonAktif').run(req);
     await body('password').isLength({ min: 6 }).withMessage('Password harus 6 karakter atau lebih').run(req);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const formattedErrors = errors.array().reduce((acc, error) => {
-            acc[error.path] = error.msg; // key = field name, value = error message
-            return acc;
-        }, {});
-
-      return res.status(400).json({ errors: formattedErrors });
+      const formatted = errors.array().reduce((acc, e) => ({ ...acc, [e.path]: e.msg }), {});
+      return res.status(400).json({ errors: formatted });
     }
 
     try {
       const { username, complete_name, role, access_apps, position, status, password } = req.body;
 
-      // Cek apakah username sudah ada di database
-      const [existingUser] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
-      if (existingUser.length > 0) {
-        return res.status(400).json({ errors: { username: 'Username sudah terdaftar' } });
-      }
+      const existingUser = await User.findByUsername(username);
+      if (existingUser) return res.status(400).json({ errors: { username: 'Username sudah terdaftar' } });
 
-      // Enkripsi password sebelum menyimpannya
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Insert data pengguna baru ke database
-      const result = await db.query(
-        'INSERT INTO users (username, complete_name, role, access_apps, position, status, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [username, complete_name, role, "access", position, status, hashedPassword]
-      );
-
-      // Ambil data pengguna yang baru saja dimasukkan
-      const newUser = await db.query('SELECT * FROM users WHERE id = ?', [result.insertId]);
-
-      res.status(201).json({
-        message: 'Pengguna berhasil dibuat',
-        user: newUser[0], // Mengembalikan data pengguna yang baru saja dibuat
+      const user = await User.create({
+        username,
+        complete_name,
+        role,
+        access_apps: 'access',
+        position,
+        status,
+        password: hashedPassword,
       });
+
+      res.status(200).json({ message: 'Pengguna berhasil dibuat', user });
     } catch (error) {
       res.status(500).json({ error: 'An error occurred while creating the user.' });
     }
   }
 
-  // Mengupdate data pengguna dengan pengecekan dan enkripsi password jika ada perubahan
   static async update(req, res) {
-    // Validasi input menggunakan express-validator
     await body('username').notEmpty().withMessage('Username wajib diisi').run(req);
     await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
     await body('role').notEmpty().withMessage('Role wajib diisi').run(req);
-    // await body('access_apps').notEmpty().withMessage('Access apps is required').run(req);
-    // await body('position').notEmpty().withMessage('Position is required').run(req);
     await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif atau nonAktif').run(req);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const formattedErrors = errors.array().reduce((acc, error) => {
-            acc[error.path] = error.msg; // key = field name, value = error message
-            return acc;
-        }, {});
-
-      return res.status(400).json({ errors: formattedErrors});
+      const formatted = errors.array().reduce((acc, e) => ({ ...acc, [e.path]: e.msg }), {});
+      return res.status(400).json({ errors: formatted });
     }
 
     try {
       const { id } = req.params;
       const { username, complete_name, role, access_apps, position, status } = req.body;
 
-      const [existingUser] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
-      if (!existingUser || existingUser.length === 0) {
-        return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
-      }
+      const user = await User.findById(id);
+      if (!user) return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
 
-      const [userByUsername] = await db.query('SELECT * FROM users WHERE username = ? AND id <> ?', [username, id]);
-      if (userByUsername.length > 0) {
-        return res.status(400).json({ errors: { username: 'Username sudah terdaftar' } });
-      }
+      const existingUser = await User.existsByUsernameExcludingId(username, id);
+      if (existingUser) return res.status(400).json({ errors: { username: 'Username sudah terdaftar' } });
 
-      // Jika password diberikan, enkripsi password sebelum update
-      let updateData = [username, complete_name, role, "access", position, status, id];
+      await User.update(id, {
+        username,
+        complete_name,
+        role,
+        access_apps: 'access',
+        position,
+        status,
+      });
 
-      await db.query(
-        `UPDATE users SET username = ?, complete_name = ?, role = ?, access_apps = ?, position = ?, status = ?  WHERE id = ?`,
-        updateData
-      );
-
-      res.status(201).json({ message: 'User updated successfully' });
+      res.status(200).json({ message: 'User updated successfully' });
     } catch (error) {
       res.status(500).json({ error: 'An error occurred while updating the user.' });
     }
   }
 
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const user = await User.findById(id);
+      if (!user) return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
 
-    // Menampilkan detail pengguna berdasarkan ID
-    static async delete(req, res) {
-        try {
-          const { id } = req.params;
-          const [user] = await db.query(
-            'SELECT * FROM users WHERE id = ?',
-            [id]
-          );
-          if (!user || user.length === 0) {
-            return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
-          }
-
-          await db.query(
-            `UPDATE users SET deleted_at = ? WHERE id = ${id}`,
-            new Date()
-          );
-          res.status(200).json({
-            user: user[0],
-          });
-        } catch (error) {
-          res.status(500).json({ error: 'An error occurred while retrieving the user.' });
-        }
+      const isUsed = await User.checkContraint(id);
+      if (isUsed) {
+        return res.status(409).json({
+          error: 'Karyawan gagal dihapus, Data sedang digunakan dibagian lain sistem',
+        });
       }
+
+      await User.softDelete(id);
+      res.status(200).json({ user });
+    } catch (error) {
+      res.status(500).json({ error: 'An error occurred while deleting the user.' });
+    }
+  }
 }

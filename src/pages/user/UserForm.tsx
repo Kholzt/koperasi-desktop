@@ -84,8 +84,7 @@ const UserForm: React.FC = () => {
                 res = await axios.put("/api/users/" + id, data)
             }
 
-
-            if (res.status == 201) {
+            if (res.status == 200) {
                 if (!id)
                     toast.success("Pengguna berhasil ditambah")
                 else

@@ -91,7 +91,7 @@ const MemberForm: React.FC = () => {
                 res = await axios.put("/api/members/" + id, data)
             }
 
-            if (res.status == 201) {
+            if (res.status == 200) {
                 if (!id)
                     toast.success("Anggota berhasil ditambah")
                 else

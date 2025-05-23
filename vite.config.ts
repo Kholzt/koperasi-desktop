@@ -29,6 +29,13 @@ export default defineConfig({
       main: {
         // Shortcut of `build.lib.entry`.
         entry: 'electron/main.ts',
+        vite: {
+            build: {
+              rollupOptions: {
+                external: ['knex']
+              }
+            }
+          }
       },
       preload: {
         // Shortcut of `build.rollupOptions.input`.
@@ -44,9 +51,5 @@ export default defineConfig({
         : {},
     }),
   ],
-  build: {
-    rollupOptions: {
-      external: ['@prisma/client', '.prisma/client'], // ⬅️ Tambahkan ini!
-    },
-  },
+
 })

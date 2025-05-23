@@ -85,7 +85,7 @@ const ScheduleForm: React.FC = () => {
             }
 
 
-            if (res.status == 201) {
+            if (res.status == 200) {
                 if (!id)
                     toast.success("Schedule berhasil ditambah")
                 else

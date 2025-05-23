@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, TableHTMLAttributes } from "react";
 
 // Props for Table
 interface TableProps {

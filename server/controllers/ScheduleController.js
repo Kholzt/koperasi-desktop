@@ -1,43 +1,30 @@
 import { body, validationResult } from 'express-validator';
-import bcrypt from 'bcryptjs';
-import db from "../config/db.js";
+import ScheduleModel from '../models/Schedule.js';
 
 export default class ScheduleController {
   static async index(req, res) {
-      const { page = 1, limit = 10 ,area = "" ,group = "",day} = req.query;
+    const { page = 1, limit = 10, day } = req.query;
 
-    const sql = "SELECT `schedule`.id,day,`schedule`.status,`groups`.id as group_id,`groups`.group_name,`areas`.id as area_id,`areas`.area_name FROM `schedule` JOIN areas ON `schedule`.`area_id` = areas.id JOIN `groups` ON `schedule`.`group_id` = `groups`.id  WHERE "+(day ?`day='${day}' AND`:'')+"   `schedule`.deleted_at is null ORDER BY `schedule`.id  DESC LIMIT ? OFFSET ?";
     try {
-
       const offset = (parseInt(page) - 1) * parseInt(limit);
-      const [rows] = await db.query(
-        sql,
-        [parseInt(limit), offset]
-      );
+      const rows = await ScheduleModel.findAll({ limit: parseInt(limit), offset, day });
 
-      const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM `schedule` WHERE deleted_at is null');
+      const total = await ScheduleModel.getTotal();
 
-      // Grouping
-      const map = new Map();
-      for (const row of rows) {
-        if (!map.has(row.id)) {
-          map.set(row.id, {
-            id: row.id,
-            day: row.day,
-            status: row.status,
-            area: {
-              id: row.area_id,
-              area_name: row.area_name
-            },
-            group: {
-              id: row.group_id,
-              group_name: row.group_name
-            },
-          });
+      const schedule = rows.map(row => ({
+        id: row.id,
+        day: row.day,
+        status: row.status,
+        area: {
+          id: row.area_id,
+          area_name: row.area_name
+        },
+        group: {
+          id: row.group_id,
+          group_name: row.group_name
         }
-      }
+      }));
 
-      const schedule = Array.from(map.values());
       res.status(200).json({
         schedule,
         pagination: {
@@ -48,32 +35,24 @@ export default class ScheduleController {
         },
       });
     } catch (error) {
-      res.status(500).json({ error: error.message ,sql});
+      res.status(500).json({ error: error.message });
     }
   }
 
-  // Menampilkan detail area berdasarkan ID
   static async show(req, res) {
     try {
       const { id } = req.params;
-      const [schedule] = await db.query(
-        'SELECT * FROM `schedule` WHERE id = ?',
-        [id]
-      );
-      if (!schedule || schedule.length === 0) {
+      const schedule = await ScheduleModel.findById(id);
+      if (!schedule) {
         return res.status(404).json({ error: 'Schedule tidak ditemukan' });
       }
-      res.status(200).json({
-        schedule: schedule[0],
-      });
+      res.status(200).json({ schedule });
     } catch (error) {
-      res.status(500).json({ error: 'An error occurred while retrieving the area.' });
+      res.status(500).json({ error: error.message });
     }
   }
 
-  // Menyimpan area baru dengan validasi dan enkripsi password
   static async store(req, res) {
-    // Validasi input menggunakan express-validator
     await body('area_id').notEmpty().withMessage('Wilayah wajib diisi').run(req);
     await body('group_id').notEmpty().withMessage('Kelompok wajib diisi').run(req);
     await body('day').notEmpty().withMessage('Hari wajib diisi').run(req);
@@ -81,45 +60,36 @@ export default class ScheduleController {
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const formattedErrors = errors.array().reduce((acc, error) => {
-            acc[error.path] = error.msg; // key = field name, value = error message
-            return acc;
-        }, {});
-
+      const formattedErrors = errors.array().reduce((acc, error) => {
+        acc[error.path] = error.msg;
+        return acc;
+      }, {});
       return res.status(400).json({ errors: formattedErrors });
     }
 
     try {
-      const { area_id,group_id,day, status } = req.body;
+      const { area_id, group_id, day, status } = req.body;
 
-      // Cek apakah area sudah ada di database
-      const [areaByScheduleName] = await db.query('SELECT * FROM `schedule` JOIN areas ON `schedule`.`area_id` = areas.id JOIN `groups` ON `schedule`.`group_id` = `groups`.id WHERE `schedule`.area_id = ? AND `schedule`.group_id = ? AND day = ? ', [area_id,group_id,day]);
-      if (areaByScheduleName.length > 0) {
-        return res.status(409).json({ error: `Jadwal konflik dengan kelompok ${areaByScheduleName[0].group_name}  di wilayah ${areaByScheduleName[0].area_name} pada hari ${day} ` });
+      const conflict = await ScheduleModel.checkContraint({ area_id, group_id, day });
+      if (conflict) {
+        return res.status(409).json({
+          error: `Jadwal konflik dengan kelompok ${conflict.group_name} di wilayah ${conflict.area_name} pada hari ${day}`
+        });
       }
 
+      const [newId] = await ScheduleModel.create({ area_id, group_id, day, status });
+      const newSchedule = await ScheduleModel.findById(newId);
 
-      // Insert data area baru ke database
-      const result = await db.query(
-        'INSERT INTO `schedule` (area_id,group_id,day, status) VALUES (?, ?, ?, ?)',
-        [area_id, group_id, day, status]
-      );
-
-      // Ambil data area yang baru saja dimasukkan
-      const newSchedule = await db.query('SELECT * FROM `schedule` WHERE id = ?', [result.insertId]);
-
-      res.status(201).json({
+      res.status(200).json({
         message: 'Schedule berhasil dibuat',
-        area: newSchedule[0], // Mengembalikan data area yang baru saja dibuat
+        area: newSchedule,
       });
     } catch (error) {
-      res.status(500).json({ error: 'An error occurred while creating the area.' + error.message });
+      res.status(500).json({ error: error.message });
     }
   }
 
-  // Mengupdate data area dengan pengecekan dan enkripsi password jika ada perubahan
   static async update(req, res) {
-    // Validasi input menggunakan express-validator
     await body('area_id').notEmpty().withMessage('Wilayah wajib diisi').run(req);
     await body('group_id').notEmpty().withMessage('Kelompok wajib diisi').run(req);
     await body('day').notEmpty().withMessage('Hari wajib diisi').run(req);
@@ -127,64 +97,53 @@ export default class ScheduleController {
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const formattedErrors = errors.array().reduce((acc, error) => {
-            acc[error.path] = error.msg; // key = field name, value = error message
-            return acc;
-        }, {});
-
+      const formattedErrors = errors.array().reduce((acc, error) => {
+        acc[error.path] = error.msg;
+        return acc;
+      }, {});
       return res.status(400).json({ errors: formattedErrors });
     }
 
     try {
       const { id } = req.params;
-      const { area_id,group_id,day, status } = req.body;
+      const { area_id, group_id, day, status } = req.body;
 
-      const [existingSchedule] = await db.query('SELECT * FROM `schedule` WHERE id = ?', [id]);
-      if (!existingSchedule || existingSchedule.length === 0) {
+      const existing = await ScheduleModel.findById(id);
+      if (!existing) {
         return res.status(404).json({ error: 'Schedule tidak ditemukan' });
       }
 
-      const [areaByScheduleName] = await db.query('SELECT * FROM `schedule` JOIN areas ON `schedule`.`area_id` = areas.id JOIN `groups` ON `schedule`.`group_id` = `groups`.id WHERE `schedule`.area_id = ? AND `schedule`.group_id = ? AND day = ? AND `schedule`.id <> ?', [area_id,group_id,day, id]);
-      if (areaByScheduleName.length > 0) {
-        return res.status(409).json({ error: `Jadwal konflik dengan kelompok ${areaByScheduleName[0].group_name}  di wilayah ${areaByScheduleName[0].area_name} pada hari ${day} ` });
+      const conflict = await ScheduleModel.checkContraint({ area_id, group_id, day, excludeId: id });
+      if (conflict) {
+        return res.status(409).json({
+          error: `Jadwal konflik dengan kelompok ${conflict.group_name} di wilayah ${conflict.area_name} pada hari ${day}`
+        });
       }
 
-      // Jika password diberikan, enkripsi password sebelum update
-      let updateData = [area_id,group_id,day, status,id];
+      await ScheduleModel.update(id, { area_id, group_id, day, status });
 
-      await db.query(
-        "UPDATE `schedule` SET area_id = ?, group_id = ?, day = ?, status = ?  WHERE id = ?",
-        updateData
-      );
-
-      res.status(201).json({ message: 'Schedule updated successfully' });
+      res.status(200).json({ message: 'Schedule updated successfully' });
     } catch (error) {
-      res.status(500).json({ error: 'An error occurred while updating the area.'+error.message });
+      res.status(500).json({ error: error.message });
     }
   }
 
-
-    // Menampilkan detail area berdasarkan ID
-    static async delete(req, res) {
-        try {
-          const { id } = req.params;
-          const [area] = await db.query(
-            'SELECT * FROM `schedule` WHERE id = ?',
-            [id]
-          );
-          if (!area || area.length === 0) {
-            return res.status(404).json({ error: 'Schedule tidak ditemukan' });
-          }
-
-          await db.query(
-            "UPDATE `schedule` SET deleted_at = ? WHERE id = ${id}",
-            new Date()
-          );
-          res.status(200).json({
-            area: area[0],
-          });
-        } catch (error) {
-          res.status(500).json({ error: 'An error occurred while retrieving the area.' });
-        }
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const existing = await ScheduleModel.findById(id);
+      if (!existing) {
+        return res.status(404).json({ error: 'Schedule tidak ditemukan' });
       }
+
+      await ScheduleModel.softDelete(id);
+
+      res.status(200).json({
+        message: 'Schedule deleted successfully',
+        schedule: existing,
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }

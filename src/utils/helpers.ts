@@ -1,4 +1,4 @@
-export function formatCurrency(value: number,withCurr:boolean = true): string {
+export function formatCurrency(value: number = 0,withCurr:boolean = true): string {
     return withCurr ?new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
@@ -15,7 +15,8 @@ export function formatCurrency(value: number,withCurr:boolean = true): string {
     return parseFloat(unformattedValue);
   }
 
-  export function formatDate(date: string | Date): string {
+  export function formatDate(date: string | Date = null): string {
+    if(!date)return "";
     const d = new Date(date);
     return d.toLocaleDateString("id-ID", {
       day: "2-digit",
@@ -32,3 +33,14 @@ export function formatCurrency(value: number,withCurr:boolean = true): string {
       day: "numeric",
     });
   }
+
+  export function isDatePassed(date: string | Date): boolean {
+  const targetDate = new Date(date);
+  const today = new Date();
+
+  // Set jam, menit, dan detik ke 0 agar hanya membandingkan tanggalnya saja
+  targetDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  return targetDate < today;
+}

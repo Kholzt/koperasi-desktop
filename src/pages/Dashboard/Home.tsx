@@ -1,8 +1,8 @@
 import PageMeta from "../../components/common/PageMeta";
 import Metrics from './Metrics';
 import Schedule from "./Schedule";
-
 export default function Home() {
+
     return (
         <>
             <PageMeta

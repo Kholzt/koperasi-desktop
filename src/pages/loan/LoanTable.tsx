@@ -107,7 +107,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {formatCurrency(user.jumlah_pinjaman)}
+                                        {formatCurrency(user.total_pinjaman)}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -135,10 +135,14 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                                 </TableCell>
 
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Action id={user.id} area_name={user.anggota.complete_name} />
+                                    <Action id={user.id} status={user.status} area_name={user.anggota.complete_name} />
                                 </TableCell>
                             </TableRow>
                         ))}
+                        {data.length === 0 && <TableRow >
+                            <TableCell colSpan={8} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                                Tidak ada data
+                            </TableCell></TableRow>}
                     </TableBody>
                 </Table>
             </div>
@@ -150,7 +154,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
 
 
 
-function Action({ id, area_name }: { id: number, area_name: string }) {
+function Action({ id, area_name, status }: { id: number, area_name: string, status: string }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const openDropdown = () => setIsOpenDropdown(true);
     const closeDropdown = () => setIsOpenDropdown(false);
@@ -163,7 +167,11 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
             setReload(!reload);
             closeModal();
         } catch (error: any) {
-            toast.error("Pinjaman gagal dihapus")
+            if (error.status == 409) {
+                if (error.response.data.errors) {
+                    toast.error("Pinjaman gagal dihapus, Data pengguna digunakan di bagian lain sistem");
+                }
+            }
         }
     }
     return <div className="">
@@ -176,7 +184,7 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
         <Dropdown
             isOpen={isOpenDropdown}
             onClose={closeDropdown}
-            className="absolute right-20 mt-[17px] flex w-40 flex-col rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+            className="absolute right-20 mt-[17px] flex w-52 flex-col rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
         >
             <ul className="flex flex-col gap-1  ">
                 <li>
@@ -201,17 +209,18 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
                         Detail
                     </DropdownItem>
                 </li>
-                <li>
+                {status != "lunas" && <li>
                     <DropdownItem
                         onItemClick={closeDropdown}
                         tag="a"
-                        to={`/loan/${id}/edit`}
+                        to={`/loan/${id}/angsuran`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                         <DollarLineIcon fontSize={20} />
-                        Angsuran
+                        Tambah Angsuran
                     </DropdownItem>
-                </li>
+                </li>}
+
                 <li>
                     <DropdownItem
                         onItemClick={openModal}

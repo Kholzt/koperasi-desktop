@@ -15,8 +15,8 @@ const Schedule: React.FC = () => {
         total: 0
     });
     const { reload } = useTheme();
-    const days = ["senin", "selasa", "rabu", "kamis", "jumat", "sabtu", "minggu"];
-    const day = days[new Date().getDay() - 1];
+    const days = ["minggu", "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"];
+    const day = days[new Date().getDay()];
     useEffect(() => {
         axios.get(`/api/schedule?page=${pagination?.page}&day=${day}`).then((res: any) => {
             setSchedules(res.data.schedule)

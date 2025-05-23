@@ -1,6 +1,6 @@
 import express from 'express';
-import UserController  from './controllers/UserController';
-import cors  from "cors"
+import UserController from './controllers/UserController';
+import cors from "cors"
 import AuthController from './controllers/AuthController';
 import EmployeController from './controllers/EmployeController';
 import AreaController from './controllers/AreaController';
@@ -8,6 +8,8 @@ import GroupController from './controllers/GroupController';
 import MemberController from './controllers/MemberController';
 import ScheduleController from './controllers/ScheduleController';
 import LoanController from './controllers/LoanController';
+import AngsuranController from './controllers/AngsuranController';
+import { isHoliday } from './config/holidays';
 // const express = require('express');
 const app = express();
 const port = import.meta.env.VITE_APP_PORT;
@@ -18,10 +20,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
     const secret = req.headers['x-app-secret'];
     if (secret === import.meta.env.VITE_APP_SECRET) {
-      return next();
+        return next();
     }
     return res.status(403).send("Forbidden");
-  });
+});
 
 //autentikasi
 app.post('/api/login', AuthController.login);
@@ -77,10 +79,15 @@ app.delete('/api/schedule/:id', ScheduleController.delete);
 app.get('/api/loans', LoanController.index);
 app.post('/api/loans', LoanController.store);
 app.get('/api/loans/:id', LoanController.show);
+app.get('/api/loans/:id/status-pinjaman', LoanController.pinjamanAnggotaStatus);
 app.get('/api/loans/:id/code', LoanController.getCode);
 app.put('/api/loans/:id', LoanController.update);
 app.delete('/api/loans/:id', LoanController.delete);
 
+app.get('/api/angsuran/:id', AngsuranController.index);
+app.post('/api/angsuran/:idPinjaman', AngsuranController.store);
+app.put('/api/angsuran/:id', AngsuranController.update);
+
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running at http://localhost:${port}`);
 });

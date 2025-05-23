@@ -6,6 +6,7 @@ import {
     BoxCubeIcon,
     CalenderIcon,
     ChevronDownIcon,
+    DollarLineIcon,
     GridIcon,
     GroupIcon,
     HorizontaLDots,
@@ -35,10 +36,11 @@ const navItems: NavItem[] = [
         path: "/dashboard"
     },
     {
-        icon: <GridIcon />,
+        icon: <DollarLineIcon />,
         name: "Pinjaman",
         path: "/loan"
     },
+
 ];
 const masterDataItems: NavItem[] = [
     {

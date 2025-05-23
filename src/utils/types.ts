@@ -46,6 +46,9 @@ export interface ScheduleProps{
 export interface AngsuranProps{
     id:number,
     jumlah_bayar:number,
+    jumlah_angsuran?:number,
+    asal_pembayaran:"anggota"|"penagih",
+    status:"lunas"|"menunggak"|"aktif"|"libur",
     tanggal_pembayaran:Date,
     }
 export interface LoanProps{

@@ -1,21 +1,27 @@
-import mysql from 'mysql2/promise';
+// db.js
+import knex from 'knex';
+import dotenv from 'dotenv';
 
-// Buat koneksi pool (lebih aman dan efisien)
-const pool = mysql.createPool({
-  host: import.meta.env.VITE_APP_DBHOST,
-  user: import.meta.env.VITE_APP_DBUSER,
-  password: import.meta.env.VITE_APP_DBPASS, // sesuaikan dengan password kamu
-  database: import.meta.env.VITE_APP_DBNAME, // ganti dengan nama database kamu
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+dotenv.config();
 
-export default pool;
+/**
+ * @type {import('knex').Knex}
+ */
+let db;
 
+if (!globalThis.__knexInstance) {
+    globalThis.__knexInstance = knex({
+        client: 'mysql2',
+        connection: {
+            host: process.env.VITE_APP_DBHOST,
+            user: process.env.VITE_APP_DBUSER,
+            password: process.env.VITE_APP_DBPASS,
+            database: process.env.VITE_APP_DBNAME,
+        },
+        pool: { min: 2, max: 10 },
+    });
+}
 
-// import { PrismaClient } from '@prisma/client'
+db = globalThis.__knexInstance;
 
-// const db = new PrismaClient()
-
-// export default db;
+export default db;

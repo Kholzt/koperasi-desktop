@@ -152,7 +152,11 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
             setReload(!reload);
             closeModal();
         } catch (error: any) {
-
+            if (error.status == 409) {
+                toast.error("Wilayah gagal dihapus, Data  digunakan di bagian lain sistem");
+                setReload(!reload);
+                closeModal();
+            }
         }
     }
     return <div className="">

@@ -22,7 +22,7 @@ import Loading from "../../components/ui/Loading"
 interface GroupFormInput {
     group_name: string;
     area_id: number;
-    staffs: String[]
+    staffs: string[]
 }
 
 
@@ -89,7 +89,6 @@ const GroupForm: React.FC = () => {
 
 
     const onSubmit = async (data: GroupFormInput) => {
-        console.log(data);
         try {
             let res;
             if (!id) {
@@ -97,8 +96,7 @@ const GroupForm: React.FC = () => {
             } else {
                 res = await axios.put("/api/groups/" + id, data)
             }
-
-            if (res.status == 201) {
+            if (res.status == 200) {
                 if (!id)
                     toast.success("Kelompok berhasil ditambah")
                 else
