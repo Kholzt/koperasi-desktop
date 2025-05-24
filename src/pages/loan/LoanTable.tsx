@@ -135,7 +135,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                                 </TableCell>
 
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Action id={user.id} status={user.status} area_name={user.anggota.complete_name} />
+                                    <Action id={user.id} status={user.status} kode={user.kode} completeName={user.anggota.complete_name} />
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -154,7 +154,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
 
 
 
-function Action({ id, area_name, status }: { id: number, area_name: string, status: string }) {
+function Action({ id, status, kode, completeName }: { id: number, kode: string, completeName: string, status: string }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const openDropdown = () => setIsOpenDropdown(true);
     const closeDropdown = () => setIsOpenDropdown(false);
@@ -165,12 +165,15 @@ function Action({ id, area_name, status }: { id: number, area_name: string, stat
             let res = await axios.delete("/api/loans/" + id);
             toast.success("Pinjaman berhasil dihapus")
             setReload(!reload);
+            console.log(res);
             closeModal();
         } catch (error: any) {
             if (error.status == 409) {
-                if (error.response.data.errors) {
-                    toast.error("Pinjaman gagal dihapus, Data pengguna digunakan di bagian lain sistem");
-                }
+                toast.error("Pinjaman gagal dihapus, Data pengguna digunakan di bagian lain sistem");
+                setReload(!reload);
+                closeModal();
+                // if (error.response.data.errors) {
+                // }
             }
         }
     }
@@ -247,7 +250,7 @@ function Action({ id, area_name, status }: { id: number, area_name: string, stat
                         Pemberitahuan
                     </h5>
                     <p className="text-base text-gray-800 dark:text-gray-400 ">
-                        Apakah Anda yakin untuk menghapus pinjaman {area_name}?
+                        Apakah Anda yakin untuk menghapus pinjaman dengan kode {kode} atas nama {completeName}?
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                         Data yang dihapus dapat dikembalikan nanti

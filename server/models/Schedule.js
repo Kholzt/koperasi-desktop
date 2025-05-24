@@ -37,7 +37,7 @@ const ScheduleModel = {
   },
 
   async checkContraint({ area_id, group_id, day, excludeId = null }) {
-    const query = await db('schedule')
+    const query =  db('schedule')
       .join('areas', 'schedule.area_id', 'areas.id')
       .join('groups', 'schedule.group_id', 'groups.id')
       .where({ 'schedule.area_id': area_id, 'schedule.group_id': group_id, day });

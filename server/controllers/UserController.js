@@ -54,7 +54,7 @@ export default class UserController {
     try {
       const { username, complete_name, role, access_apps, position, status, password } = req.body;
 
-      const existingUser = await User.findByUsername(username);
+      const existingUser = await User.findByUsernameOnly(username);
       if (existingUser) return res.status(400).json({ errors: { username: 'Username sudah terdaftar' } });
 
       const hashedPassword = await bcrypt.hash(password, 10);

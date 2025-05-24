@@ -2,29 +2,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 
 // Assume these icons are imported from an icon library
+import { useSidebar } from "../context/SidebarContext";
 import {
-    BoxCubeIcon,
     CalenderIcon,
     ChevronDownIcon,
     DollarLineIcon,
     GridIcon,
     GroupIcon,
     HorizontaLDots,
-    ListIcon,
-    LocationIcon,
-    PageIcon,
-    PieChartIcon,
-    PlugInIcon,
-    TableIcon,
-    UserCircleIcon, UserIcon,
-
+    LocationIcon
 } from "../icons";
-import { useSidebar } from "../context/SidebarContext";
-import SidebarWidget from "./SidebarWidget";
+import { useUser } from "../hooks/useUser";
 
 type NavItem = {
     name: string;
     icon: React.ReactNode;
+    access: Array<String>;
     path?: string;
     subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
@@ -33,12 +26,14 @@ const navItems: NavItem[] = [
     {
         icon: <GridIcon />,
         name: "Dashboard",
-        path: "/dashboard"
+        path: "/dashboard",
+        access: ["staff", "controller", "pusat"]
     },
     {
         icon: <DollarLineIcon />,
         name: "Pinjaman",
-        path: "/loan"
+        path: "/loan",
+        access: ["staff", "controller", "pusat"]
     },
 
 ];
@@ -47,145 +42,49 @@ const masterDataItems: NavItem[] = [
         icon: <GroupIcon />,
         name: "Pengguna",
         path: "/user",
+        access: ["pusat"]
     },
     {
         icon: <GroupIcon />,
         name: "Karyawan",
         path: "/employe",
+        access: ["pusat"]
+
     },
     {
         icon: <GroupIcon />,
         name: "Anggota",
         path: "/member",
+        access: ["staff", "controller", "pusat"]
     },
     {
         icon: <LocationIcon />,
         name: "Wilayah",
         path: "/area",
+        access: ["pusat"]
+
     },
     {
         icon: <GroupIcon />,
         name: "Kelompok",
         path: "/group",
+        access: ["pusat"]
     },
 ];
-// const navItems: NavItem[] = [
-//     {
-//         icon: <GridIcon />,
-//         name: "Dashboard",
-//         path: "/dashboard"
-//     },
-//     {
-//         icon: <CalenderIcon />,
-//         name: "Calendar",
-//         path: "/calendar",
-//     },
-//     {
-//         icon: <UserIcon />,
-//         name: "Pengguna",
-//         path: "/user",
-//     },
-//     {
-//         icon: <UserIcon />,
-//         name: "Karyawan",
-//         path: "/employe",
-//     },
-//     {
-//         icon: <UserIcon />,
-//         name: "Anggota",
-//         path: "/profile",
-//     },
-//     {
-//         icon: <LocationIcon />,
-//         name: "Area",
-//         path: "/area",
-//     },
-//     {
-//         icon: <LocationIcon />,
-//         name: "Group",
-//         path: "/group",
-//     },
-// {
-//     name: "Forms",
-//     icon: <ListIcon />,
-//     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-// },
-// {
-//     name: "Tables",
-//     icon: <TableIcon />,
-//     subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-// },
-// {
-//     name: "Pages",
-//     icon: <PageIcon />,
-//     subItems: [
-//         { name: "Blank Page", path: "/blank", pro: false },
-//         { name: "404 Error", path: "/error-404", pro: false },
-//     ],
-// },
-// ];
 
 const othersItems: NavItem[] = [
     {
         icon: <CalenderIcon />,
         name: "Jadwal Kunjungan",
-        path: "/schedule"
-        // subItems: [
-        //     { name: "Line Chart", path: "/line-chart", pro: false },
-        //     { name: "Bar Chart", path: "/bar-chart", pro: false },
-        // ],
+        path: "/schedule",
+        access: ["pusat"]
     },
-    // {
-    //     icon: <PieChartIcon />,
-    //     name: "Charts",
-    //     subItems: [
-    //         { name: "Line Chart", path: "/line-chart", pro: false },
-    //         { name: "Bar Chart", path: "/bar-chart", pro: false },
-    //     ],
-    // },
-    // {
-    //     icon: <BoxCubeIcon />,
-    //     name: "UI Elements",
-    //     subItems: [
-    //         { name: "Alerts", path: "/alerts", pro: false },
-    //         { name: "Avatar", path: "/avatars", pro: false },
-    //         { name: "Badge", path: "/badge", pro: false },
-    //         { name: "Buttons", path: "/buttons", pro: false },
-    //         { name: "Images", path: "/images", pro: false },
-    //         { name: "Videos", path: "/videos", pro: false },
-    //     ],
-    // },
-    // {
-    //     icon: <PlugInIcon />,
-    //     name: "Authentication",
-    //     subItems: [
-    //         { name: "Sign In", path: "/signin", pro: false },
-    //         { name: "Sign Up", path: "/signup", pro: false },
-    //     ],
-    // },
-    // {
-    //     name: "Forms",
-    //     icon: <ListIcon />,
-    //     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-    // },
-    // {
-    //     name: "Tables",
-    //     icon: <TableIcon />,
-    //     subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-    // },
-    // {
-    //     name: "Pages",
-    //     icon: <PageIcon />,
-    //     subItems: [
-    //         { name: "Blank Page", path: "/blank", pro: false },
-    //         { name: "404 Error", path: "/error-404", pro: false },
-    //     ],
-    // },
 ];
 
 const AppSidebar: React.FC = () => {
     const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
     const location = useLocation();
+    const { user } = useUser();
 
     const [openSubmenu, setOpenSubmenu] = useState<{
         type: "main" | "Master Data" | "Laporan" | "others";
@@ -254,6 +153,7 @@ const AppSidebar: React.FC = () => {
     const renderMenuItems = (items: NavItem[], menuType: "main" | "Master Data" | "Laporan" | "others") => (
         <ul className="flex flex-col gap-4">
             {items.map((nav, index) => (
+                nav.access.includes(user?.role ?? "") &&
                 <li key={nav.name}>
                     {nav.subItems ? (
                         <button
@@ -445,7 +345,7 @@ const AppSidebar: React.FC = () => {
                             </h2>
                             {renderMenuItems(masterDataItems, "Master Data")}
                         </div>
-                        <div className="">
+                        {["pusat"].includes(user?.role ?? "") && <div className="">
                             <h2
                                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                                     ? "lg:justify-center"
@@ -459,7 +359,8 @@ const AppSidebar: React.FC = () => {
                                 )}
                             </h2>
                             {renderMenuItems(othersItems, "others")}
-                        </div>
+                        </div>}
+
                     </div>
                 </nav>
             </div>

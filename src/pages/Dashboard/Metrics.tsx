@@ -42,10 +42,10 @@ const Metrics: React.FC = () => {
                         {count}
                     </h4>
                 </div>
-                <Badge color="success">
+                {/* <Badge color="success">
                     <ArrowUpIcon />
                     11.01%
-                </Badge>
+                </Badge> */}
             </div>
         </div>;
     }

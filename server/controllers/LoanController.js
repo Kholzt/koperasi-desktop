@@ -349,11 +349,17 @@ export default class LoanController {
     static async delete(req, res) {
         try {
             const { id } = req.params;
-            const pinjaman = await Loan.findById(id);
+            const pinjaman = await Loan.findByIdOnlyOne(id);
             if (!pinjaman) {
-                return res.status(404).json({ error: 'Area tidak ditemukan' });
+                return res.status(404).json({ error: 'Pinjaman tidak ditemukan' });
             }
 
+            const isUsed = pinjaman.total_pinjaman > pinjaman.sisa_pembayaran || pinjaman.besar_tunggakan > 0;
+            if (isUsed) {
+                return res.status(409).json({
+                    error: 'Pinjaman gagal dihapus, Data sedang digunakan dibagian lain sistem',
+                });
+            }
             await Loan.softDelete(id);
             res.status(200).json({
                 pinjaman: pinjaman,

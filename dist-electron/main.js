@@ -74297,7 +74297,7 @@ class User {
     const [result] = await db$1("pinjaman").join("users", "users.id", "=", "pinjaman.petugas_input").where("users.access_apps", "access").where("users.id", id).select("pinjaman.id").limit(1);
     return !!result;
   }
-  static async findByUsername(username) {
+  static async findByUsernameOnly(username) {
     return await db$1("users").where({ username }).first();
   }
 }
@@ -74710,6 +74710,9 @@ class Loan {
       "users.complete_name as penagih_nama"
     );
   }
+  static async findByIdOnlyOne(id) {
+    return await db$1("pinjaman").where("id", id).first();
+  }
   static async createAngsuran({ idPinjaman, tanggalPembayaran, status }) {
     return await db$1("angsuran").insert({ jumlah_bayar: 0, id_pinjaman: idPinjaman, asal_pembayaran: null, status, tanggal_pembayaran: tanggalPembayaran });
   }
@@ -75022,9 +75025,15 @@ class LoanController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const pinjaman = await Loan.findById(id);
+      const pinjaman = await Loan.findByIdOnlyOne(id);
       if (!pinjaman) {
-        return res.status(404).json({ error: "Area tidak ditemukan" });
+        return res.status(404).json({ error: "Pinjaman tidak ditemukan" });
+      }
+      const isUsed = pinjaman.total_pinjaman > pinjaman.sisa_pembayaran || pinjaman.besar_tunggakan > 0;
+      if (isUsed) {
+        return res.status(409).json({
+          error: "Pinjaman gagal dihapus, Data sedang digunakan dibagian lain sistem"
+        });
       }
       await Loan.softDelete(id);
       res.status(200).json({
@@ -75259,7 +75268,7 @@ const ScheduleModel = {
     return await db$1("schedule").where({ id }).first();
   },
   async checkContraint({ area_id, group_id, day, excludeId = null }) {
-    const query = await db$1("schedule").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").where({ "schedule.area_id": area_id, "schedule.group_id": group_id, day });
+    const query = db$1("schedule").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").where({ "schedule.area_id": area_id, "schedule.group_id": group_id, day });
     if (excludeId) {
       query.andWhereNot("schedule.id", excludeId);
     }
@@ -75445,7 +75454,7 @@ class UserController {
     }
     try {
       const { username, complete_name, role, access_apps, position: position2, status, password } = req.body;
-      const existingUser = await User.findByUsername(username);
+      const existingUser = await User.findByUsernameOnly(username);
       if (existingUser) return res.status(400).json({ errors: { username: "Username sudah terdaftar" } });
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.create({
@@ -77741,7 +77750,7 @@ const size = {
 function createWindow() {
   win = new BrowserWindow({
     ...size,
-    //    titleBarStyle: 'hidden',
+    titleBarStyle: "hidden",
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       preload: path.join(__dirname$1, "preload.mjs")

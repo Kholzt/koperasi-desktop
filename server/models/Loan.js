@@ -75,6 +75,9 @@ export default class Loan {
             )
     }
 
+    static async findByIdOnlyOne(id) {
+        return await db('pinjaman').where("id", id).first();
+    }
     static async createAngsuran({ idPinjaman, tanggalPembayaran, status }) {
         return await db("angsuran").insert({ jumlah_bayar: 0, id_pinjaman: idPinjaman, asal_pembayaran: null, status, tanggal_pembayaran: tanggalPembayaran });
     }
