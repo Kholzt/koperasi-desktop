@@ -78,6 +78,7 @@ app.get('/api/schedule/:id', ScheduleController.show);
 app.put('/api/schedule/:id', ScheduleController.update);
 app.delete('/api/schedule/:id', ScheduleController.delete);
 
+
 // loans
 app.get('/api/loans', LoanController.index);
 app.post('/api/loans', LoanController.store);
@@ -92,8 +93,8 @@ app.post('/api/angsuran/:idPinjaman', AngsuranController.store);
 app.put('/api/angsuran/:id', AngsuranController.update);
 
 app.get('/api/configLoan', (req, res) => {
-    const totalBulan = process.env.VITE_APP_BULAN;
-    const modalDo = process.env.VITE_APP_MODAL_DO;
+    const totalBulan = process.env.VITE_APP_BULAN || 10;
+    const modalDo = process.env.VITE_APP_MODAL_DO || 13;
     return res.json({ config: { totalBulan, modalDo } })
 });
 

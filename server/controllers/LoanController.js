@@ -218,7 +218,7 @@ export default class LoanController {
             });
 
             // Loop angsuran per bulan
-            const totalBulan = parseInt(process.env.VITE_APP_BULAN || '0');
+            const totalBulan = parseInt(process.env.VITE_APP_BULAN || '10');
             for (let i = 0; i < totalBulan; i++) {
                 const tanggalPembayaran = new Date(tanggalAngsuranPertama);
                 tanggalPembayaran.setMonth(tanggalPembayaran.getMonth() + i);

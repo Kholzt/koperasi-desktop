@@ -74918,7 +74918,7 @@ class LoanController {
         total_bunga,
         tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama)
       });
-      const totalBulan = parseInt(process.env.VITE_APP_BULAN || "0");
+      const totalBulan = parseInt(process.env.VITE_APP_BULAN || "10");
       for (let i = 0; i < totalBulan; i++) {
         const tanggalPembayaran = new Date(tanggalAngsuranPertama);
         tanggalPembayaran.setMonth(tanggalPembayaran.getMonth() + i);
@@ -75579,8 +75579,8 @@ app.get("/api/angsuran/:id", AngsuranController.index);
 app.post("/api/angsuran/:idPinjaman", AngsuranController.store);
 app.put("/api/angsuran/:id", AngsuranController.update);
 app.get("/api/configLoan", (req, res) => {
-  const totalBulan = process.env.VITE_APP_BULAN;
-  const modalDo = process.env.VITE_APP_MODAL_DO;
+  const totalBulan = process.env.VITE_APP_BULAN || 10;
+  const modalDo = process.env.VITE_APP_MODAL_DO || 13;
   return res.json({ config: { totalBulan, modalDo } });
 });
 app.listen(port, () => {

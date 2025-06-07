@@ -110,7 +110,6 @@ const LoanForm: React.FC = () => {
             // Ambil konfigurasi dari environment
             const totalBulanAngsuran = configLoan.totalBulan;
             const modalDoPersen = configLoan.modalDo;
-            console.log(configLoan);
             // Hitung total bunga, total pinjaman, angsuran per bulan, dll.
             const totalBunga = (pinjaman * bunga / 100);
             const total = pinjaman + totalBunga;
@@ -253,6 +252,11 @@ const LoanForm: React.FC = () => {
                 <ComponentCard title={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
+                            <div>
+                                <Label htmlFor="anggota_id">Anggota</Label>
+                                <Select disabled={isUpdate} options={anggota} {...register("anggota_id")} placeholder="Pilih anggota" />
+                                {errors.anggota_id && <p className="text-sm text-red-500 mt-1">{errors.anggota_id.message}</p>}
+                            </div>
                             <div className="md:col-span-2">
                                 <Label htmlFor="kode">Kode</Label>
                                 <Input readOnly id="kode" {...register("kode")} placeholder="Masukkan kode pinjaman" />
@@ -334,11 +338,7 @@ const LoanForm: React.FC = () => {
                                 {errors.modal_do && <p className="text-sm text-red-500 mt-1">{errors.modal_do.message}</p>}
                             </div>
 
-                            <div>
-                                <Label htmlFor="anggota_id">Anggota</Label>
-                                <Select disabled={isUpdate} options={anggota} {...register("anggota_id")} placeholder="Pilih anggota" />
-                                {errors.anggota_id && <p className="text-sm text-red-500 mt-1">{errors.anggota_id.message}</p>}
-                            </div>
+
 
                             <div>
                                 <Label htmlFor="penanggung_jawab">Penanggung Jawab</Label>
