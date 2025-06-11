@@ -1,8 +1,13 @@
+import { useEffect } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import Metrics from './Metrics';
 import Schedule from "./Schedule";
+import axios from "../../utils/axios";
 export default function Home() {
 
+    useEffect(() => {
+        axios.post("/api/export-db")
+    }, []);
     return (
         <>
             <PageMeta

@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain, shell  } from 'electron'
 import { spawn } from 'child_process';
 
 // import { createRequire } from 'node:module'
@@ -85,7 +85,9 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
+ipcMain.handle('open-file', async (event, filePath) => {
+  shell.showItemInFolder(filePath);
+});
 
 function startExpressServer() {
     const serverPath = path.join(process.env.APP_ROOT!, 'server', 'Server.js');

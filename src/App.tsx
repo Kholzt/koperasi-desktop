@@ -33,6 +33,8 @@ import Loan from './pages/loan/Loan';
 import LoanForm from './pages/loan/LoanForm';
 import LoanDetail from './pages/loan/LoanDetail';
 import Angsuran from './pages/loan/Angsuran';
+import UserProfiles from "./pages/UserProfiles";
+import Backup from './pages/backup-page/Backup';
 
 export default function App() {
     return (
@@ -78,6 +80,7 @@ export default function App() {
                         <Route path="/loan/:id/angsuran" element={<Angsuran />} />
                         <Route path="/loan/:id/angsuran/:idAngsuran" element={<Angsuran />} />
 
+                        <Route path="/backup" element={<Backup />} />
 
                         <Route path="/calendar" element={<Calendar />} />
                         <Route path="/blank" element={<Blank />} />
@@ -99,6 +102,7 @@ export default function App() {
                         {/* Charts */}
                         <Route path="/line-chart" element={<LineChart />} />
                         <Route path="/bar-chart" element={<BarChart />} />
+                        <Route path="/profile" element={<UserProfiles />} />
                     </Route>
 
                     {/* Auth Layout */}

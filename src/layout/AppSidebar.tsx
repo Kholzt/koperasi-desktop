@@ -7,6 +7,7 @@ import {
     CalenderIcon,
     ChevronDownIcon,
     DollarLineIcon,
+    FolderIcon,
     GridIcon,
     GroupIcon,
     HorizontaLDots,
@@ -27,48 +28,55 @@ const navItems: NavItem[] = [
         icon: <GridIcon />,
         name: "Dashboard",
         path: "/dashboard",
-        access: ["staff", "controller", "pusat"]
+        access: ["staff", "controller", "pusat", "super admin"]
     },
     {
         icon: <DollarLineIcon />,
         name: "Pinjaman",
         path: "/loan",
-        access: ["staff", "controller", "pusat"]
+        access: ["staff", "controller", "pusat", "super admin"]
+    },
+    {
+        icon: <FolderIcon />,
+        name: "Backup",
+        path: "/backup",
+        access: ["super admin"]
     },
 
 ];
+
 const masterDataItems: NavItem[] = [
     {
         icon: <GroupIcon />,
         name: "Pengguna",
         path: "/user",
-        access: ["pusat"]
+        access: ["pusat", "super admin"]
     },
     {
         icon: <GroupIcon />,
         name: "Karyawan",
         path: "/employe",
-        access: ["pusat"]
+        access: ["pusat", "super admin"]
 
     },
     {
         icon: <GroupIcon />,
         name: "Anggota",
         path: "/member",
-        access: ["staff", "controller", "pusat"]
+        access: ["staff", "controller", "pusat", "super admin"]
     },
     {
         icon: <LocationIcon />,
         name: "Wilayah",
         path: "/area",
-        access: ["pusat"]
+        access: ["pusat", "super admin"]
 
     },
     {
         icon: <GroupIcon />,
         name: "Kelompok",
         path: "/group",
-        access: ["pusat"]
+        access: ["pusat", "super admin"]
     },
 ];
 
@@ -77,7 +85,7 @@ const othersItems: NavItem[] = [
         icon: <CalenderIcon />,
         name: "Jadwal Kunjungan",
         path: "/schedule",
-        access: ["pusat"]
+        access: ["pusat", "super admin"]
     },
 ];
 

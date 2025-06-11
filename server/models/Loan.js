@@ -109,4 +109,9 @@ export default class Loan {
         return total;
     }
 
+    static async checkStatusAngsuran(id) {
+        const [{ total }] = await db("angsuran").where("id_pinjaman", id).whereNot("jumlah_bayar", 0).count({ total: '*' })
+        return total;
+    }
+
 }

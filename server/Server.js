@@ -10,6 +10,7 @@ import LoanController from './controllers/LoanController';
 import MemberController from './controllers/MemberController';
 import ScheduleController from './controllers/ScheduleController';
 import UserController from './controllers/UserController';
+import { exportDB, listBackup } from "./config/db";
 
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use((req, res, next) => {
 //autentikasi
 app.post('/api/login', AuthController.login);
 app.get('/api/user', AuthController.getUser);
+app.put('/api/profile-update/:id', AuthController.updateUserProfil);
 
 // pengguna
 app.get('/api/users', UserController.index);
@@ -96,6 +98,14 @@ app.get('/api/configLoan', (req, res) => {
     const totalBulan = process.env.VITE_APP_BULAN || 10;
     const modalDo = process.env.VITE_APP_MODAL_DO || 13;
     return res.json({ config: { totalBulan, modalDo } })
+});
+
+app.post('/api/export-db', (req, res) => {
+    exportDB();
+    return res.json({ message: "Berhasil export db" })
+});
+app.get('/api/list-backup', (req, res) => {
+    return res.json({ backups: listBackup() })
 });
 
 app.listen(port, () => {

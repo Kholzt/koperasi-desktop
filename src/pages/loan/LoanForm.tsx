@@ -21,6 +21,7 @@ import { formatCurrency, unformatCurrency } from "../../utils/helpers";
 import { MemberProps, UserProps } from "../../utils/types";
 import { toast } from "react-toastify";
 import Loading from "../../components/ui/Loading"
+import DatePicker from "../../components/form/date-picker";
 
 interface LoanFormInput {
     kode: string;
@@ -37,11 +38,13 @@ interface LoanFormInput {
     petugas_input: number;
     sisa_pembayaran: string;
     besar_tunggakan: string;
+    tanggal_pinjam: string;
     status: 'aktif' | 'lunas' | 'menunggak';
 }
 
 const schema: yup.SchemaOf<LoanFormInput> = yup.object({
     kode: yup.string().required('Kode wajib diisi'),
+    tanggal_pinjam: yup.string().required('Tanggal pinjam wajib diisi'),
     jumlah_pinjaman: yup.string().required('Jumlah pinjaman wajib diisi').min(0),
     total_pinjaman_diterima: yup.string().required('Jumlah pinjaman wajib diisi').min(0),
     persen_bunga: yup.number().required('Persen bunga wajib diisi').min(0).max(100),
@@ -63,6 +66,7 @@ const LoanForm: React.FC = () => {
     const [users, setUsers] = useState<{ label: string, value: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [disabled, setDisabled] = useState(false);
+    const [hasAngsuran, setHasAngsuran] = useState(false);
     const [configLoan, setConfigLoan] = useState({
         totalBulan: 10,
         modalDo: 30
@@ -79,6 +83,7 @@ const LoanForm: React.FC = () => {
         reset,
         watch,
         setValue,
+        getValues,
         formState: { errors }
     } = useForm<LoanFormInput>({
         resolver: yupResolver(schema),
@@ -89,7 +94,8 @@ const LoanForm: React.FC = () => {
             total_pinjaman: "0",
             modal_do: "0",
             sisa_pembayaran: "0",
-            besar_tunggakan: "0"
+            besar_tunggakan: "0",
+            tanggal_pinjam: new Date().toISOString(),
         }
     });
 
@@ -174,12 +180,11 @@ const LoanForm: React.FC = () => {
     useEffect(() => {
         if (id) {
             setLoading(true);
-
-            console.log(id);
             axios.get("/api/loans/" + id).then(res => {
                 const loan = res.data.loan
-                reset({ ...loan, besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
-
+                console.log(loan);
+                reset({ ...loan, tanggal_pinjam: new Date(loan.created_at as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
+                setHasAngsuran(loan.hasAngsuran);
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
@@ -266,7 +271,7 @@ const LoanForm: React.FC = () => {
                             <div>
                                 <Label htmlFor="jumlah_pinjaman">Jumlah Pinjaman</Label>
                                 <div className="relative">
-                                    <Input id="jumlah_pinjaman" type="text" {...register("jumlah_pinjaman")} className="pl-[62px]" />
+                                    <Input readOnly={hasAngsuran} id="jumlah_pinjaman" type="text" {...register("jumlah_pinjaman")} className="pl-[62px]" />
                                     <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
                                         Rp
                                     </span>
@@ -344,6 +349,20 @@ const LoanForm: React.FC = () => {
                                 <Label htmlFor="penanggung_jawab">Penanggung Jawab</Label>
                                 <Select options={users} {...register("penanggung_jawab")} placeholder="Pilih penanggung jawab" />
                                 {errors.penanggung_jawab && <p className="text-sm text-red-500 mt-1">{errors.penanggung_jawab.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="penanggung_jawab">Tanggal Pinjam</Label>
+                                <DatePicker
+                                    readonly={isUpdate}
+                                    id={"startDate"}
+                                    mode="single"
+                                    placeholder="Tanggal peminjaman"
+                                    defaultDate={getValues("tanggal_pinjam")}
+                                    onChange={(date) => {
+                                        setValue("tanggal_pinjam", date[0].toISOString().slice(0, 19).replace("T", " "));
+                                    }}
+                                />
+                                {errors.tanggal_pinjam && <p className="text-sm text-red-500 mt-1">{errors.tanggal_pinjam.message}</p>}
                             </div>
 
 

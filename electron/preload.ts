@@ -19,6 +19,12 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     return ipcRenderer.invoke(channel, ...omit)
   },
 
+
   // You can expose other APTs you need here.
   // ...
 })
+
+
+contextBridge.exposeInMainWorld('electron', {
+  openFile: (path:string) => ipcRenderer.invoke('open-file', path)
+});

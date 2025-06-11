@@ -41,13 +41,15 @@ export default class LoanController {
             const rows = await Loan.findById(id);
 
             const map = new Map();
-
+            const hasAngsuran = await Loan.checkStatusAngsuran(id)
             for (const row of rows) {
                 if (!map.has(row.id)) {
                     map.set(row.id, {
                         ...row,
                         anggota: { complete_name: row.anggota_nama },
                         penanggungJawab: { complete_name: row.pj_nama },
+                        //memiliki angsuran yg sudah bayar
+                        hasAngsuran: hasAngsuran > 0,
                         petugas: { complete_name: row.pit_nama },
                         angsuran: new Map(), // gunakan Map untuk menghindari duplikat
                     });
@@ -120,14 +122,15 @@ export default class LoanController {
             ];
 
             let result = "";
+            let romanVal = member.sequence_number;
             for (const [letter, value] of roman) {
-                while (num >= value) {
+                while (romanVal >= value) {
                     result += letter;
-                    num -= value;
+                    romanVal -= value;
                 }
             }
             const romanLength = result;
-            const code = `${romanLength}/${member.sequence_number}`;
+            const code = `${romanLength}/${num}`;
             res.status(200).json({
                 code, rows, member, num, result
             });
@@ -153,6 +156,8 @@ export default class LoanController {
         await body('penanggung_jawab').notEmpty().withMessage('Penanggung jawab wajib dipilih').run(req);
         await body('petugas_input').notEmpty().withMessage('Petugas input wajib dipilih').run(req);
         await body('status').notEmpty().withMessage('Status wajib dipilih').isIn(['aktif', 'lunas', 'menunggak']).run(req);
+        await body('tanggal_pinjam').notEmpty().withMessage('Tanggal input wajib dipilih').run(req)
+
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
