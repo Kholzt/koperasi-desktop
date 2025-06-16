@@ -53,7 +53,6 @@ function createWindow() {
     },
 
   })
-  console.log(path.join(__dirname, 'public', 'images', 'logo', 'logo.jpg'));
   win.maximize();
 
 
