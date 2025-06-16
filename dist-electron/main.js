@@ -77852,11 +77852,12 @@ function createWindow() {
   win = new BrowserWindow({
     ...size,
     titleBarStyle: "hidden",
-    icon: path$1.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: "./public/images/logo/logo.jpg",
     webPreferences: {
       preload: path$1.join(__dirname$1, "preload.mjs")
     }
   });
+  console.log(path$1.join(__dirname$1, "public", "images", "logo", "logo.jpg"));
   win.maximize();
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());

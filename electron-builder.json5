@@ -4,6 +4,15 @@
   "appId": "112",
   "asar": true,
   "productName": "Koperasi",
+  "win": {
+    "icon": "./public/images/logo/logo.jpg"
+  },
+  "mac": {
+    "icon": "./public/images/logo/logo.jpg"
+  },
+  "linux": {
+    "icon": "./public/images/logo/logo.jpg"
+  },
   "directories": {
     "output": "release/${version}"
   },
