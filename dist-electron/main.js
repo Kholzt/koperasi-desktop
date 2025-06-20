@@ -74817,7 +74817,7 @@ class Loan {
     return db$1("pinjaman").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
   }
   static async checkStatusPinjamanAnggota(id) {
-    const [{ total }] = await db$1("pinjaman").where("anggota_id", id).whereNot("status", "lunas").count({ total: "*" });
+    const [{ total }] = await db$1("pinjaman").where("anggota_id", id).whereNot("status", "lunas").whereNull("pinjaman.deleted_at").count({ total: "*" });
     return total;
   }
   static async checkStatusAngsuran(id) {
@@ -77857,7 +77857,6 @@ function createWindow() {
       preload: path$1.join(__dirname$1, "preload.mjs")
     }
   });
-  console.log(path$1.join(__dirname$1, "public", "images", "logo", "logo.jpg"));
   win.maximize();
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());

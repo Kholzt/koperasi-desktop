@@ -105,7 +105,7 @@ export default class Loan {
     }
 
     static async checkStatusPinjamanAnggota(id) {
-        const [{ total }] = await db("pinjaman").where("anggota_id", id).whereNot("status", "lunas").count({ total: '*' })
+        const [{ total }] = await db("pinjaman").where("anggota_id", id).whereNot("status", "lunas").whereNull('pinjaman.deleted_at').count({ total: '*' })
         return total;
     }
 
