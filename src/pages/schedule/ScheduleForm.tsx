@@ -176,7 +176,7 @@ const ScheduleForm: React.FC = () => {
                             <Label>
                                 Hari <span className="text-error-500">*</span>
                             </Label>
-                            <Select options={days} placeholder="Pilih kelompok" {...register("day")} />
+                            <Select options={days} placeholder="Pilih hari" {...register("day")} />
                             {errors.day && (
                                 <p className="mt-1 text-sm text-red-500">{errors.day.message}</p>
                             )}
