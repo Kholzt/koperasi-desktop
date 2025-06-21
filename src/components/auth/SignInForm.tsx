@@ -83,7 +83,7 @@ export default function SignInForm() {
                 <div>
                     <div className="mb-5 sm:mb-8">
                         <h2 className="font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-sm">
-                            Koperasi Saferine Jaya Mandiri
+                            Koperasi Seferine Jaya Mandiri
                         </h2>
                         <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
                             Masuk

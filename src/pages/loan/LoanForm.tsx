@@ -194,7 +194,7 @@ const LoanForm: React.FC = () => {
             setConfigLoan(res.data.config);
         });
         axios.get("/api/members?limit=2000").then(res => {
-            setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name, value: member.id })));
+            setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id })));
         });
         axios.get("/api/employees?limit=2000").then(res => {
             setUsers(res.data.employees.map((user: UserProps) => ({ label: user.complete_name, value: user.id })));

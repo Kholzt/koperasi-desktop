@@ -18,6 +18,8 @@ export default class MemberController {
                     const hasPinjaman = await Member.hasPinjaman(row.member_id);
                     map.set(row.member_id, {
                         id: row.member_id,
+                        nik: row.nik,
+                        no_kk: row.no_kk,
                         complete_name: row.complete_name,
                         address: row.address,
                         sequence_number: row.sequence_number,

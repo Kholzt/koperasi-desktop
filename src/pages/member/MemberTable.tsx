@@ -46,6 +46,12 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                NIK
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Nama Member
                             </TableCell>
                             <TableCell
@@ -87,6 +93,9 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                             </span>
                                         </div>
                                     </div>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    {user.nik}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     {user.complete_name}
