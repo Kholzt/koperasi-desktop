@@ -158,7 +158,7 @@ const ScheduleForm: React.FC = () => {
                             <Label>
                                 Wilayah <span className="text-error-500">*</span>
                             </Label>
-                            <Select options={areas} placeholder="Pilih area" {...register("area_id")} />
+                            <Select options={areas} placeholder="Pilih wilayah" {...register("area_id")} />
                             {errors.area_id && (
                                 <p className="mt-1 text-sm text-red-500">{errors.area_id.message}</p>
                             )}
