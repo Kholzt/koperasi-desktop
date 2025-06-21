@@ -15,12 +15,14 @@ export default class MemberController {
             const map = new Map();
             for (const row of rows) {
                 if (!map.has(row.member_id)) {
+                    const hasPinjaman = await Member.hasPinjaman(row.member_id);
                     map.set(row.member_id, {
                         id: row.member_id,
                         complete_name: row.complete_name,
                         address: row.address,
                         sequence_number: row.sequence_number,
                         area_id: row.area_id,
+                        hasPinjaman: hasPinjaman,
                         area: {
                             id: row.area_id,
                             area_name: row.area_name,
@@ -69,6 +71,8 @@ export default class MemberController {
 
             const member = {
                 id: row.member_id,
+                nik: row.nik,
+                no_kk: row.no_kk,
                 complete_name: row.complete_name,
                 address: row.address,
                 area_id: row.area_id,
@@ -104,11 +108,19 @@ export default class MemberController {
         }
 
         try {
-            const { complete_name, area_id, address } = req.body;
+            const { complete_name, area_id, address, nik, no_kk } = req.body;
+            const nikExist = await Member.nikExist(nik, false);
+            if (nikExist) {
+                return res.status(409).json({
+                    message: "Nik sudah ada",
+                });
+            }
+
             const member = await Member.getSequenceNumber();
             // res.status(500).json(member);
             const sequence_number = member ? member?.sequence_number + 1 : 1;
-            const data = { complete_name, area_id, address, sequence_number };
+            const data = { nik, no_kk, complete_name, area_id, address, sequence_number, deleted_at: null };
+
             const memberId = await Member.create(data);
 
             const newMember = await Member.findById(memberId);
@@ -122,6 +134,9 @@ export default class MemberController {
     }
 
     static async update(req, res) {
+        await body("nik").notEmpty().withMessage("NIK wajib diisi").run(req);
+        await body("no_kk").notEmpty().withMessage("NO KK wajib diisi").run(req);
+        await body("complete_name").notEmpty().withMessage("Nama wajib diisi").run(req);
         await body("complete_name").notEmpty().withMessage("Nama wajib diisi").run(req);
         await body("area_id").notEmpty().withMessage("Area wajib diisi").run(req);
         await body('address').notEmpty().withMessage('Alamat wajib diisi').run(req);
@@ -137,8 +152,8 @@ export default class MemberController {
 
         try {
             const { id } = req.params;
-            const { complete_name, area_id, address } = req.body;
-            const data = { complete_name, area_id, address, id }
+            const { nik, no_kk, complete_name, area_id, address } = req.body;
+            const data = { complete_name, area_id, address, id, nik, no_kk }
             await Member.update(data, id);
 
             res.status(200).json({ message: "Anggota updated successfully" });
@@ -166,6 +181,20 @@ export default class MemberController {
             res.status(200).json({
                 message: "Anggota berhasil dihapus",
                 member: member,
+            });
+        } catch (error) {
+            res.status(500).json({ error: "An error occurred while deleting the member. " + error.message });
+        }
+    }
+
+
+    static async nixExist(req, res) {
+        try {
+            const { nik } = req.params;
+            const exist = await Member.nikExist(nik);
+            res.status(200).json({
+                message: "Anggota sudah ada",
+                nikExist: exist,
             });
         } catch (error) {
             res.status(500).json({ error: "An error occurred while deleting the member. " + error.message });

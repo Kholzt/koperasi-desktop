@@ -7,6 +7,8 @@ export default class Member {
             .select(
                 'm.id as member_id',
                 'm.complete_name',
+                'm.nik',
+                'm.no_kk',
                 'm.address',
                 'm.sequence_number',
                 'm.area_id',
@@ -33,6 +35,8 @@ export default class Member {
             .select(
                 'm.id as member_id',
                 'm.complete_name',
+                'm.nik',
+                'm.no_kk',
                 'm.address',
                 'm.area_id',
                 'a.id as area_id',
@@ -76,5 +80,25 @@ export default class Member {
             .count('* as total')
             .whereNull('deleted_at');
         return total;
+    }
+    static async hasPinjaman(id) {
+        const [{ total }] = await db('members').join("pinjaman", "members.id", "pinjaman.anggota_id")
+            .where("members.id", id)
+            .count('* as total')
+            .whereNull('pinjaman.deleted_at');
+        return total > 0;
+    }
+
+    static async nikExist(nik, notNull = false) {
+        const query = db('members')
+            .where("nik", nik)
+        // .count('* as total');
+        if (notNull) {
+            query.whereNotNull("deleted_at");
+        } else {
+            query.whereNull("deleted_at");
+        }
+        const [{ total }] = await query.count();
+        return total > 0;
     }
 }

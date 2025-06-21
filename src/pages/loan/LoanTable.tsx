@@ -18,6 +18,7 @@ import { DollarLineIcon, InfoIcon, PencilIcon, TrashBinIcon } from "../../icons"
 import axios from "../../utils/axios";
 import { LoanProps, PaginationProps } from "../../utils/types";
 import { formatCurrency, formatLongDate } from "../../utils/helpers";
+import { useUser } from "../../hooks/useUser";
 
 // import { toast } from 'react-hot-toast';
 interface LoanTableProps {
@@ -160,6 +161,7 @@ function Action({ id, status, kode, completeName }: { id: number, kode: string, 
     const closeDropdown = () => setIsOpenDropdown(false);
     const { isOpen, openModal, closeModal } = useModal();
     const { setReload, reload } = useTheme();
+    const { user } = useUser();
     const deleteAction = async () => {
         try {
             let res = await axios.delete("/api/loans/" + id);
@@ -191,7 +193,7 @@ function Action({ id, status, kode, completeName }: { id: number, kode: string, 
         >
             <ul className="flex flex-col gap-1  ">
                 <li>
-                    <DropdownItem
+                    {user?.role != "staff" && <DropdownItem
                         onItemClick={closeDropdown}
                         tag="a"
                         to={`/loan/${id}/edit`}
@@ -199,7 +201,7 @@ function Action({ id, status, kode, completeName }: { id: number, kode: string, 
                     >
                         <PencilIcon fontSize={20} />
                         Edit
-                    </DropdownItem>
+                    </DropdownItem>}
                 </li>
                 <li>
                     <DropdownItem

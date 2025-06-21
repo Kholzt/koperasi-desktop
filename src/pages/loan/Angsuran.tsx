@@ -13,7 +13,7 @@ import { Modal } from "../../components/ui/modal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../../components/ui/table";
 import { useTheme } from "../../context/ThemeContext";
 import axios from "../../utils/axios";
-import { formatCurrency, formatDate, formatLongDate, isDatePassed } from "../../utils/helpers";
+import { formatCurrency, formatDate, formatLongDate, isDatePassed, unformatCurrency } from "../../utils/helpers";
 import { AngsuranProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
 import MultiSelect from "../../components/form/MultiSelect";
 import Select from "../../components/form/Select";
@@ -26,13 +26,14 @@ import Loading from "../../components/ui/Loading";
 
 interface FormInputs {
     asal_pembayaran: string;
+    jumlah_bayar: string;
     penagih: string[]; // atau number[] tergantung data
     status: "lunas" | "menunggak";
 };
 
 const schema: yup.SchemaOf<FormInputs> = yup.object({
-    // asal_pembayaran: yup.string()
-    //     .required("Asal pembayaran wajib diisi"),
+    jumlah_bayar: yup.string()
+        .required("Jumlah bayar wajib diisi"),
     penagih: yup.array().of(yup.string().trim()
         .min(1, 'Silahkan pilih penagih')
         .required('Silahkan pilih penagih'))
@@ -90,6 +91,14 @@ const Angsuran: React.FC = () => {
         setisLunas(lunasUpdate == "lunas")
     }, [lunasUpdate]);
 
+    const jumlahBayar = watch("jumlah_bayar");
+
+    useEffect(() => {
+        if (jumlahBayar) {
+            const jumlahBayarFormat = unformatCurrency(jumlahBayar);
+            setValue("jumlah_bayar", formatCurrency(jumlahBayarFormat));
+        }
+    }, [jumlahBayar]);
     const onSubmit = async (data: FormInputs) => {
         try {
             if (data.asal_pembayaran == null && data.status == "lunas") return setError("asal_pembayaran", {
@@ -98,10 +107,10 @@ const Angsuran: React.FC = () => {
             })
 
             if (!idAngsuran) {
-                const res = await axios.post(`/api/angsuran/${id}`, data);
+                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar) });
                 toast.success("Angsuran berhasil diubah")
             } else {
-                const res = await axios.put(`/api/angsuran/${idAngsuran}`, data);
+                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar) });
                 toast.success("Angsuran berhasil diubah")
             }
             navigate("/loan");
@@ -127,7 +136,7 @@ const Angsuran: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4 mb-4" >
                             <div className="col-span-2">
                                 <Label>Jumlah bayar</Label>
-                                <Input readOnly type="text" value={formatCurrency(loans?.jumlah_angsuran)} />
+                                <Input type="text" {...register("jumlah_bayar")} defaultValue={formatCurrency(loans?.jumlah_angsuran)} />
                             </div>
 
                             <div  >

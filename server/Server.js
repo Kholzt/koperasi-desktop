@@ -67,6 +67,7 @@ app.delete('/api/groups/:id', GroupController.delete);
 
 // Group
 app.get('/api/members', MemberController.index);
+app.get('/api/members/:nik/check', MemberController.nixExist);
 app.get('/api/members/count', MemberController.count);
 app.post('/api/members', MemberController.store);
 app.get('/api/members/:id', MemberController.show);
