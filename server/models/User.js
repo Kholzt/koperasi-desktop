@@ -60,6 +60,7 @@ export default class User {
             .where('users.access_apps', 'access')
             .where('users.id', id)
             .select('pinjaman.id')
+            .whereNull('pinjaman.deleted_at')
             .limit(1);
 
         return !!result;

@@ -58,7 +58,7 @@ export default class Member {
 
     static async checkContraint(id) {
         const checks = [
-            db('pinjaman').where('anggota_id', id).first(),
+            db('pinjaman').where('anggota_id', id).whereNull('deleted_at').first(),
         ];
 
         const [members, groups, schedule] = await Promise.all(checks);

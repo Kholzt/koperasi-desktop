@@ -72482,9 +72482,9 @@ class AreaModel {
   }
   static async checkContraint(id) {
     const checks = [
-      db$1("members").where("area_id", id).first(),
-      db$1("groups").where("area_id", id).first(),
-      db$1("schedule").where("area_id", id).first()
+      db$1("members").where("area_id", id).whereNull("deleted_at").first(),
+      db$1("groups").where("area_id", id).whereNull("deleted_at").first(),
+      db$1("schedule").where("area_id", id).whereNull("deleted_at").first()
     ];
     const [members, groups, schedule] = await Promise.all(checks);
     return members || groups || schedule;
@@ -74347,7 +74347,7 @@ class User {
     return await db$1("users").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
   }
   static async checkContraint(id) {
-    const [result] = await db$1("pinjaman").join("users", "users.id", "=", "pinjaman.petugas_input").where("users.access_apps", "access").where("users.id", id).select("pinjaman.id").limit(1);
+    const [result] = await db$1("pinjaman").join("users", "users.id", "=", "pinjaman.petugas_input").where("users.access_apps", "access").where("users.id", id).select("pinjaman.id").whereNull("pinjaman.deleted_at").limit(1);
     return !!result;
   }
   static async findByUsernameOnly(username) {
@@ -74532,8 +74532,8 @@ class EmployeController {
         return res.status(404).json({ error: "Pengguna tidak ditemukan" });
       }
       const sqlConstraintChecks = [
-        db$1("users").join("group_details", "users.id", "group_details.staff_id").where("users.id", id).andWhere("access_apps", "noAccess"),
-        db$1("users").join("pinjaman", "users.id", "pinjaman.penanggung_jawab").where("users.id", id).andWhere("access_apps", "noAccess")
+        db$1("users").join("group_details", "users.id", "group_details.staff_id").join("groups", "group_id", "groups.id").where("access_apps", "noAccess").andWhere("users.id", id).whereNull("groups.deleted_at"),
+        db$1("users").join("pinjaman", "users.id", "pinjaman.penanggung_jawab").where("access_apps", "noAccess").andWhere("users.id", id).whereNull("pinjaman.deleted_at")
       ];
       for (const query of sqlConstraintChecks) {
         const dataConstraint = await query.select();
@@ -74598,7 +74598,7 @@ class Group {
   }
   static async checkContraint(id) {
     const checks = [
-      db$1("schedule").where("group_id", id).first()
+      db$1("schedule").where("group_id", id).whereNull("deleted_at").first()
     ];
     const [members, groups, schedule] = await Promise.all(checks);
     return members || groups || schedule;
@@ -75193,7 +75193,7 @@ class Member {
   }
   static async checkContraint(id) {
     const checks = [
-      db$1("pinjaman").where("anggota_id", id).first()
+      db$1("pinjaman").where("anggota_id", id).whereNull("deleted_at").first()
     ];
     const [members, groups, schedule] = await Promise.all(checks);
     return members || groups || schedule;
@@ -75370,7 +75370,7 @@ const ScheduleModel = {
     return await db$1("schedule").where({ id }).first();
   },
   async checkContraint({ area_id, group_id, day, excludeId = null }) {
-    const query = db$1("schedule").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").where({ "schedule.area_id": area_id, "schedule.group_id": group_id, day });
+    const query = db$1("schedule").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").where({ "schedule.area_id": area_id, "schedule.group_id": group_id, day }).whereNull("deleted_at");
     if (excludeId) {
       query.andWhereNot("schedule.id", excludeId);
     }
