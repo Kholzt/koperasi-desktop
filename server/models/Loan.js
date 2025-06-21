@@ -113,5 +113,9 @@ export default class Loan {
         const [{ total }] = await db("angsuran").where("id_pinjaman", id).whereNot("jumlah_bayar", 0).count({ total: '*' })
         return total;
     }
+    static async findByTanggal(id, tanggal) {
+        const [{ total }] = await db("angsuran").where("id_pinjaman", id).where("tanggal_pembayaran", tanggal).count({ total: '*' })
+        return total > 0;
+    }
 
 }

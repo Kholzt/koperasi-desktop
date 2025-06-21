@@ -74824,6 +74824,10 @@ class Loan {
     const [{ total }] = await db$1("angsuran").where("id_pinjaman", id).whereNot("jumlah_bayar", 0).count({ total: "*" });
     return total;
   }
+  static async findByTanggal(id, tanggal) {
+    const [{ total }] = await db$1("angsuran").where("id_pinjaman", id).where("tanggal_pembayaran", tanggal).count({ total: "*" });
+    return total > 0;
+  }
 }
 class LoanController {
   // Menampilkan daftar area dengan pagination
@@ -75024,13 +75028,18 @@ class LoanController {
               status: "libur"
             });
             tanggalPembayaran.setMonth(tanggalPembayaran.getMonth() + 1);
+            i++;
           } else {
+            const existing = await Loan.findByTanggal(loanId, tanggalPembayaran);
+            if (existing) {
+              break;
+            }
+            sudahAktif = true;
             await Loan.createAngsuran({
               idPinjaman: loanId,
               tanggalPembayaran: formatDate(tanggalPembayaran),
               status: "aktif"
             });
-            sudahAktif = true;
           }
         }
       }
