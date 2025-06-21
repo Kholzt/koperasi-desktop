@@ -46,6 +46,7 @@ const size = {
 function createWindow() {
   win = new BrowserWindow({
    ...size,
+   title:"Koperasi Saferine Jaya Mandiri",
    titleBarStyle: 'hidden',
     icon: "./public/images/logo/logo.jpg",
     webPreferences: {
