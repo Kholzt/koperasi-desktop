@@ -72,7 +72,7 @@ export default class AngsuranController {
             const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
 
             if (status == "lunas") {
-                sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt(jumlah_bayar);
+                sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt((pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran));
                 totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(pinjaman.jumlah_angsuran) : parseInt(pinjaman.besar_tunggakan);
                 await Angsuran.updateAngsuran(angsuran.id, {
                     asal_pembayaran,
