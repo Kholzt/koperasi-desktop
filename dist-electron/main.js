@@ -74927,15 +74927,14 @@ class LoanController {
         ["I", 1]
       ];
       let result = "";
-      let romanVal = member.sequence_number;
       for (const [letter, value] of roman) {
-        while (romanVal >= value) {
+        while (num >= value) {
           result += letter;
-          romanVal -= value;
+          num -= value;
         }
       }
       const romanLength = result;
-      const code = `${romanLength}/${num}`;
+      const code = `${romanLength}/${member.sequence_number}`;
       res.status(200).json({
         code,
         rows,
@@ -75015,10 +75014,10 @@ class LoanController {
         total_bunga,
         tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama)
       });
-      const totalBulan = parseInt(process.env.VITE_APP_BULAN || "10");
-      for (let i = 0; i < totalBulan; i++) {
+      const totalMinggu = parseInt(process.env.VITE_APP_BULAN || "10");
+      for (let i = 0; i < totalMinggu; i++) {
         const tanggalPembayaran = new Date(tanggalAngsuranPertama);
-        tanggalPembayaran.setMonth(tanggalPembayaran.getMonth() + i);
+        tanggalPembayaran.setDate(tanggalPembayaran.getDate() + i * 7);
         let sudahAktif = false;
         while (!sudahAktif) {
           if (isHoliday(tanggalPembayaran)) {
@@ -75027,7 +75026,7 @@ class LoanController {
               tanggalPembayaran: formatDate(tanggalPembayaran),
               status: "libur"
             });
-            tanggalPembayaran.setMonth(tanggalPembayaran.getMonth() + 1);
+            tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
             i++;
           } else {
             const existing = await Loan.findByTanggal(loanId, tanggalPembayaran);

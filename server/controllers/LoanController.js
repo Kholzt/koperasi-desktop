@@ -121,16 +121,26 @@ export default class LoanController {
                 ["I", 1]
             ];
 
+            // let result = "";
+            // let romanVal = member.sequence_number;
+            // for (const [letter, value] of roman) {
+            //     while (romanVal >= value) {
+            //         result += letter;
+            //         romanVal -= value;
+            //     }
+            // }
+            // const romanLength = result;
+            // const code = `${romanLength}/${num}`;
             let result = "";
-            let romanVal = member.sequence_number;
+            // let romanVal = member.sequence_number;
             for (const [letter, value] of roman) {
-                while (romanVal >= value) {
+                while (num >= value) {
                     result += letter;
-                    romanVal -= value;
+                    num -= value;
                 }
             }
             const romanLength = result;
-            const code = `${romanLength}/${num}`;
+            const code = `${romanLength}/${member.sequence_number}`;
             res.status(200).json({
                 code, rows, member, num, result
             });
@@ -223,15 +233,14 @@ export default class LoanController {
             });
 
             // Loop angsuran per bulan
-            const totalBulan = parseInt(process.env.VITE_APP_BULAN || '10');
-            for (let i = 0; i < totalBulan; i++) {
+            const totalMinggu = parseInt(process.env.VITE_APP_BULAN || '10');
+            for (let i = 0; i < totalMinggu; i++) {
                 const tanggalPembayaran = new Date(tanggalAngsuranPertama);
-                tanggalPembayaran.setMonth(tanggalPembayaran.getMonth() + i);
+                tanggalPembayaran.setDate(tanggalPembayaran.getDate() + (i * 7));
 
                 let sudahAktif = false;
 
                 while (!sudahAktif) {
-
                     if (isHoliday(tanggalPembayaran)) {
                         // Buat angsuran status "libur"
                         await Loan.createAngsuran({
@@ -240,8 +249,8 @@ export default class LoanController {
                             status: "libur"
                         });
 
-                        // Geser ke bulan berikutnya
-                        tanggalPembayaran.setMonth(tanggalPembayaran.getMonth() + 1);
+                        // Geser ke minggu berikutnya
+                        tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
                         i++;
                     } else {
                         const existing = await Loan.findByTanggal(loanId, tanggalPembayaran);
@@ -256,8 +265,8 @@ export default class LoanController {
                         });
                     }
                 }
-
             }
+
 
 
             const newPeminjaman = await Loan.findById(loanId);
