@@ -106,7 +106,7 @@ const LoanDetail: React.FC = () => {
                                 loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => (
                                     <tr
                                         key={index}
-                                        className={angsuran.asal_pembayaran === "anggota" ? "bg-blue-600" : (angsuran.asal_pembayaran == "penagih" ? "bg-red-600" : (angsuran.status == "libur" ? "bg-yellow-600" : "bg-white"))}
+                                        className={angsuran.asal_pembayaran === "anggota" ? "bg-blue-500" : (angsuran.asal_pembayaran == "penagih" ? "bg-red-500" : (angsuran.status == "libur" ? "bg-yellow-500" : "bg-white"))}
                                     >
                                         <td className="p-3 border-b font-medium">{formatCurrency(angsuran.jumlah_bayar)}</td>
                                         <td className="p-3 border-b capitalize">{angsuran?.penagih.length > 0 ? angsuran?.penagih?.map((p: any) => {
