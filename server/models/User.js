@@ -9,6 +9,7 @@ export default class User {
             .whereNull('deleted_at')
             .where('access_apps', 'access')
             .where('complete_name', 'like', `%${search}%`)
+            .whereNot("role", "super admin")
             .orderBy('id', 'desc')
             .limit(limit)
             .offset(offset);

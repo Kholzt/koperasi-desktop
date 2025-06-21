@@ -74323,7 +74323,7 @@ const bcrypt = {
 class User {
   static async findAll({ page, limit, search }) {
     const offset2 = (page - 1) * limit;
-    const users = await db$1("users").whereNull("deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).orderBy("id", "desc").limit(limit).offset(offset2);
+    const users = await db$1("users").whereNull("deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).whereNot("role", "super admin").orderBy("id", "desc").limit(limit).offset(offset2);
     const [{ count }] = await db$1("users").whereNull("deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).count({ count: "*" });
     return { users, total: parseInt(count) };
   }

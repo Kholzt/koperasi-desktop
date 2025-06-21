@@ -35,8 +35,8 @@ const schema: yup.SchemaOf<UserFormInput> = yup.object({
     password: yup.string()
         .min(6, 'Password minimal 6 karakter')
         .nullable(),
-    role: yup.mixed<'staff' | 'controller' | 'pusat'|'super admin'>()
-        .oneOf(['staff', 'controller', 'pusat','super admin'], 'Role tidak valid')
+    role: yup.mixed<'staff' | 'controller' | 'pusat' | 'super admin'>()
+        .oneOf(['staff', 'controller', 'pusat', 'super admin'], 'Role tidak valid')
         .required('Role wajib dipilih'),
     // access_apps: yup.mixed<'access' | 'noAccess'>()
     //     .oneOf(['access', 'noAccess'], 'Access Apps tidak valid')
@@ -177,7 +177,9 @@ const UserForm: React.FC = () => {
                                 <Label>
                                     Role <span className="text-error-500">*</span>
                                 </Label>
-                                <Select options={[{ label: 'Staff', value: "staff" }, { label: 'Controller', value: "controller" }, { label: 'Pusat', value: "pusat" },{label:"Super admin",value:"super admin"}]} placeholder="Pilih role" {...register("role")} />
+                                <Select options={[{ label: 'Staff', value: "staff" }, { label: 'Controller', value: "controller" }, { label: 'Pusat', value: "pusat" },
+                                    // {label:"Super admin",value:"super admin"}
+                                ]} placeholder="Pilih role" {...register("role")} />
 
                                 {errors.role && (
                                     <p className="mt-1 text-sm text-red-500">{errors.role.message}</p>
