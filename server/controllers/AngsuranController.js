@@ -19,11 +19,11 @@ export default class AngsuranController {
 
     static async store(req, res) {
         await body('penagih').isArray({ min: 1 }).run(req);
+        // await body('jumlah_bayar').min({ min: 1 }).run(req);
         await body('status')
             .isIn(['lunas', 'menunggak'])
             .withMessage('Status harus lunas atau menunggak')
             .run(req);
-
         await body('asal_pembayaran')
             .custom((value, { req }) => {
                 if (req.body.status === 'lunas' && (value != 'anggota' && value != 'penagih')) {
@@ -53,7 +53,7 @@ export default class AngsuranController {
 
 
             const { idPinjaman } = req.params
-            const { status, penagih, asal_pembayaran } = req.body
+            const { status, penagih, asal_pembayaran, jumlah_bayar } = req.body
             const angsuran = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman);
             if (!angsuran) {
                 res.status(404).json({ error: "Angsuran tidak ditemukan" });
@@ -65,24 +65,23 @@ export default class AngsuranController {
             let statusPinjaman = "aktif";
             const pinjaman = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
 
-            if ((parseInt(pinjaman.sisa_pembayaran) - parseInt(pinjaman.jumlah_angsuran)) == 0 && status == "lunas") {
+            if ((parseInt(pinjaman.sisa_pembayaran) - parseInt(jumlah_bayar)) == 0 && status == "lunas") {
                 statusPinjaman = "lunas";
             }
 
             const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
 
             if (status == "lunas") {
-                sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt(pinjaman.jumlah_angsuran);
+                sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt(jumlah_bayar);
                 totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(pinjaman.jumlah_angsuran) : parseInt(pinjaman.besar_tunggakan);
                 await Angsuran.updateAngsuran(angsuran.id, {
                     asal_pembayaran,
-                    jumlah_bayar: pinjaman.jumlah_angsuran,
+                    jumlah_bayar: jumlah_bayar,
                     status: "lunas"
                 });
                 await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
 
             } else {
-
                 sisaPembayaran = parseInt(pinjaman.sisa_pembayaran);
                 totalTunggakan = parseInt(pinjaman.besar_tunggakan) + parseInt(pinjaman.jumlah_angsuran)
                 await Angsuran.updateAngsuran(angsuran.id, { status: "menunggak" });
@@ -96,13 +95,13 @@ export default class AngsuranController {
 
                     if (isHoliday(tanggalPembayaran)) {
                         await Angsuran.createAngsuran({
-                            idPinjaman:angsuran.id_pinjaman,
+                            idPinjaman: angsuran.id_pinjaman,
                             tanggalPembayaran: formatDate(tanggalPembayaran),
                             status: "libur"
                         });
                     } else {
                         await Angsuran.createAngsuran({
-                            idPinjaman:angsuran.id_pinjaman,
+                            idPinjaman: angsuran.id_pinjaman,
                             tanggalPembayaran: formatDate(tanggalPembayaran),
                             status: "aktif"
                         });

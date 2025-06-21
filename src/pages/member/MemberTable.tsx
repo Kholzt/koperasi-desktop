@@ -16,6 +16,7 @@ import { useModal } from "../../hooks/useModal";
 import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { MemberProps, PaginationProps } from "../../utils/types";
+import { useUser } from "../../hooks/useUser";
 // import { toast } from 'react-hot-toast';
 interface MemberTableProps {
     data: MemberProps[],
@@ -40,6 +41,12 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
                                 No
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                NIK
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -88,6 +95,9 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    {user.nik}
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     {user.complete_name}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -107,7 +117,7 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 </TableCell>
 
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Action id={user.id} member_name={user.complete_name} />
+                                    <Action hasPinjaman={user.hasPinjaman} id={user.id} member_name={user.complete_name} />
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -126,12 +136,13 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
 
 
 
-function Action({ id, member_name }: { id: number, member_name: string }) {
+function Action({ id, member_name, hasPinjaman }: { id: number, member_name: string, hasPinjaman: boolean }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const openDropdown = () => setIsOpenDropdown(true);
     const closeDropdown = () => setIsOpenDropdown(false);
     const { isOpen, openModal, closeModal } = useModal();
     const { setReload, reload } = useTheme();
+    const { user } = useUser();
     const deleteAction = async () => {
         try {
             let res = await axios.delete("/api/members/" + id);
@@ -160,7 +171,7 @@ function Action({ id, member_name }: { id: number, member_name: string }) {
         >
             <ul className="flex flex-col gap-1  ">
                 <li>
-                    <DropdownItem
+                    {user?.role != "staff" && !hasPinjaman && <DropdownItem
                         onItemClick={closeDropdown}
                         tag="a"
                         to={`/member/${id}/edit`}
@@ -168,7 +179,8 @@ function Action({ id, member_name }: { id: number, member_name: string }) {
                     >
                         <PencilIcon fontSize={20} />
                         Edit
-                    </DropdownItem>
+                    </DropdownItem>}
+
                 </li>
                 <li>
                     <DropdownItem

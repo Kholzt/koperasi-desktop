@@ -39,91 +39,91 @@ const LoanDetail: React.FC = () => {
             </div>
             <div className="space-y-6">
                 <ComponentCard title="Detail Peminjaman">
-                    <div className="grid grid-cols-4 gap-px border rounded-md overflow-hidden text-sm">
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Kode</div>
-                        <div className="bg-white p-3 font-medium border-b">{loan?.kode}</div>
+                    <div className="grid grid-cols-4 gap-px border rounded-md overflow-hidden text-sm  bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Kode</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.kode}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Nama Anggota</div>
-                        <div className="bg-white p-3 font-medium border-b">{loan?.anggota?.complete_name}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Nama Anggota</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.anggota?.complete_name}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Jumlah Pinjaman</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatCurrency(loan?.jumlah_pinjaman)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Jumlah Pinjaman</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.jumlah_pinjaman)}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Persen Bunga</div>
-                        <div className="bg-white p-3 font-medium border-b">{loan?.persen_bunga}%</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Persen Bunga</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.persen_bunga}%</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Total Bunga</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatCurrency(loan?.total_bunga)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Total Bunga</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.total_bunga)}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Total Pinjaman</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatCurrency(loan?.total_pinjaman)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Total Pinjaman</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.total_pinjaman)}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Jumlah Angsuran</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatCurrency(loan?.jumlah_angsuran)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Jumlah Angsuran</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.jumlah_angsuran)}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Tanggal Angsuran Pertama</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatDate(loan?.tanggal_angsuran_pertama)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Tanggal Angsuran Pertama</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatDate(loan?.tanggal_angsuran_pertama)}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Modal DO</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatCurrency(loan?.modal_do)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Modal DO</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.modal_do)}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Penanggung Jawab</div>
-                        <div className="bg-white p-3 font-medium border-b">{loan?.penanggungJawab?.complete_name}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Penanggung Jawab</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.penanggungJawab?.complete_name}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Petugas Input</div>
-                        <div className="bg-white p-3 font-medium border-b">{loan?.petugas?.complete_name}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Petugas Input</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.petugas?.complete_name}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Sisa Pembayaran</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatCurrency(loan?.sisa_pembayaran)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Sisa Pembayaran</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.sisa_pembayaran)}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Besar Tunggakan</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatCurrency(loan?.besar_tunggakan)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Besar Tunggakan</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.besar_tunggakan)}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Status</div>
-                        <div className="bg-white p-3 font-medium border-b capitalize">{loan?.status}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Status</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white capitalize">{loan?.status}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Dibuat Pada</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatDate(loan?.created_at)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Dibuat Pada</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatDate(loan?.created_at)}</div>
 
-                        <div className="bg-gray-50 p-3  border-b text-gray-700">Terakhir Diperbarui</div>
-                        <div className="bg-white p-3 font-medium border-b">{formatDate(loan?.updated_at)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Terakhir Diperbarui</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatDate(loan?.updated_at)}</div>
                     </div>
 
                 </ComponentCard>
                 <ComponentCard title="Detail Angsuran">
-                    <table className="min-w-full text-sm border rounded-md overflow-hidden">
-                        <thead className="bg-gray-50 text-gray-700">
+                    <table className="min-w-full text-sm border rounded-md overflow-hidden bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+                        <thead className=" text-gray-700">
                             <tr>
-                                <th className="p-3 border-b text-left">Jumlah Bayar</th>
-                                <th className="p-3 border-b text-left">Penagih</th>
-                                <th className="p-3 border-b text-left">Keterangan</th>
-                                <th className="p-3 border-b text-left">Tanggal Bayar</th>
-                                <th className="p-3 border-b text-left">Aksi</th>
+                                <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Jumlah Bayar</th>
+                                <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Penagih</th>
+                                <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Keterangan</th>
+                                <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Tanggal Bayar</th>
+                                <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {(loan?.angsuran?.length ?? 0) > 0 ? (
                                 loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => (
                                     <tr
                                         key={index}
-                                        className={angsuran.asal_pembayaran === "anggota" ? "bg-blue-500" : (angsuran.asal_pembayaran == "penagih" ? "bg-red-500" : (angsuran.status == "libur" ? "bg-yellow-500" : "bg-white"))}
+                                        className={angsuran.asal_pembayaran === "anggota" ? "bg-blue-500 text-white" : (angsuran.asal_pembayaran == "penagih" ? "bg-red-500" : (angsuran.status == "libur" ? "bg-yellow-500" : " "))}
                                     >
-                                        <td className="p-3 border-b font-medium">{formatCurrency(angsuran.jumlah_bayar)}</td>
-                                        <td className="p-3 border-b capitalize">{angsuran?.penagih.length > 0 ? angsuran?.penagih?.map((p: any) => {
+                                        <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{formatCurrency(angsuran.jumlah_bayar)}</td>
+                                        <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">{angsuran?.penagih.length > 0 ? angsuran?.penagih?.map((p: any) => {
                                             return p.complete_name;
                                         }).join(",") : "-"}</td>
-                                        <td className="p-3 border-b capitalize">{angsuran.status ?? "-"}</td>
-                                        <td className="p-3 border-b capitalize">
+                                        <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">{angsuran.status ?? "-"}</td>
+                                        <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">
                                             {angsuran.tanggal_pembayaran ? formatLongDate(angsuran.tanggal_pembayaran) : "-"}
                                         </td>
-                                        <td className="p-3 border-b capitalize">
+                                        <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">
                                             {angsuran.status == "lunas" && <Link to={`/loan/${loan.id}/angsuran/${angsuran.id}`}><PencilIcon fontSize={20} /></Link>}
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4} className="p-3 border-b text-center">
+                                    <td colSpan={4} className="p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-center">
                                         Tidak ada angsuran
                                     </td>
                                 </tr>

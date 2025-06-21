@@ -20,6 +20,8 @@ import { AreaProps } from "../../utils/types";
 import Loading from "../../components/ui/Loading"
 
 interface MemberFormInput {
+    nik: number;
+    no_kk: number;
     complete_name: string;
     area_id: number;
     address: string
@@ -27,6 +29,14 @@ interface MemberFormInput {
 
 
 const schema: yup.SchemaOf<MemberFormInput> = yup.object({
+    nik: yup.number()
+        // .min(16, "NIK minimal 16")
+        // .max(16, "NIK maksimal 16")
+        .required('NIK  wajib diisi'),
+    no_kk: yup.number()
+        // .min(16, "No KK minimal 16")
+        // .max(16, "No KK maksimal 16")
+        .required('NO KK  wajib diisi'),
     complete_name: yup.string()
         .required('Nama kelompok  wajib diisi'),
     area_id: yup.string()
@@ -39,7 +49,7 @@ const MemberForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const [areas, setAreas] = useState<{ label: string, value: string }[]>([]);
     const [loading, setLoading] = useState(true);
-
+    const [nikExist, setNikExist] = useState(false);
     const { id } = useParams();
     const isUpdate = !!id;
     const navigate = useNavigate();
@@ -51,13 +61,16 @@ const MemberForm: React.FC = () => {
         reset,
         setValue,
         getValues,
+        watch,
         formState: { errors }
     } = useForm<MemberFormInput>({
         resolver: yupResolver(schema),
         defaultValues: {
             complete_name: "",
             area_id: undefined,
-            address: ""
+            address: "",
+            nik: 0,
+            no_kk: 0
         }
     });
 
@@ -80,6 +93,18 @@ const MemberForm: React.FC = () => {
         });
     }, []);
 
+    const nik = watch("nik");
+    useEffect(() => {
+        if (nik) {
+            axios.get(`/api/members/${nik}/check`).then((data) => {
+                setNikExist(data.data.nikExist);
+                setError("nik", {
+                    type: 'manual',
+                    message: "Nik sudah ada", // Pesan error dari response
+                });
+            })
+        }
+    }, [nik]);
 
     const onSubmit = async (data: MemberFormInput) => {
         console.log(data);
@@ -142,9 +167,38 @@ const MemberForm: React.FC = () => {
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div>
                             <Label>
+                                NIK  <span className="text-error-500">*</span>
+                            </Label>
+                            <Input
+                                type="number"
+                                placeholder="Masukkan NIK"
+                                {...register("nik")}
+                            />
+                            {errors.nik && (
+                                <p className="mt-1 text-sm text-red-500">{errors.nik.message}</p>
+                            )}
+                        </div>
+                        <div>
+                            <Label>
+                                NO KK  <span className="text-error-500">*</span>
+                            </Label>
+                            <Input
+                                disabled={nikExist}
+                                type="number"
+                                placeholder="Masukkan No KK"
+                                {...register("no_kk")}
+                            />
+                            {errors.no_kk && (
+                                <p className="mt-1 text-sm text-red-500">{errors.no_kk.message}</p>
+                            )}
+                        </div>
+                        <div>
+                            <Label>
                                 Nama  <span className="text-error-500">*</span>
                             </Label>
                             <Input
+                                disabled={nikExist}
+
                                 placeholder="Masukkan nama lengkap"
                                 {...register("complete_name")}
                             />
@@ -156,7 +210,9 @@ const MemberForm: React.FC = () => {
                             <Label>
                                 Wilayah <span className="text-error-500">*</span>
                             </Label>
-                            <Select options={areas} placeholder="Pilih area" {...register("area_id")} />
+                            <Select
+                                disabled={nikExist}
+                                options={areas} placeholder="Pilih area" {...register("area_id")} />
                             {errors.area_id && (
                                 <p className="mt-1 text-sm text-red-500">{errors.area_id.message}</p>
                             )}
@@ -166,6 +222,8 @@ const MemberForm: React.FC = () => {
                                 Alamat <span className="text-error-500">*</span>
                             </Label>
                             <Input
+                                disabled={nikExist}
+
                                 placeholder="Masukkan alamat"
                                 {...register("address")}
                             />
@@ -175,7 +233,9 @@ const MemberForm: React.FC = () => {
                         </div>
 
                         <div>
-                            <Button size="sm">Simpan</Button>
+                            <Button
+                                disabled={nikExist}
+                                size="sm">Simpan</Button>
                         </div>
                     </Form>
 
