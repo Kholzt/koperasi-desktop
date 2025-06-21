@@ -166,7 +166,9 @@ const UserForm: React.FC = () => {
                                     Password <span className="text-error-500">*</span>
                                 </Label>
                                 <Input
-type="password"
+
+                                    type="password"
+
                                     placeholder="Masukkan password"
                                     {...register("password")}
                                 />

@@ -132,7 +132,11 @@ export default function UserInfoCard() {
                                         Password
                                     </Label>
                                     <Input
+<<<<<<< HEAD
 type="password"
+=======
+                                        type="password"
+>>>>>>> 498d3ac85ea7b076cf011ce4b1c01bcfd49fabec
                                         hint="Masukkan Password jika ingin melakukan perubahan"
                                         placeholder="Masukkan password"
                                         {...register("password")}

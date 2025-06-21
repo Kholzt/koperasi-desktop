@@ -353,7 +353,7 @@ const AppSidebar: React.FC = () => {
                             </h2>
                             {renderMenuItems(masterDataItems, "Master Data")}
                         </div>
-                        {["pusat"].includes(user?.role ?? "") && <div className="">
+                        {["pusat", "super admin"].includes(user?.role ?? "") && <div className="">
                             <h2
                                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                                     ? "lg:justify-center"
