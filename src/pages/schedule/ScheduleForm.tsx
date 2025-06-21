@@ -11,13 +11,12 @@ import PageMeta from "../../components/common/PageMeta";
 import Form from "../../components/form/Form";
 import Label from "../../components/form/Label";
 import Select from "../../components/form/Select";
-import Input from "../../components/form/input/InputField";
+import Loading from "../../components/ui/Loading";
 import Alert from "../../components/ui/alert/Alert";
 import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { AreaProps, GroupProps } from "../../utils/types";
-import Loading from "../../components/ui/Loading"
 
 interface ScheduleFormInput {
     area_id: number;
