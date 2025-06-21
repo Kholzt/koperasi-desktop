@@ -132,6 +132,7 @@ export default function UserInfoCard() {
                                         Password
                                     </Label>
                                     <Input
+                                        type="password"
                                         hint="Masukkan Password jika ingin melakukan perubahan"
                                         placeholder="Masukkan password"
                                         {...register("password")}
