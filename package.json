@@ -1,8 +1,9 @@
 {
-    "name": "Koperasi",
+"name": "koperasi-saferine-jaya-mandiri",
     "private": true,
     "version": "1.0.0",
     "type": "module",
+    "icon": "build/icon",
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build && electron-builder",

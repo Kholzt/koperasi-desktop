@@ -3,20 +3,21 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "112",
   "asar": true,
-  "productName": "Koperasi",
+  "productName": "Koperasi Saferine Jaya Mandiri",
   "win": {
-    "icon": "./public/images/logo/logo.jpg"
+    "icon": "./build/icon.png"
   },
   "mac": {
-    "icon": "./public/images/logo/logo.jpg"
+    "icon": "./build/icon.png"
   },
   "linux": {
-    "icon": "./public/images/logo/logo.jpg"
+    "icon": "./build/icon.png"
   },
   "directories": {
     "output": "release/${version}"
   },
   "files": [
+    "./public/**/*",
     "dist",
     "dist-electron",
      {
