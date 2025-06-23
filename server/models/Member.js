@@ -47,7 +47,7 @@ export default class Member {
             .first();
     }
     static async getSequenceNumber(id) {
-        return await db("members").orderBy("created_at", "desc").first();
+        return await db("members").whereNull('deleted_at').orderBy("created_at", "desc").first();
     }
     static async create(data) {
         const [id] = await db("members").insert(data);

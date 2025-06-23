@@ -75207,7 +75207,7 @@ class Member {
     ).whereNull("m.deleted_at").andWhere("m.id", id).first();
   }
   static async getSequenceNumber(id) {
-    return await db$1("members").orderBy("created_at", "desc").first();
+    return await db$1("members").whereNull("deleted_at").orderBy("created_at", "desc").first();
   }
   static async create(data2) {
     const [id] = await db$1("members").insert(data2);
