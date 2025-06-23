@@ -16,8 +16,11 @@ export default class Member {
                 'a.area_name as area_name'
             )
             .whereNull('m.deleted_at')
-            .andWhere('m.complete_name', 'like', `%${search}%`)
-            .orderBy('m.id', 'desc')
+            .andWhere(function () {
+                this.where('m.complete_name', 'like', `%${search}%`)
+                    .orWhere('m.nik', 'like', `%${search}%`)
+            })
+            .orderBy('m.created_at', 'desc')
             .limit(parseInt(limit))
             .offset(offset);
 
@@ -34,6 +37,7 @@ export default class Member {
             .join('areas as a', 'm.area_id', 'a.id')
             .select(
                 'm.id as member_id',
+                "m.sequence_number",
                 'm.complete_name',
                 'm.nik',
                 'm.no_kk',
@@ -46,8 +50,8 @@ export default class Member {
             .andWhere('m.id', id)
             .first();
     }
-    static async getSequenceNumber(id) {
-        return await db("members").whereNull('deleted_at').orderBy("created_at", "desc").first();
+    static async getSequenceNumber(area_id) {
+        return await db("members").where("area_id", area_id).whereNull('deleted_at').orderBy("created_at", "desc").first();
     }
     static async create(data) {
         const [id] = await db("members").insert(data);
@@ -123,5 +127,40 @@ export default class Member {
         const query = await db('members')
             .where("nik", nik).first()
         return query;
+    }
+
+    static async updateMemberSequenceAndLoanKode(member) {
+        const members = await db('members')
+            .where("area_id", member.area_id)
+            .whereRaw("sequence_number > " + member.sequence_number)
+
+        await Promise.all(
+            members.map(async (member) => {
+                // Turunkan sequence_number
+                await db("members")
+                    .where("id", member.id)
+                    .decrement("sequence_number", 1);
+
+                // Ambil data pinjaman
+                const pinjaman = await db("pinjaman")
+                    .where("anggota_id", member.id)
+                    .first();
+
+                if (pinjaman) {
+                    // Update kode
+                    const [prefix, numberStr] = pinjaman.kode.split("/");
+                    const newNumber = parseInt(numberStr) - 1;
+                    const newKode = `${prefix}/${newNumber}`;
+
+                    await db("pinjaman")
+                        .where("anggota_id", member.id)
+                        .update({ kode: newKode });
+                }
+            })
+        );
+
+
+
+        return true;
     }
 }

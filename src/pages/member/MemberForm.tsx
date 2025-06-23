@@ -51,6 +51,7 @@ const MemberForm: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [nikExist, setNikExist] = useState(false);
     const [noKKExist, setNoKKExist] = useState(false);
+    const [hasPinjaman, setHasPinjaman] = useState(false);
     const { id } = useParams();
     const isUpdate = !!id;
     const navigate = useNavigate();
@@ -81,7 +82,7 @@ const MemberForm: React.FC = () => {
 
             axios.get("/api/members/" + id).then(res => {
                 const data = res.data.member
-                console.log(data);
+                setHasPinjaman(data.hasPinjaman)
 
                 reset(data)
                 setTimeout(() => {
@@ -198,6 +199,7 @@ const MemberForm: React.FC = () => {
                                 NIK  <span className="text-error-500">*</span>
                             </Label>
                             <Input
+                                readOnly={hasPinjaman}
                                 min={0}
                                 type="number"
                                 placeholder="Masukkan NIK"
@@ -212,6 +214,7 @@ const MemberForm: React.FC = () => {
                                 NO KK  <span className="text-error-500">*</span>
                             </Label>
                             <Input
+                                readOnly={hasPinjaman}
                                 min={0}
                                 disabled={nikExist}
                                 type="number"

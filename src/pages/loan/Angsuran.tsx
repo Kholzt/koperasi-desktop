@@ -89,7 +89,7 @@ const Angsuran: React.FC = () => {
     const lunasUpdate = watch("status")
 
     useEffect(() => {
-        setisLunas(lunasUpdate == "lunas")
+        setisLunas(lunasUpdate != "menunggak")
     }, [lunasUpdate]);
 
     const jumlahBayar = watch("jumlah_bayar");

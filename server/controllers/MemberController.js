@@ -71,6 +71,7 @@ export default class MemberController {
                 return res.status(404).json({ error: "Anggota tidak ditemukan" });
             }
 
+            const hasPinjaman = await Member.hasPinjaman(id);
             const member = {
                 id: row.member_id,
                 nik: row.nik,
@@ -78,6 +79,7 @@ export default class MemberController {
                 complete_name: row.complete_name,
                 address: row.address,
                 area_id: row.area_id,
+                hasPinjaman: hasPinjaman,
                 area: {
                     id: row.area_id,
                     area_name: row.area_name,
@@ -126,10 +128,10 @@ export default class MemberController {
 
             const nikExistDelete = await Member.nikExist(nik, true);
 
-            const member = await Member.getSequenceNumber();
+            const member = await Member.getSequenceNumber(area_id);
             // res.status(500).json(member);
             const sequence_number = member ? member?.sequence_number + 1 : 1;
-            const data = { nik, no_kk, complete_name, area_id, address, sequence_number, deleted_at: null };
+            const data = { nik, no_kk, complete_name, area_id, address, sequence_number, created_at: new Date(), deleted_at: null };
             let memberId;
             if (!nikExistDelete) {
                 memberId = await Member.create(data);
@@ -204,6 +206,8 @@ export default class MemberController {
                     error: 'Anggota gagal dihapus, Data sedang digunakan dibagian lain sistem',
                 });
             }
+
+            await Member.updateMemberSequenceAndLoanKode(member);
             await Member.softDelete(id)
 
             res.status(200).json({
