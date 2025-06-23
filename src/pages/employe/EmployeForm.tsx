@@ -17,12 +17,17 @@ import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import Loading from "../../components/ui/Loading"
+import DatePicker from "../../components/form/date-picker";
+import { toLocalDate } from "../../utils/helpers";
 interface EmployeFormInput {
     complete_name: string;
     // username: string;
     // password: string;
     // role: 'staff' | 'controller' | 'pusat';
     // access_apps: 'access' | 'noAccess';
+    jenis_ijazah: string,
+    tanggal_masuk: string,
+    tanggal_keluar: string,
     position: string;
     status: 'aktif' | 'nonAktif';
 }
@@ -30,16 +35,8 @@ interface EmployeFormInput {
 
 const schema: yup.SchemaOf<EmployeFormInput> = yup.object({
     complete_name: yup.string().required('Nama Lengkap wajib diisi'),
-    // username: yup.string().required('Username wajib diisi'),
-    // password: yup.string()
-    //     .min(6, 'Password minimal 6 karakter')
-    //     .nullable(),
-    // role: yup.mixed<'staff' | 'controller' | 'pusat'>()
-    //     .oneOf(['staff', 'controller', 'pusat'], 'Role tidak valid')
-    //     .required('Role wajib dipilih'),
-    // access_apps: yup.mixed<'access' | 'noAccess'>()
-    //     .oneOf(['access', 'noAccess'], 'Access Apps tidak valid')
-    //     .required('Akses aplikasi wajib dipilih'),
+    tanggal_masuk: yup.string().required('Tanggal Masuk wajib diisi'),
+    jenis_ijazah: yup.string().required('Jenis Ijazah wajib diisi'),
     position: yup.string().required('Posisi wajib diisi'),
     status: yup.mixed<'aktif' | 'nonAktif'>()
         .oneOf(['aktif', 'nonAktif'], 'Status tidak valid')
@@ -56,6 +53,7 @@ const EmployeForm: React.FC = () => {
         handleSubmit,
         setError,
         reset,
+        getValues, setValue,
         formState: { errors }
     } = useForm<EmployeFormInput>({
         resolver: yupResolver(schema)
@@ -64,9 +62,10 @@ const EmployeForm: React.FC = () => {
     useEffect(() => {
         if (id) {
             setLoading(true)
-            axios.get("/api/employees/" + id).then(res => {
-                console.log(res);
-                reset(res.data.user)
+            axios.get("/api/employees/" + id).then((res: any) => {
+                const { user } = res.data;
+
+                reset({ ...user, tanggal_masuk: toLocalDate(new Date(user.tanggal_masuk)), tanggal_keluar: user.tanggal_keluar ? toLocalDate(new Date(user.tanggal_keluar)) : null })
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
@@ -132,30 +131,65 @@ const EmployeForm: React.FC = () => {
 
                 <ComponentCard title={!id ? "Tambah Pengguna" : "Ubah Pengguna"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div>
-                            <Label>
-                                Nama Lengkap <span className="text-error-500">*</span>
-                            </Label>
-                            <Input
-                                placeholder="Masukkan nama lengkap"
-                                {...register("complete_name")}
-                            />
-                            {errors.complete_name && (
-                                <p className="mt-1 text-sm text-red-500">{errors.complete_name.message}</p>
-                            )}
-                        </div>
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
-
-                            {/* <div>
+                            <div>
                                 <Label>
-                                    Role <span className="text-error-500">*</span>
+                                    Nama Lengkap <span className="text-error-500">*</span>
                                 </Label>
-                                <Select options={[{ label: 'Staff', value: "staff" }, { label: 'Controller', value: "controller" }, { label: 'Pusat', value: "pusat" }]} placeholder="Pilih role" {...register("role")} />
-
-                                {errors.role && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.role.message}</p>
+                                <Input
+                                    placeholder="Masukkan nama lengkap"
+                                    {...register("complete_name")}
+                                />
+                                {errors.complete_name && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.complete_name.message}</p>
                                 )}
-                            </div> */}
+                            </div>
+                            <div>
+                                <Label htmlFor="jenis_ijazah">Jenis Ijazah <span className="text-error-500">*</span></Label>
+                                <Select
+                                    {...register("jenis_ijazah")}
+                                    options={[
+                                        { label: "SD", value: "SD" },
+                                        { label: "SMP", value: "SMP" },
+                                        { label: "SMA", value: "SMA" },
+                                        { label: "S1", value: "S1" },
+                                        { label: "D1", value: "D1" },
+                                        { label: "D2", value: "D2" },
+                                        { label: "D3", value: "D3" },
+                                        { label: "D4", value: "D4" },
+                                    ]}
+                                    placeholder="Pilih jenis ijazah"
+                                />
+                                {errors.jenis_ijazah && <p className="text-sm text-red-500 mt-1">{errors.jenis_ijazah.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="tanggal_masuk">Tanggal Masuk <span className="text-error-500">*</span></Label>
+                                <DatePicker
+                                    id={"tanggal_masuk"}
+                                    mode="single"
+                                    placeholder="Tanggal masuk"
+                                    defaultDate={getValues("tanggal_masuk")}
+                                    onChange={(date) => {
+                                        setValue("tanggal_masuk", toLocalDate(date[0]));
+                                    }}
+                                />
+                                {errors.tanggal_masuk && <p className="text-sm text-red-500 mt-1">{errors.tanggal_masuk.message}</p>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor="tanggal_keluar">Tanggal Keluar</Label>
+                                <DatePicker
+                                    id={"tanggal_keluar"}
+                                    mode="single"
+                                    placeholder="Tanggal keluar"
+                                    defaultDate={getValues("tanggal_keluar")}
+                                    onChange={(date) => {
+                                        setValue("tanggal_keluar", toLocalDate(date[0]));
+                                    }}
+                                />
+                                {errors.tanggal_keluar && <p className="text-sm text-red-500 mt-1">{errors.tanggal_keluar.message}</p>}
+                            </div>
+
 
                             <div>
                                 <Label>

@@ -1,9 +1,11 @@
 import db from "../config/db";
 
 export default class Loan {
-    static async findAll({ limit, offset, startDate, endDate, status }) {
+    static async findAll({ limit, offset, startDate, endDate, status, day, group }) {
         const query = db('pinjaman')
             .join('members', 'pinjaman.anggota_id', 'members.id')
+            .join('group_details', 'pinjaman.penanggung_jawab', 'group_details.staff_id')
+            .groupBy("pinjaman.id")
             .whereNull('pinjaman.deleted_at');
 
         // Filter dengan benar hanya jika nilainya valid
@@ -18,6 +20,12 @@ export default class Loan {
         if (status && status !== "null") {
             query.andWhere('pinjaman.status', status);
         }
+        if (day && day !== "all") {
+            query.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
+        }
+        if (group && group !== "all") {
+            query.andWhere('group_details.group_id', group);
+        }
 
         const loans = await query
             .orderBy('pinjaman.id', 'desc')
@@ -25,7 +33,7 @@ export default class Loan {
             .offset(offset)
             .select(
                 'pinjaman.*',
-                db.raw(`JSON_OBJECT('complete_name', members.complete_name) as anggota`)
+                db.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`)
             );
 
         // Buat query baru untuk count

@@ -4,14 +4,28 @@ import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Select from "../../components/form/Select";
-import Input from "../../components/form/input/InputField";
+import DatePicker from "../../components/form/date-picker";
 import Button from "../../components/ui/button/Button";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
 import { useTheme } from "../../context/ThemeContext";
 import axios from "../../utils/axios";
-import { LoanProps, PaginationProps } from "../../utils/types";
+import { GroupProps, LoanProps, PaginationProps } from "../../utils/types";
 import Table from "./LoanTable";
-import DatePicker from "../../components/form/date-picker";
+import SelectSearch from "../../components/form/SelectSearch";
+import { toLocalDate } from "../../utils/helpers";
+
+const days = [
+    'all', "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"
+]
+const dayMap: any = {
+    all: 'all',
+    senin: 'monday',
+    selasa: 'tuesday',
+    rabu: 'wednesday',
+    kamis: 'thursday',
+    jumat: 'friday',
+    sabtu: 'saturday'
+};
 
 const Loan: React.FC = () => {
     const [filter, setFilter] = useState<{ startDate: String | null; endDate: String | null; status: string | null }>({
@@ -19,7 +33,10 @@ const Loan: React.FC = () => {
         endDate: null,
         status: null
     });
-    const [areas, setLoans] = useState<LoanProps[]>([]);
+    const [loans, setLoans] = useState<LoanProps[]>([]);
+    const [dayFilter, setDayFilter] = useState("all");
+    const [groupFilter, setGroupFilter] = useState("all");
+    const [groups, setGroups] = useState<{ label: string, value: string }[]>([]);
     const [pagination, setPagination] = useState<PaginationProps>({
         page: 1,
         totalPages: 1,
@@ -30,19 +47,61 @@ const Loan: React.FC = () => {
 
     useEffect(() => {
         axios
-            .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}`)
+            .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayFilter}&group=${groupFilter}`)
             .then((res: any) => {
                 setLoans(res.data.loans);
                 setPagination(res.data.pagination);
             });
-    }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status]);
+        axios
+            .get(`/api/groups?limit=2000`)
+            .then((res: any) => {
+                setGroups(res.data.groups.map((group: GroupProps) => ({ label: group.group_name, value: group.id })))
+            });
+
+    }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter]);
 
     return (
         <>
             <PageMeta title={`Peminjaman | ${import.meta.env.VITE_APP_NAME}`} description="" />
             <PageBreadcrumb pageTitle="Peminjaman" />
 
-            <div className="space-y-6">
+            <div className="">
+                <div className="flex gap-2 mb-2 items-center">
+                    <ul className="flex mt-1.5">
+                        {days.map((day, i) => {
+                            const isActive = dayFilter === dayMap[day];
+                            return (
+                                <li
+                                    key={i}
+                                    className={`
+                                    border-y
+                                    ${isActive ? "bg-brand-600 text-white dark:text-white" : "hover:bg-white/[0.03] dark:hover:bg-white/[0.03] bg-white dark:bg-gray-900 dark:text-gray-200"}
+                                    ${i === 0 ? "rounded-l-lg border-l" : ""}
+                                    ${i === days.length - 1 ? "rounded-r-lg border-r" : ""}
+                                    dark:border-gray-700
+                                     `}
+                                >
+                                    <button
+                                        className="px-4 py-2 capitalize"
+                                        onClick={() => setDayFilter(dayMap[day])}
+                                    >
+                                        {day}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                    <div className="max-w-[300px] w-full">
+                        <SelectSearch
+                            label=""
+                            placeholder="Pilih kelompok"
+                            options={[{ label: "All", value: "all" }, ...groups]}
+                            defaultValue={groupFilter}
+                            onChange={(val: any) => setGroupFilter(val)}
+                        />
+                    </div>
+                </div>
+
                 <ComponentCard
                     title="Peminjaman"
                     option={
@@ -55,7 +114,7 @@ const Loan: React.FC = () => {
                     }
                 >
                     <Table
-                        data={areas}
+                        data={loans}
                         pagination={pagination}
                         setPaginate={(page) =>
                             setPagination((prev) => ({
@@ -120,12 +179,12 @@ const Filter: React.FC<FilterProps> = ({ filter, setFilter }) => {
                             defaultDate={
                                 startDate && endDate
                                     ? [new Date(startDate as string), new Date(endDate as string)]
-                                    : undefined
+                                    : (startDate ? [new Date(startDate as string)] : undefined)
                             }
                             onChange={(date) => {
-                                setStartDate(date[0].toISOString().slice(0, 19).replace("T", " "));
+                                setStartDate(toLocalDate(date[0]));
                                 date[1]
-                                    ? setEndDate(date[1].toISOString().slice(0, 19).replace("T", " "))
+                                    ? setEndDate(toLocalDate(date[1]))
                                     : setEndDate(null);
                             }}
                         />

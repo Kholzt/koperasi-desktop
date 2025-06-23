@@ -72307,7 +72307,7 @@ class AngsuranController {
   }
   static async store(req, res) {
     await libExports.body("penagih").isArray({ min: 1 }).run(req);
-    await libExports.body("status").isIn(["lunas", "menunggak"]).withMessage("Status harus lunas atau menunggak").run(req);
+    await libExports.body("status").isIn(["lunas", "menunggak", "kurang", "lebih"]).withMessage("Status harus lunas atau menunggak").run(req);
     await libExports.body("asal_pembayaran").custom((value, { req: req2 }) => {
       if (req2.body.status === "lunas" && (value != "anggota" && value != "penagih")) {
         throw new Error("Jika status lunas, asal pembayaran harus anggota atau penagih");
@@ -74466,6 +74466,8 @@ class EmployeController {
     await libExports.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
     await libExports.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
+    await libExports.body("jenis_ijazah").notEmpty().withMessage("Jenis Ijazah wajib diisi").run(req);
+    await libExports.body("tanggal_masuk").notEmpty().withMessage("Tanggal Masuk wajib diisi").run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
@@ -74475,13 +74477,16 @@ class EmployeController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { complete_name, position: position2, status, role } = req.body;
+      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah } = req.body;
       const [insertedId] = await db$1("users").insert({
         complete_name,
         role: "staff",
         access_apps: "noAccess",
         position: position2,
-        status
+        status,
+        tanggal_masuk,
+        tanggal_keluar,
+        jenis_ijazah
       });
       const newUser = await db$1("users").where("id", insertedId).first();
       res.status(200).json({
@@ -74495,6 +74500,8 @@ class EmployeController {
   // Mengupdate data pengguna dengan pengecekan
   static async update(req, res) {
     await libExports.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
+    await libExports.body("jenis_ijazah").notEmpty().withMessage("Jenis Ijazah wajib diisi").run(req);
+    await libExports.body("tanggal_masuk").notEmpty().withMessage("Tanggal Masuk wajib diisi").run(req);
     await libExports.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
     const errors = libExports.validationResult(req);
@@ -74507,7 +74514,7 @@ class EmployeController {
     }
     try {
       const { id } = req.params;
-      const { complete_name, role, position: position2, status } = req.body;
+      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah } = req.body;
       const existingUser = await db$1("users").where("id", id).first();
       if (!existingUser) {
         return res.status(404).json({ error: "Pengguna tidak ditemukan" });
@@ -74516,11 +74523,14 @@ class EmployeController {
         complete_name,
         role: "staff",
         position: position2,
-        status
+        status,
+        tanggal_masuk,
+        tanggal_keluar,
+        jenis_ijazah
       });
       res.status(200).json({ message: "User updated successfully" });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred while updating the user." });
+      res.status(500).json({ error: "An error occurred while updating the user.", errors: error });
     }
   }
   // Soft delete user dengan pengecekan constraint
@@ -74752,8 +74762,8 @@ class GroupController {
   }
 }
 class Loan {
-  static async findAll({ limit, offset: offset2, startDate, endDate, status }) {
-    const query = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").whereNull("pinjaman.deleted_at");
+  static async findAll({ limit, offset: offset2, startDate, endDate, status, day, group }) {
+    const query = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").join("group_details", "pinjaman.penanggung_jawab", "group_details.staff_id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
     if (startDate && startDate !== "null") {
       query.andWhere("pinjaman.created_at", ">=", startDate);
     }
@@ -74763,9 +74773,15 @@ class Loan {
     if (status && status !== "null") {
       query.andWhere("pinjaman.status", status);
     }
+    if (day && day !== "all") {
+      query.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
+    }
+    if (group && group !== "all") {
+      query.andWhere("group_details.group_id", group);
+    }
     const loans = await query.orderBy("pinjaman.id", "desc").limit(limit).offset(offset2).select(
       "pinjaman.*",
-      db$1.raw(`JSON_OBJECT('complete_name', members.complete_name) as anggota`)
+      db$1.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`)
     );
     const countQuery = db$1("pinjaman").whereNull("deleted_at");
     if (startDate && startDate !== "null") {
@@ -74838,12 +74854,14 @@ class LoanController {
         limit = 10,
         startDate = null,
         endDate = /* @__PURE__ */ new Date(),
-        status = null
+        status = null,
+        day = "all",
+        group = "all"
       } = req.query;
       const pageInt = parseInt(page);
       const limitInt = parseInt(limit);
       const offset2 = (pageInt - 1) * limitInt;
-      const { loans, total } = await Loan.findAll({ limit, offset: offset2, startDate, endDate, status });
+      const { loans, total } = await Loan.findAll({ limit, offset: offset2, startDate, endDate, status, day, group });
       res.status(200).json({
         loans,
         pagination: {
@@ -74982,15 +75000,16 @@ class LoanController {
         persen_bunga,
         status,
         petugas_input,
-        total_bunga
+        total_bunga,
+        tanggal_pinjam
       } = req.body;
       const loanExist = await Loan.existLoan(kode);
       if (loanExist) {
         return res.status(400).json({ errors: { kode: "Kode sudah ada" } });
       }
       const now2 = /* @__PURE__ */ new Date();
-      const tanggalAngsuranPertama = new Date(now2);
-      tanggalAngsuranPertama.setDate(now2.getDate() + 7);
+      const tanggalAngsuranPertama = new Date(tanggal_pinjam);
+      tanggalAngsuranPertama.setDate(tanggalAngsuranPertama.getDate() + 7);
       const formatDate = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -75012,7 +75031,8 @@ class LoanController {
         sisa_pembayaran: total_pinjaman,
         besar_tunggakan: 0,
         total_bunga,
-        tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama)
+        tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama),
+        created_at: tanggal_pinjam
       });
       const totalMinggu = parseInt(process.env.VITE_APP_BULAN || "10");
       for (let i = 0; i < totalMinggu; i++) {
@@ -75219,8 +75239,12 @@ class Member {
     } else {
       query.whereNull("deleted_at");
     }
-    const [{ total }] = await query.count();
+    const [{ total }] = await query.count("* as total");
     return total > 0;
+  }
+  static async findByNik(nik) {
+    const query = await db$1("members").where("nik", nik).first();
+    return query;
   }
 }
 class MemberController {
@@ -75319,10 +75343,17 @@ class MemberController {
           message: "Nik sudah ada"
         });
       }
+      const nikExistDelete = await Member.nikExist(nik, true);
       const member = await Member.getSequenceNumber();
       const sequence_number = member ? (member == null ? void 0 : member.sequence_number) + 1 : 1;
       const data2 = { nik, no_kk, complete_name, area_id, address, sequence_number, deleted_at: null };
-      const memberId = await Member.create(data2);
+      let memberId;
+      if (!nikExistDelete) {
+        memberId = await Member.create(data2);
+      } else {
+        const member2 = await Member.findByNik(nik);
+        memberId = await Member.update(data2, member2.id);
+      }
       const newMember = await Member.findById(memberId);
       res.status(200).json({
         message: "Anggota berhasil dibuat",
@@ -75384,7 +75415,7 @@ class MemberController {
       const { nik } = req.params;
       const exist = await Member.nikExist(nik);
       res.status(200).json({
-        message: "Anggota sudah ada",
+        message: "Nik sudah ada",
         nikExist: exist
       });
     } catch (error) {

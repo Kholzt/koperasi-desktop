@@ -98,10 +98,18 @@ const MemberForm: React.FC = () => {
         if (nik) {
             axios.get(`/api/members/${nik}/check`).then((data) => {
                 setNikExist(data.data.nikExist);
-                setError("nik", {
-                    type: 'manual',
-                    message: "Nik sudah ada", // Pesan error dari response
-                });
+                if (data.data.nikExist) {
+                    setError("nik", {
+                        type: 'manual',
+                        message: "Nik sudah ada", // Pesan error dari response
+                    });
+                } else {
+                    setError("nik", {
+                        type: 'manual',
+                        message: "", // Pesan error dari response
+                    });
+
+                }
             })
         }
     }, [nik]);

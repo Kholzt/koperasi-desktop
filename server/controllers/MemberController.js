@@ -118,12 +118,19 @@ export default class MemberController {
                 });
             }
 
+            const nikExistDelete = await Member.nikExist(nik, true);
+
             const member = await Member.getSequenceNumber();
             // res.status(500).json(member);
             const sequence_number = member ? member?.sequence_number + 1 : 1;
             const data = { nik, no_kk, complete_name, area_id, address, sequence_number, deleted_at: null };
-
-            const memberId = await Member.create(data);
+            let memberId;
+            if (!nikExistDelete) {
+                memberId = await Member.create(data);
+            } else {
+                const member = await Member.findByNik(nik);
+                memberId = await Member.update(data, member.id);
+            }
 
             const newMember = await Member.findById(memberId);
             res.status(200).json({
@@ -195,7 +202,7 @@ export default class MemberController {
             const { nik } = req.params;
             const exist = await Member.nikExist(nik);
             res.status(200).json({
-                message: "Anggota sudah ada",
+                message: "Nik sudah ada",
                 nikExist: exist,
             });
         } catch (error) {

@@ -17,6 +17,7 @@ import { useModal } from "../../hooks/useModal";
 import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { PaginationProps, UserProps } from "../../utils/types";
+import { formatDate } from "../../utils/helpers";
 // import { toast } from 'react-hot-toast';
 interface EmployeTableProps {
     data: UserProps[],
@@ -56,6 +57,24 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                Jenis Ijazah
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                Tanggal Masuk
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                Tanggal Keluar
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Status
                             </TableCell>
                             <TableCell
@@ -87,6 +106,21 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
                                         {user.position}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.jenis_ijazah}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {formatDate(user.tanggal_masuk)}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.tanggal_keluar ? formatDate(user.tanggal_keluar) : "-"}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">

@@ -21,7 +21,7 @@ export default class AngsuranController {
         await body('penagih').isArray({ min: 1 }).run(req);
         // await body('jumlah_bayar').min({ min: 1 }).run(req);
         await body('status')
-            .isIn(['lunas', 'menunggak'])
+            .isIn(['lunas', 'menunggak', "kurang", "lebih"])
             .withMessage('Status harus lunas atau menunggak')
             .run(req);
         await body('asal_pembayaran')
@@ -50,8 +50,6 @@ export default class AngsuranController {
                 const day = String(date.getDate()).padStart(2, '0');
                 return `${year}-${month}-${day}`;
             };
-
-
             const { idPinjaman } = req.params
             const { status, penagih, asal_pembayaran, jumlah_bayar } = req.body
             const angsuran = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman);

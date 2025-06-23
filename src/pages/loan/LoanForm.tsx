@@ -5,23 +5,24 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router";
 import * as yup from 'yup';
 
+import { toast } from "react-toastify";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Form from "../../components/form/Form";
 import Label from "../../components/form/Label";
 import Select from "../../components/form/Select";
+import DatePicker from "../../components/form/date-picker";
 import Input from "../../components/form/input/InputField";
+import Loading from "../../components/ui/Loading";
 import Alert from "../../components/ui/alert/Alert";
 import Button from "../../components/ui/button/Button";
 import { useUser } from "../../hooks/useUser";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { formatCurrency, unformatCurrency } from "../../utils/helpers";
+import { formatCurrency, toLocalDate, unformatCurrency } from "../../utils/helpers";
 import { MemberProps, UserProps } from "../../utils/types";
-import { toast } from "react-toastify";
-import Loading from "../../components/ui/Loading"
-import DatePicker from "../../components/form/date-picker";
+import SelectSearch from './../../components/form/SelectSearch';
 
 interface LoanFormInput {
     kode: string;
@@ -203,7 +204,6 @@ const LoanForm: React.FC = () => {
 
     const onSubmit = async (data: LoanFormInput) => {
         try {
-            console.log(data);
             data.besar_tunggakan = unformatCurrency(data.besar_tunggakan).toString();
             data.jumlah_angsuran = unformatCurrency(data.jumlah_angsuran).toString();
             data.jumlah_pinjaman = unformatCurrency(data.jumlah_pinjaman).toString();
@@ -259,7 +259,14 @@ const LoanForm: React.FC = () => {
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
                             <div>
                                 <Label htmlFor="anggota_id">Anggota</Label>
-                                <Select disabled={isUpdate} options={anggota} {...register("anggota_id")} placeholder="Pilih anggota" />
+                                <SelectSearch
+                                    label=""
+                                    placeholder="Pilih karyawan"
+                                    options={anggota}
+                                    defaultValue={getValues("anggota_id")}
+                                    {...register("anggota_id")}
+                                    onChange={(val: any) => setValue("anggota_id", val)}
+                                />
                                 {errors.anggota_id && <p className="text-sm text-red-500 mt-1">{errors.anggota_id.message}</p>}
                             </div>
                             <div className="md:col-span-2">
@@ -359,7 +366,7 @@ const LoanForm: React.FC = () => {
                                     placeholder="Tanggal peminjaman"
                                     defaultDate={getValues("tanggal_pinjam")}
                                     onChange={(date) => {
-                                        setValue("tanggal_pinjam", date[0].toISOString().slice(0, 19).replace("T", " "));
+                                        setValue("tanggal_pinjam", toLocalDate(date[0]));
                                     }}
                                 />
                                 {errors.tanggal_pinjam && <p className="text-sm text-red-500 mt-1">{errors.tanggal_pinjam.message}</p>}

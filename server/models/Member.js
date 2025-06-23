@@ -92,13 +92,17 @@ export default class Member {
     static async nikExist(nik, notNull = false) {
         const query = db('members')
             .where("nik", nik)
-        // .count('* as total');
         if (notNull) {
             query.whereNotNull("deleted_at");
         } else {
             query.whereNull("deleted_at");
         }
-        const [{ total }] = await query.count();
+        const [{ total }] = await query.count('* as total');
         return total > 0;
+    }
+    static async findByNik(nik) {
+        const query = await db('members')
+            .where("nik", nik).first()
+        return query;
     }
 }

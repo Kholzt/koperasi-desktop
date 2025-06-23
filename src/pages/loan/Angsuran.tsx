@@ -28,7 +28,7 @@ interface FormInputs {
     asal_pembayaran: string;
     jumlah_bayar: string;
     penagih: string[]; // atau number[] tergantung data
-    status: "lunas" | "menunggak";
+    status: "lunas" | "menunggak" | "kurang" | "lebih";
 };
 
 const schema: yup.SchemaOf<FormInputs> = yup.object({
@@ -39,8 +39,8 @@ const schema: yup.SchemaOf<FormInputs> = yup.object({
         .required('Silahkan pilih penagih'))
         .min(1, "Minimal pilih satu penagih")
         .required('Penagih wajib dipilih'),
-    status: yup.mixed<"lunas" | "menunggak" | "">()
-        .oneOf(["lunas", "menunggak"], "Status tidak valid")
+    status: yup.mixed<"lunas" | "menunggak" | "kurang" | "lebih">()
+        .oneOf(["lunas", "menunggak", "kurang", "lebih"], "Status tidak valid")
         .required("Status wajib diisi"),
 });
 
@@ -63,6 +63,7 @@ const Angsuran: React.FC = () => {
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
             setLoans(res.data.loan)
+            reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) })
         });
         axios.get("/api/employees?limit=2000").then(res => {
             setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
@@ -73,8 +74,8 @@ const Angsuran: React.FC = () => {
         if (idAngsuran) {
             axios.get(`/api/angsuran/${idAngsuran}`).then((res: any) => {
                 const { data: { angsuran } } = res;
-                console.log(angsuran);
                 reset({ asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) });
+                console.log(angsuran);
                 setIsLoading(false)
             });
         }
@@ -121,7 +122,6 @@ const Angsuran: React.FC = () => {
 
 
     if (isLoading && !!idAngsuran) return <Loading />
-
     return (
         <>
             <PageMeta
@@ -136,7 +136,7 @@ const Angsuran: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4 mb-4" >
                             <div className="col-span-2">
                                 <Label>Jumlah bayar</Label>
-                                <Input type="text" {...register("jumlah_bayar")} defaultValue={formatCurrency(loans?.jumlah_angsuran)} />
+                                <Input readOnly={!!idAngsuran} type="text" {...register("jumlah_bayar")} defaultValue={formatCurrency(loans?.jumlah_angsuran)} />
                             </div>
 
                             <div  >
@@ -159,7 +159,9 @@ const Angsuran: React.FC = () => {
 
                                     options={[
                                         { label: "Lunas", value: "lunas" },
-                                        { label: "Menunggak", value: "menunggak" }
+                                        { label: "Menunggak", value: "menunggak" },
+                                        { label: "Kurang", value: "kurang" },
+                                        { label: "Lebih", value: "lebih" }
                                     ]} placeholder="Pilih status angsuran" {...register("status")} />
                                 {errors.status && (
                                     <p className="mt-1 text-sm text-red-500">{errors.status.message}</p>
