@@ -74725,10 +74725,6 @@ class GroupController {
     try {
       const { id } = req.params;
       const { group_name, area_id, staffs } = req.body;
-      const exists = await Group.existsByName(group_name, id);
-      if (exists) {
-        return res.status(400).json({ errors: { group_name: "Nama group sudah terdaftar" } });
-      }
       await Group.update({ id, group_name, area_id });
       await Group.deleteGroupDetails(id);
       await Group.insertStaffs(id, staffs);
