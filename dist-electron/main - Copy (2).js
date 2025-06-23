@@ -60394,9 +60394,17 @@ class pu {
       a.status(500).json({ error: t.message });
     }
   }
+<<<<<<< HEAD
   static async store(e, a) {
     await p0.body("penagih").isArray({ min: 1 }).run(e), await p0.body("status").isIn(["lunas", "menunggak"]).withMessage("Status harus lunas atau menunggak").run(e), await p0.body("asal_pembayaran").custom((o, { req: s }) => {
       if (s.body.status === "lunas" && o != "anggota" && o != "penagih")
+=======
+  static async store(req, res) {
+    await libExports.body("penagih").isArray({ min: 1 }).run(req);
+    await libExports.body("status").isIn(["lunas", "menunggak", "kurang", "lebih"]).withMessage("Status harus lunas atau menunggak").run(req);
+    await libExports.body("asal_pembayaran").custom((value, { req: req2 }) => {
+      if (req2.body.status === "lunas" && (value != "anggota" && value != "penagih")) {
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
         throw new Error("Jika status lunas, asal pembayaran harus anggota atau penagih");
       return !0;
     }).run(e);
@@ -60407,6 +60415,7 @@ class pu {
     }
     const r = await z0.transaction();
     try {
+<<<<<<< HEAD
       const o = (h) => {
         const q = h.getFullYear(), v = String(h.getMonth() + 1).padStart(2, "0"), R = String(h.getDate()).padStart(2, "0");
         return `${q}-${v}-${R}`;
@@ -60420,6 +60429,34 @@ class pu {
         O = parseInt(l.sisa_pembayaran) - parseInt(l.sisa_pembayaran >= u ? u : l.sisa_pembayaran), z = parseInt(l.besar_tunggakan) > 0 ? parseInt(l.besar_tunggakan) - parseInt(l.jumlah_angsuran) : parseInt(l.besar_tunggakan), await Q1.updateAngsuran(M.id, {
           asal_pembayaran: d,
           jumlah_bayar: l.sisa_pembayaran >= u ? u : l.sisa_pembayaran,
+=======
+      const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+      const { idPinjaman } = req.params;
+      const { status, penagih, asal_pembayaran, jumlah_bayar } = req.body;
+      const angsuran = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman);
+      if (!angsuran) {
+        res.status(404).json({ error: "Angsuran tidak ditemukan" });
+      }
+      let totalTunggakan = 0;
+      let sisaPembayaran = 0;
+      let statusPinjaman = "aktif";
+      const pinjaman = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
+      if (parseInt(pinjaman.sisa_pembayaran) - parseInt(jumlah_bayar) == 0 && status == "lunas") {
+        statusPinjaman = "lunas";
+      }
+      const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
+      if (status == "lunas") {
+        sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt(pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran);
+        totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(pinjaman.jumlah_angsuran) : parseInt(pinjaman.besar_tunggakan);
+        await Angsuran.updateAngsuran(angsuran.id, {
+          asal_pembayaran,
+          jumlah_bayar: pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran,
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
           status: "lunas"
         }), await Q1.updatePinjaman(M.id_pinjaman, { sisa_pembayaran: O, besar_tunggakan: z, status: m });
       else {
@@ -62228,6 +62265,7 @@ class Q2 {
     }
   }
   // Menyimpan pengguna baru dengan validasi dan enkripsi password
+<<<<<<< HEAD
   static async store(e, a) {
     await p0.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(e), await p0.body("position").notEmpty().withMessage("Posisi wajib diisi").run(e), await p0.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(e);
     const t = p0.validationResult(e);
@@ -62244,6 +62282,36 @@ class Q2 {
         status: s
       }), d = await z0("users").where("id", b).first();
       a.status(200).json({
+=======
+  static async store(req, res) {
+    await libExports.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
+    await libExports.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
+    await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
+    await libExports.body("jenis_ijazah").notEmpty().withMessage("Jenis Ijazah wajib diisi").run(req);
+    await libExports.body("tanggal_masuk").notEmpty().withMessage("Tanggal Masuk wajib diisi").run(req);
+    const errors = libExports.validationResult(req);
+    if (!errors.isEmpty()) {
+      const formattedErrors = errors.array().reduce((acc, error) => {
+        acc[error.path] = error.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formattedErrors });
+    }
+    try {
+      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah } = req.body;
+      const [insertedId] = await db$1("users").insert({
+        complete_name,
+        role: "staff",
+        access_apps: "noAccess",
+        position: position2,
+        status,
+        tanggal_masuk,
+        tanggal_keluar,
+        jenis_ijazah
+      });
+      const newUser = await db$1("users").where("id", insertedId).first();
+      res.status(200).json({
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
         message: "Pengguna berhasil dibuat",
         user: d
       });
@@ -62252,6 +62320,7 @@ class Q2 {
     }
   }
   // Mengupdate data pengguna dengan pengecekan
+<<<<<<< HEAD
   static async update(e, a) {
     await p0.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(e), await p0.body("position").notEmpty().withMessage("Posisi wajib diisi").run(e), await p0.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(e);
     const t = p0.validationResult(e);
@@ -62271,6 +62340,41 @@ class Q2 {
       }), a.status(200).json({ message: "User updated successfully" });
     } catch {
       a.status(500).json({ error: "An error occurred while updating the user." });
+=======
+  static async update(req, res) {
+    await libExports.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
+    await libExports.body("jenis_ijazah").notEmpty().withMessage("Jenis Ijazah wajib diisi").run(req);
+    await libExports.body("tanggal_masuk").notEmpty().withMessage("Tanggal Masuk wajib diisi").run(req);
+    await libExports.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
+    await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
+    const errors = libExports.validationResult(req);
+    if (!errors.isEmpty()) {
+      const formattedErrors = errors.array().reduce((acc, error) => {
+        acc[error.path] = error.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formattedErrors });
+    }
+    try {
+      const { id } = req.params;
+      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah } = req.body;
+      const existingUser = await db$1("users").where("id", id).first();
+      if (!existingUser) {
+        return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      }
+      await db$1("users").where("id", id).update({
+        complete_name,
+        role: "staff",
+        position: position2,
+        status,
+        tanggal_masuk,
+        tanggal_keluar,
+        jenis_ijazah
+      });
+      res.status(200).json({ message: "User updated successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while updating the user.", errors: error });
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
     }
   }
   // Soft delete user dengan pengecekan constraint
@@ -62457,6 +62561,7 @@ class et {
     }
   }
 }
+<<<<<<< HEAD
 class U1 {
   static async findAll({ limit: e, offset: a, startDate: t, endDate: r, status: o }) {
     const s = z0("pinjaman").join("members", "pinjaman.anggota_id", "members.id").whereNull("pinjaman.deleted_at");
@@ -62468,10 +62573,48 @@ class U1 {
     t && t !== "null" && b.andWhere("pinjaman.created_at", ">=", t), r && r !== "null" && b.andWhere("pinjaman.created_at", "<=", r), o && o !== "null" && b.andWhere("pinjaman.status", o);
     const [{ total: d }] = await b.count({ total: "*" });
     return { loans: c, total: d };
+=======
+class Loan {
+  static async findAll({ limit, offset: offset2, startDate, endDate, status, day, group }) {
+    const query = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").join("group_details", "pinjaman.penanggung_jawab", "group_details.staff_id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
+    if (startDate && startDate !== "null") {
+      query.andWhere("pinjaman.created_at", ">=", startDate);
+    }
+    if (endDate && endDate !== "null") {
+      query.andWhere("pinjaman.created_at", "<=", endDate);
+    }
+    if (status && status !== "null") {
+      query.andWhere("pinjaman.status", status);
+    }
+    if (day && day !== "all") {
+      query.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
+    }
+    if (group && group !== "all") {
+      query.andWhere("group_details.group_id", group);
+    }
+    const loans = await query.orderBy("pinjaman.id", "desc").limit(limit).offset(offset2).select(
+      "pinjaman.*",
+      db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
+      db$1.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`)
+    );
+    const countQuery = db$1("pinjaman").whereNull("deleted_at");
+    if (startDate && startDate !== "null") {
+      countQuery.andWhere("pinjaman.created_at", ">=", startDate);
+    }
+    if (endDate && endDate !== "null") {
+      countQuery.andWhere("pinjaman.created_at", "<=", endDate);
+    }
+    if (status && status !== "null") {
+      countQuery.andWhere("pinjaman.status", status);
+    }
+    const [{ total }] = await countQuery.count({ total: "*" });
+    return { loans, total };
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
   }
   static async findById(e) {
     return await z0("pinjaman").join("members", "pinjaman.anggota_id", "members.id").join("users as pj", "pinjaman.penanggung_jawab", "pj.id").join("users as pit", "pinjaman.petugas_input", "pit.id").leftJoin("angsuran", "pinjaman.id", "angsuran.id_pinjaman").leftJoin("penagih_angsuran ", "penagih_angsuran.id_angsuran", "angsuran.id").leftJoin("users", "penagih_angsuran.id_karyawan", "users.id").whereNull("pinjaman.deleted_at").andWhere("pinjaman.id", e).orderBy("pinjaman.id").select(
       "pinjaman.*",
+      db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
       "members.complete_name as anggota_nama",
       "pj.complete_name as pj_nama",
       "pit.complete_name as pit_nama",
@@ -62521,6 +62664,7 @@ class Vn {
   static async index(e, a) {
     try {
       const {
+<<<<<<< HEAD
         page: t = 1,
         limit: r = 10,
         startDate: o = null,
@@ -62529,6 +62673,22 @@ class Vn {
       } = e.query, b = parseInt(t), d = parseInt(r), u = (b - 1) * d, { loans: M, total: z } = await U1.findAll({ limit: r, offset: u, startDate: o, endDate: s, status: c });
       a.status(200).json({
         loans: M,
+=======
+        page = 1,
+        limit = 10,
+        startDate = null,
+        endDate = /* @__PURE__ */ new Date(),
+        status = null,
+        day = "all",
+        group = "all"
+      } = req.query;
+      const pageInt = parseInt(page);
+      const limitInt = parseInt(limit);
+      const offset2 = (pageInt - 1) * limitInt;
+      const { loans, total } = await Loan.findAll({ limit, offset: offset2, startDate, endDate, status, day, group });
+      res.status(200).json({
+        loans,
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
         pagination: {
           total: Number(z),
           page: b,
@@ -62624,6 +62784,7 @@ class Vn {
     const r = await z0.transaction();
     try {
       const {
+<<<<<<< HEAD
         jumlah_pinjaman: o,
         total_pinjaman_diterima: s,
         anggota_id: c,
@@ -62670,6 +62831,63 @@ class Vn {
             await U1.createAngsuran({
               idPinjaman: y,
               tanggalPembayaran: R(L),
+=======
+        jumlah_pinjaman,
+        total_pinjaman_diterima,
+        anggota_id,
+        kode,
+        penanggung_jawab,
+        modal_do,
+        jumlah_angsuran,
+        total_pinjaman,
+        persen_bunga,
+        status,
+        petugas_input,
+        total_bunga,
+        tanggal_pinjam
+      } = req.body;
+      const loanExist = await Loan.existLoan(kode);
+      if (loanExist) {
+        return res.status(400).json({ errors: { kode: "Kode sudah ada" } });
+      }
+      const now2 = /* @__PURE__ */ new Date();
+      const tanggalAngsuranPertama = new Date(tanggal_pinjam);
+      tanggalAngsuranPertama.setDate(tanggalAngsuranPertama.getDate() + 7);
+      const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+      const loanId = await Loan.create({
+        jumlah_pinjaman,
+        total_pinjaman_diterima,
+        anggota_id,
+        kode,
+        penanggung_jawab,
+        modal_do,
+        jumlah_angsuran,
+        total_pinjaman,
+        persen_bunga,
+        status,
+        petugas_input,
+        sisa_pembayaran: total_pinjaman,
+        besar_tunggakan: 0,
+        total_bunga,
+        tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama),
+        created_at: now2
+      });
+      const totalMinggu = parseInt(process.env.VITE_APP_BULAN || "10");
+      for (let i = 0; i < totalMinggu; i++) {
+        const tanggalPembayaran = new Date(tanggalAngsuranPertama);
+        tanggalPembayaran.setDate(tanggalPembayaran.getDate() + i * 7);
+        let sudahAktif = false;
+        while (!sudahAktif) {
+          if (isHoliday(tanggalPembayaran)) {
+            await Loan.createAngsuran({
+              idPinjaman: loanId,
+              tanggalPembayaran: formatDate(tanggalPembayaran),
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
               status: "libur"
             }), L.setDate(L.getDate() + 7), _++;
           else {
@@ -62796,8 +63014,13 @@ class Ae {
       "a.area_name as area_name"
     ).whereNull("m.deleted_at").andWhere("m.id", e).first();
   }
+<<<<<<< HEAD
   static async getSequenceNumber(e) {
     return await z0("members").orderBy("created_at", "desc").first();
+=======
+  static async getSequenceNumber(id) {
+    return await db$1("members").whereNull("deleted_at").orderBy("created_at", "desc").first();
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
   }
   static async create(e) {
     const [a] = await z0("members").insert(e);
@@ -62823,11 +63046,45 @@ class Ae {
     const [{ total: a }] = await z0("members").join("pinjaman", "members.id", "pinjaman.anggota_id").where("members.id", e).count("* as total").whereNull("pinjaman.deleted_at");
     return a > 0;
   }
+<<<<<<< HEAD
   static async nikExist(e, a = !1) {
     const t = z0("members").where("nik", e);
     a ? t.whereNotNull("deleted_at") : t.whereNull("deleted_at");
     const [{ total: r }] = await t.count();
     return r > 0;
+=======
+  static async nikExist(nik, notNull = false, ignoreId = null) {
+    const query = db$1("members").where("nik", nik);
+    if (notNull) {
+      query.whereNotNull("deleted_at");
+    } else {
+      query.whereNull("deleted_at");
+    }
+    if (ignoreId) {
+      query.whereNot("id", ignoreId);
+    }
+    console.log(ignoreId);
+    const [{ total }] = await query.count("* as total");
+    return total > 0;
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
+  }
+  static async nokkExist(no_kk, notNull = false, ignoreId = null) {
+    const query = db$1("members").where("no_kk", no_kk);
+    if (notNull) {
+      query.whereNotNull("deleted_at");
+    } else {
+      query.whereNull("deleted_at");
+    }
+    if (ignoreId) {
+      query.whereNot("id", ignoreId);
+    }
+    console.log(ignoreId);
+    const [{ total }] = await query.count("* as total");
+    return total > 0;
+  }
+  static async findByNik(nik) {
+    const query = await db$1("members").where("nik", nik).first();
+    return query;
   }
 }
 class Kn {
@@ -62908,6 +63165,7 @@ class Kn {
       return a.status(400).json({ errors: r });
     }
     try {
+<<<<<<< HEAD
       const { complete_name: r, area_id: o, address: s, nik: c, no_kk: b } = e.body;
       if (await Ae.nikExist(c, !1))
         return a.status(409).json({
@@ -62915,6 +63173,34 @@ class Kn {
         });
       const u = await Ae.getSequenceNumber(), M = u ? (u == null ? void 0 : u.sequence_number) + 1 : 1, z = { nik: c, no_kk: b, complete_name: r, area_id: o, address: s, sequence_number: M, deleted_at: null }, O = await Ae.create(z), m = await Ae.findById(O);
       a.status(200).json({
+=======
+      const { complete_name, area_id, address, nik, no_kk } = req.body;
+      const nikExist = await Member.nikExist(nik, false);
+      if (nikExist) {
+        return res.status(400).json({
+          errors: { nik: "Nik sudah ada" }
+        });
+      }
+      const nokkExist = await Member.nikExist(no_kk, false);
+      if (nokkExist) {
+        return res.status(400).json({
+          errors: { no_kk: "No KK sudah ada" }
+        });
+      }
+      const nikExistDelete = await Member.nikExist(nik, true);
+      const member = await Member.getSequenceNumber();
+      const sequence_number = member ? (member == null ? void 0 : member.sequence_number) + 1 : 1;
+      const data2 = { nik, no_kk, complete_name, area_id, address, sequence_number, deleted_at: null };
+      let memberId;
+      if (!nikExistDelete) {
+        memberId = await Member.create(data2);
+      } else {
+        const member2 = await Member.findByNik(nik);
+        memberId = await Member.update(data2, member2.id);
+      }
+      const newMember = await Member.findById(memberId);
+      res.status(200).json({
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
         message: "Anggota berhasil dibuat",
         member: m
       });
@@ -62930,10 +63216,32 @@ class Kn {
       return a.status(400).json({ errors: r, errorss: t });
     }
     try {
+<<<<<<< HEAD
       const { id: r } = e.params, { nik: o, no_kk: s, complete_name: c, area_id: b, address: d } = e.body, u = { complete_name: c, area_id: b, address: d, id: r, nik: o, no_kk: s };
       await Ae.update(u, r), a.status(200).json({ message: "Anggota updated successfully" });
     } catch (r) {
       a.status(500).json({ error: "An error occurred while updating the group. " + r.message });
+=======
+      const { id } = req.params;
+      const { nik, no_kk, complete_name, area_id, address } = req.body;
+      const nikExist = await Member.nikExist(nik, false, id);
+      if (nikExist) {
+        return res.status(400).json({
+          errors: { nik: "Nik sudah ada" }
+        });
+      }
+      const nokkExist = await Member.nikExist(no_kk, false, id);
+      if (nokkExist) {
+        return res.status(400).json({
+          errors: { no_kk: "No KK sudah ada" }
+        });
+      }
+      const data2 = { complete_name, area_id, address, id, nik, no_kk };
+      await Member.update(data2, id);
+      res.status(200).json({ message: "Anggota updated successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while updating the group. " + error.message });
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
     }
   }
   static async delete(e, a) {
@@ -62955,13 +63263,35 @@ class Kn {
   }
   static async nixExist(e, a) {
     try {
+<<<<<<< HEAD
       const { nik: t } = e.params, r = await Ae.nikExist(t);
       a.status(200).json({
         message: "Anggota sudah ada",
         nikExist: r
+=======
+      const { nik } = req.params;
+      const { ignoreId } = req.query;
+      const exist = await Member.nikExist(nik, false, ignoreId);
+      res.status(200).json({
+        message: "Nik sudah ada",
+        nikExist: exist
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
       });
     } catch (t) {
       a.status(500).json({ error: "An error occurred while deleting the member. " + t.message });
+    }
+  }
+  static async nokkExist(req, res) {
+    try {
+      const { no_kk } = req.params;
+      const { ignoreId } = req.query;
+      const exist = await Member.nokkExist(no_kk, false, ignoreId);
+      res.status(200).json({
+        message: "No kk sudah ada",
+        no_kkExist: exist
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while deleting the member. " + error.message });
     }
   }
 }
@@ -63181,7 +63511,161 @@ class tr {
         return a.status(409).json({
           error: "Karyawan gagal dihapus, Data sedang digunakan dibagian lain sistem"
         });
+<<<<<<< HEAD
       await ae.softDelete(t), a.status(200).json({ user: r });
+=======
+      }
+      await User.softDelete(id);
+      res.status(200).json({ user });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while deleting the user." });
+    }
+  }
+}
+dotenv.config();
+const app = express();
+const port = 5e3;
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  const secret = req.headers["x-app-secret"];
+  if ("123412321123" == secret) {
+    return next();
+  }
+  return res.status(403).send("Forbidden");
+});
+app.post("/api/login", AuthController.login);
+app.get("/api/user", AuthController.getUser);
+app.put("/api/profile-update/:id", AuthController.updateUserProfil);
+app.get("/api/users", UserController.index);
+app.post("/api/users", UserController.store);
+app.get("/api/users/:id", UserController.show);
+app.put("/api/users/:id", UserController.update);
+app.delete("/api/users/:id", UserController.delete);
+app.get("/api/employees", EmployeController.index);
+app.get("/api/employees/count", EmployeController.count);
+app.post("/api/employees", EmployeController.store);
+app.get("/api/employees/:id", EmployeController.show);
+app.put("/api/employees/:id", EmployeController.update);
+app.delete("/api/employees/:id", EmployeController.delete);
+app.get("/api/areas", AreaController.index);
+app.get("/api/areas/count", AreaController.count);
+app.post("/api/areas", AreaController.store);
+app.get("/api/areas/:id", AreaController.show);
+app.put("/api/areas/:id", AreaController.update);
+app.delete("/api/areas/:id", AreaController.delete);
+app.get("/api/groups", GroupController.index);
+app.get("/api/groups/count", GroupController.count);
+app.post("/api/groups", GroupController.store);
+app.get("/api/groups/:id", GroupController.show);
+app.put("/api/groups/:id", GroupController.update);
+app.delete("/api/groups/:id", GroupController.delete);
+app.get("/api/members", MemberController.index);
+app.get("/api/members/:nik/nik-check", MemberController.nixExist);
+app.get("/api/members/:no_kk/nokk-check", MemberController.nokkExist);
+app.get("/api/members/count", MemberController.count);
+app.post("/api/members", MemberController.store);
+app.get("/api/members/:id", MemberController.show);
+app.put("/api/members/:id", MemberController.update);
+app.delete("/api/members/:id", MemberController.delete);
+app.get("/api/schedule", ScheduleController.index);
+app.post("/api/schedule", ScheduleController.store);
+app.get("/api/schedule/:id", ScheduleController.show);
+app.put("/api/schedule/:id", ScheduleController.update);
+app.delete("/api/schedule/:id", ScheduleController.delete);
+app.get("/api/loans", LoanController.index);
+app.post("/api/loans", LoanController.store);
+app.get("/api/loans/:id", LoanController.show);
+app.get("/api/loans/:id/status-pinjaman", LoanController.pinjamanAnggotaStatus);
+app.get("/api/loans/:id/code", LoanController.getCode);
+app.put("/api/loans/:id", LoanController.update);
+app.delete("/api/loans/:id", LoanController.delete);
+app.get("/api/angsuran/:id", AngsuranController.index);
+app.post("/api/angsuran/:idPinjaman", AngsuranController.store);
+app.put("/api/angsuran/:id", AngsuranController.update);
+app.get("/api/configLoan", (req, res) => {
+  const totalBulan = process.env.VITE_APP_BULAN || 10;
+  const modalDo = process.env.VITE_APP_MODAL_DO || 13;
+  return res.json({ config: { totalBulan, modalDo } });
+});
+app.post("/api/export-db", (req, res) => {
+  exportDB();
+  return res.json({ message: "Berhasil export db" });
+});
+app.get("/api/list-backup", (req, res) => {
+  return res.json({ backups: listBackup() });
+});
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
+var packageJson;
+var hasRequiredPackageJson;
+function requirePackageJson() {
+  if (hasRequiredPackageJson) return packageJson;
+  hasRequiredPackageJson = 1;
+  const fs$1 = fs;
+  const path$12 = path;
+  packageJson = {
+    findAndReadPackageJson,
+    tryReadJsonAt
+  };
+  function findAndReadPackageJson() {
+    return tryReadJsonAt(getMainModulePath()) || tryReadJsonAt(extractPathFromArgs()) || tryReadJsonAt(process.resourcesPath, "app.asar") || tryReadJsonAt(process.resourcesPath, "app") || tryReadJsonAt(process.cwd()) || { name: void 0, version: void 0 };
+  }
+  function tryReadJsonAt(...searchPaths) {
+    if (!searchPaths[0]) {
+      return void 0;
+    }
+    try {
+      const searchPath = path$12.join(...searchPaths);
+      const fileName = findUp("package.json", searchPath);
+      if (!fileName) {
+        return void 0;
+      }
+      const json = JSON.parse(fs$1.readFileSync(fileName, "utf8"));
+      const name = (json == null ? void 0 : json.productName) || (json == null ? void 0 : json.name);
+      if (!name || name.toLowerCase() === "electron") {
+        return void 0;
+      }
+      if (name) {
+        return { name, version: json == null ? void 0 : json.version };
+      }
+      return void 0;
+    } catch (e) {
+      return void 0;
+    }
+  }
+  function findUp(fileName, cwd) {
+    let currentPath = cwd;
+    while (true) {
+      const parsedPath = path$12.parse(currentPath);
+      const root = parsedPath.root;
+      const dir = parsedPath.dir;
+      if (fs$1.existsSync(path$12.join(currentPath, fileName))) {
+        return path$12.resolve(path$12.join(currentPath, fileName));
+      }
+      if (currentPath === root) {
+        return null;
+      }
+      currentPath = dir;
+    }
+  }
+  function extractPathFromArgs() {
+    const matchedArgs = process.argv.filter((arg) => {
+      return arg.indexOf("--user-data-dir=") === 0;
+    });
+    if (matchedArgs.length === 0 || typeof matchedArgs[0] !== "string") {
+      return null;
+    }
+    const userDataDir = matchedArgs[0];
+    return userDataDir.replace("--user-data-dir=", "");
+  }
+  function getMainModulePath() {
+    var _a;
+    try {
+      return (_a = require.main) == null ? void 0 : _a.filename;
+>>>>>>> 5170a57d73da6624c72276d3f1395e6ed046e653
     } catch {
       a.status(500).json({ error: "An error occurred while deleting the user." });
     }

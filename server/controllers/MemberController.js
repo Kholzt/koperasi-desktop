@@ -113,17 +113,30 @@ export default class MemberController {
             const { complete_name, area_id, address, nik, no_kk } = req.body;
             const nikExist = await Member.nikExist(nik, false);
             if (nikExist) {
-                return res.status(409).json({
-                    message: "Nik sudah ada",
+                return res.status(400).json({
+                    errors: { nik: "Nik sudah ada" },
                 });
             }
+            const nokkExist = await Member.nikExist(no_kk, false);
+            if (nokkExist) {
+                return res.status(400).json({
+                    errors: { no_kk: "No KK sudah ada" },
+                });
+            }
+
+            const nikExistDelete = await Member.nikExist(nik, true);
 
             const member = await Member.getSequenceNumber();
             // res.status(500).json(member);
             const sequence_number = member ? member?.sequence_number + 1 : 1;
             const data = { nik, no_kk, complete_name, area_id, address, sequence_number, deleted_at: null };
-
-            const memberId = await Member.create(data);
+            let memberId;
+            if (!nikExistDelete) {
+                memberId = await Member.create(data);
+            } else {
+                const member = await Member.findByNik(nik);
+                memberId = await Member.update(data, member.id);
+            }
 
             const newMember = await Member.findById(memberId);
             res.status(200).json({
@@ -155,6 +168,19 @@ export default class MemberController {
         try {
             const { id } = req.params;
             const { nik, no_kk, complete_name, area_id, address } = req.body;
+            const nikExist = await Member.nikExist(nik, false, id);
+            if (nikExist) {
+                return res.status(400).json({
+                    errors: { nik: "Nik sudah ada" },
+                });
+            }
+            const nokkExist = await Member.nikExist(no_kk, false, id);
+            if (nokkExist) {
+                return res.status(400).json({
+                    errors: { no_kk: "No KK sudah ada" },
+                });
+            }
+
             const data = { complete_name, area_id, address, id, nik, no_kk }
             await Member.update(data, id);
 
@@ -193,10 +219,24 @@ export default class MemberController {
     static async nixExist(req, res) {
         try {
             const { nik } = req.params;
-            const exist = await Member.nikExist(nik);
+            const { ignoreId } = req.query;
+            const exist = await Member.nikExist(nik, false, ignoreId);
             res.status(200).json({
-                message: "Anggota sudah ada",
+                message: "Nik sudah ada",
                 nikExist: exist,
+            });
+        } catch (error) {
+            res.status(500).json({ error: "An error occurred while deleting the member. " + error.message });
+        }
+    }
+    static async nokkExist(req, res) {
+        try {
+            const { no_kk } = req.params;
+            const { ignoreId } = req.query;
+            const exist = await Member.nokkExist(no_kk, false, ignoreId);
+            res.status(200).json({
+                message: "No kk sudah ada",
+                no_kkExist: exist,
             });
         } catch (error) {
             res.status(500).json({ error: "An error occurred while deleting the member. " + error.message });

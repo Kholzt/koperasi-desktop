@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Option {
     value: string;
@@ -26,9 +26,20 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     const [selectedOptions, setSelectedOptions] = useState<string[]>(defaultSelected);
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const wrapperRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setSelectedOptions(defaultSelected)
+        const handleClickOutside = (event: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
     }, [defaultSelected]);
     const toggleDropdown = () => {
         if (!disabled) setIsOpen((prev) => !prev);
@@ -66,7 +77,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                 {label}
             </label>
 
-            <div className="relative inline-block w-full">
+            <div className="relative inline-block w-full" ref={wrapperRef}>
                 {/* <div className="relative z-20 inline-block w-full"> */}
                 <div className="relative flex flex-col items-center">
                     <div onClick={toggleDropdown} className="w-full">
@@ -78,7 +89,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                                             key={index}
                                             className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pl-2.5 pr-2 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800"
                                         >
-                                            <span className="flex-initial max-w-full">{text}</span>
+                                            <span className="flex-initial max-w-full ">{text}</span>
                                             <div className="flex flex-row-reverse flex-auto">
                                                 <div
                                                     onClick={(e) => {
@@ -108,7 +119,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                                 ) : (
                                     <input
                                         placeholder={placeholder}
-                                        className="w-full h-full p-1 pr-2 text-sm bg-transparent border-0 outline-hidden appearance-none placeholder:text-gray-800 focus:border-0 focus:outline-hidden focus:ring-0 dark:placeholder:text-white/90"
+                                        className="w-full h-full p-1 pr-2 text-sm bg-transparent border-0 outline-hidden appearance-none placeholder:text-gray-800 focus:border-0 focus:outline-hidden focus:ring-0 dark:placeholder:text-white dark:text-white"
                                         readOnly
                                         value={placeholder}
                                     />

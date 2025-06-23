@@ -33,6 +33,10 @@ export function formatCurrency(value: number = 0,withCurr:boolean = true): strin
       day: "numeric",
     });
   }
+export function toLocalDate (date: Date)  {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
 
   export function isDatePassed(date: string | Date): boolean {
   const targetDate = new Date(date);

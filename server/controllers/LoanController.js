@@ -7,14 +7,14 @@ export default class LoanController {
     // Menampilkan daftar area dengan pagination
     static async index(req, res) {
         try {
-            const { page = 1, limit = 10, startDate = null, endDate = new Date(), status = null
+            const { page = 1, limit = 10, startDate = null, endDate = new Date(), status = null, day = "all", group = "all"
             } = req.query;
             const pageInt = parseInt(page);
             const limitInt = parseInt(limit);
             const offset = (pageInt - 1) * limitInt;
 
             // Query loans with join to members
-            const { loans, total } = await Loan.findAll({ limit, offset, startDate, endDate, status })
+            const { loans, total } = await Loan.findAll({ limit, offset, startDate, endDate, status, day, group })
 
             // Total count
 
@@ -192,7 +192,8 @@ export default class LoanController {
                 persen_bunga,
                 status,
                 petugas_input,
-                total_bunga
+                total_bunga,
+                tanggal_pinjam
             } = req.body;
 
             const loanExist = await Loan.existLoan(kode);
@@ -202,8 +203,8 @@ export default class LoanController {
 
             // Hitung tanggal angsuran pertama (7 hari dari sekarang)
             const now = new Date();
-            const tanggalAngsuranPertama = new Date(now);
-            tanggalAngsuranPertama.setDate(now.getDate() + 7);
+            const tanggalAngsuranPertama = new Date(tanggal_pinjam);
+            tanggalAngsuranPertama.setDate(tanggalAngsuranPertama.getDate() + 7);
 
             // Fungsi format tanggal YYYY-MM-DD
             const formatDate = (date) => {
@@ -229,7 +230,8 @@ export default class LoanController {
                 sisa_pembayaran: total_pinjaman,
                 besar_tunggakan: 0,
                 total_bunga,
-                tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama)
+                tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama),
+                created_at: now,
             });
 
             // Loop angsuran per bulan

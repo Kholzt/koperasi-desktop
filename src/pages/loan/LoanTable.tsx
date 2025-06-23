@@ -49,6 +49,12 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                NIK
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Nama Anggota
                             </TableCell>
                             <TableCell
@@ -104,6 +110,9 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    {user.anggota.nik}
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     {user.anggota.complete_name}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -131,7 +140,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {formatLongDate(user.created_at)}
+                                        {formatLongDate(user.tanggal_peminjaman)}
                                     </span>
                                 </TableCell>
 

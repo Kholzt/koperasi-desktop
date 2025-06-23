@@ -49,8 +49,7 @@ const LoanDetail: React.FC = () => {
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Jumlah Pinjaman</div>
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.jumlah_pinjaman)}</div>
 
-                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Persen Bunga</div>
-                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.persen_bunga}%</div>
+
 
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Total Bunga</div>
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.total_bunga)}</div>
@@ -61,9 +60,13 @@ const LoanDetail: React.FC = () => {
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Jumlah Angsuran</div>
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.jumlah_angsuran)}</div>
 
-                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Tanggal Angsuran Pertama</div>
-                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatDate(loan?.tanggal_angsuran_pertama)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Sisa Pembayaran</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.sisa_pembayaran)}</div>
 
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Besar Tunggakan</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.besar_tunggakan)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Persen Bunga</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.persen_bunga}%</div>
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Modal DO</div>
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.modal_do)}</div>
 
@@ -73,14 +76,14 @@ const LoanDetail: React.FC = () => {
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Petugas Input</div>
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.petugas?.complete_name}</div>
 
-                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Sisa Pembayaran</div>
-                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.sisa_pembayaran)}</div>
-
-                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Besar Tunggakan</div>
-                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.besar_tunggakan)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Tanggal Peminjaman</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatDate(loan?.tanggal_peminjaman)}</div>
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Tanggal Angsuran Pertama</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatDate(loan?.tanggal_angsuran_pertama)}</div>
 
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Status</div>
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white capitalize">{loan?.status}</div>
+
 
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Dibuat Pada</div>
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatDate(loan?.created_at)}</div>

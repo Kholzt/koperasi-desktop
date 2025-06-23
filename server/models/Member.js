@@ -47,7 +47,7 @@ export default class Member {
             .first();
     }
     static async getSequenceNumber(id) {
-        return await db("members").orderBy("created_at", "desc").first();
+        return await db("members").whereNull('deleted_at').orderBy("created_at", "desc").first();
     }
     static async create(data) {
         const [id] = await db("members").insert(data);
@@ -89,16 +89,39 @@ export default class Member {
         return total > 0;
     }
 
-    static async nikExist(nik, notNull = false) {
+    static async nikExist(nik, notNull = false, ignoreId = null) {
         const query = db('members')
             .where("nik", nik)
-        // .count('* as total');
         if (notNull) {
             query.whereNotNull("deleted_at");
         } else {
             query.whereNull("deleted_at");
         }
-        const [{ total }] = await query.count();
+        if (ignoreId) {
+            query.whereNot("id", ignoreId)
+        }
+        console.log(ignoreId);
+        const [{ total }] = await query.count('* as total');
         return total > 0;
+    }
+    static async nokkExist(no_kk, notNull = false, ignoreId = null) {
+        const query = db('members')
+            .where("no_kk", no_kk)
+        if (notNull) {
+            query.whereNotNull("deleted_at");
+        } else {
+            query.whereNull("deleted_at");
+        }
+        if (ignoreId) {
+            query.whereNot("id", ignoreId)
+        }
+        console.log(ignoreId);
+        const [{ total }] = await query.count('* as total');
+        return total > 0;
+    }
+    static async findByNik(nik) {
+        const query = await db('members')
+            .where("nik", nik).first()
+        return query;
     }
 }

@@ -70,7 +70,8 @@ export default class EmployeController {
         await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
         await body('position').notEmpty().withMessage('Posisi wajib diisi').run(req);
         await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif dan nonAktif').run(req);
-
+        await body('jenis_ijazah').notEmpty().withMessage('Jenis Ijazah wajib diisi').run(req);
+        await body('tanggal_masuk').notEmpty().withMessage('Tanggal Masuk wajib diisi').run(req);
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             const formattedErrors = errors.array().reduce((acc, error) => {
@@ -82,7 +83,7 @@ export default class EmployeController {
         }
 
         try {
-            const { complete_name, position, status, role } = req.body;
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah } = req.body;
 
             const [insertedId] = await db('users').insert({
                 complete_name,
@@ -90,6 +91,7 @@ export default class EmployeController {
                 access_apps: "noAccess",
                 position,
                 status,
+                tanggal_masuk, tanggal_keluar, jenis_ijazah
             });
 
             const newUser = await db('users').where('id', insertedId).first();
@@ -106,6 +108,8 @@ export default class EmployeController {
     // Mengupdate data pengguna dengan pengecekan
     static async update(req, res) {
         await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
+        await body('jenis_ijazah').notEmpty().withMessage('Jenis Ijazah wajib diisi').run(req);
+        await body('tanggal_masuk').notEmpty().withMessage('Tanggal Masuk wajib diisi').run(req);
         await body('position').notEmpty().withMessage('Posisi wajib diisi').run(req);
         await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif dan nonAktif').run(req);
 
@@ -121,7 +125,7 @@ export default class EmployeController {
 
         try {
             const { id } = req.params;
-            const { complete_name, role, position, status } = req.body;
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah } = req.body;
 
             const existingUser = await db('users').where('id', id).first();
             if (!existingUser) {
@@ -135,11 +139,12 @@ export default class EmployeController {
                     role: "staff",
                     position,
                     status,
+                    tanggal_masuk, tanggal_keluar, jenis_ijazah
                 });
 
             res.status(200).json({ message: 'User updated successfully' });
         } catch (error) {
-            res.status(500).json({ error: 'An error occurred while updating the user.' });
+            res.status(500).json({ error: 'An error occurred while updating the user.', errors: error });
         }
     }
 

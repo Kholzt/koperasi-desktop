@@ -7,6 +7,9 @@ export interface UserProps{
     access_apps:"access"|"noAccess",
     position:string,
     status:"aktif"|"nonAktif",
+    jenis_ijazah:string,
+    tanggal_masuk:Date,
+    tanggal_keluar:Date,
     created_at:Date,
     updated_at:Date,
     deleted_at:Date,
@@ -78,6 +81,8 @@ export interface LoanProps{
     }
 export interface MemberProps{
     id:number,
+    nik:string,
+    no_kk:string,
     complete_name:string,
     address:string,
     area_id:number,

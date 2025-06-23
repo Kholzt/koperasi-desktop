@@ -20,8 +20,8 @@ import { AreaProps } from "../../utils/types";
 import Loading from "../../components/ui/Loading"
 
 interface MemberFormInput {
-    nik: number;
-    no_kk: number;
+    nik: string;
+    no_kk: string;
     complete_name: string;
     area_id: number;
     address: string
@@ -29,11 +29,11 @@ interface MemberFormInput {
 
 
 const schema: yup.SchemaOf<MemberFormInput> = yup.object({
-    nik: yup.number()
+    nik: yup.string()
         // .min(16, "NIK minimal 16")
         // .max(16, "NIK maksimal 16")
         .required('NIK  wajib diisi'),
-    no_kk: yup.number()
+    no_kk: yup.string()
         // .min(16, "No KK minimal 16")
         // .max(16, "No KK maksimal 16")
         .required('NO KK  wajib diisi'),
@@ -50,6 +50,7 @@ const MemberForm: React.FC = () => {
     const [areas, setAreas] = useState<{ label: string, value: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [nikExist, setNikExist] = useState(false);
+    const [noKKExist, setNoKKExist] = useState(false);
     const { id } = useParams();
     const isUpdate = !!id;
     const navigate = useNavigate();
@@ -69,8 +70,8 @@ const MemberForm: React.FC = () => {
             complete_name: "",
             area_id: undefined,
             address: "",
-            nik: 0,
-            no_kk: 0
+            nik: "0",
+            no_kk: "0"
         }
     });
 
@@ -94,20 +95,47 @@ const MemberForm: React.FC = () => {
     }, []);
 
     const nik = watch("nik");
+    const no_kk = watch("no_kk");
     useEffect(() => {
         if (nik) {
-            axios.get(`/api/members/${nik}/check`).then((data) => {
+            axios.get(`/api/members/${nik}/nik-check?ignoreId=${id}`).then((data) => {
                 setNikExist(data.data.nikExist);
-                setError("nik", {
-                    type: 'manual',
-                    message: "Nik sudah ada", // Pesan error dari response
-                });
+                if (data.data.nikExist) {
+                    setError("nik", {
+                        type: 'manual',
+                        message: "Nik sudah ada", // Pesan error dari response
+                    });
+                } else {
+                    setError("nik", {
+                        type: 'manual',
+                        message: "", // Pesan error dari response
+                    });
+
+                }
             })
         }
-    }, [nik]);
+        if (no_kk) {
+            axios.get(`/api/members/${no_kk}/nokk-check?ignoreId=${id}`).then((data) => {
+                setNoKKExist(data.data.no_kkExist)
+                if (data.data.no_kkExist) {
+                    setError("no_kk", {
+                        type: 'manual',
+                        message: "No KK sudah ada", // Pesan error dari response
+                    });
+                } else {
+                    setError("no_kk", {
+                        type: 'manual',
+                        message: "", // Pesan error dari response
+                    });
+
+                }
+            })
+        }
+        setValue('nik', nik.slice(0, 16))
+        setValue('no_kk', no_kk.slice(0, 16))
+    }, [nik, no_kk]);
 
     const onSubmit = async (data: MemberFormInput) => {
-        console.log(data);
         try {
             let res;
             if (!id) {
@@ -170,6 +198,7 @@ const MemberForm: React.FC = () => {
                                 NIK  <span className="text-error-500">*</span>
                             </Label>
                             <Input
+                                min={0}
                                 type="number"
                                 placeholder="Masukkan NIK"
                                 {...register("nik")}
@@ -183,6 +212,7 @@ const MemberForm: React.FC = () => {
                                 NO KK  <span className="text-error-500">*</span>
                             </Label>
                             <Input
+                                min={0}
                                 disabled={nikExist}
                                 type="number"
                                 placeholder="Masukkan No KK"
@@ -234,7 +264,7 @@ const MemberForm: React.FC = () => {
 
                         <div>
                             <Button
-                                disabled={nikExist}
+                                disabled={nikExist || noKKExist}
                                 size="sm">Simpan</Button>
                         </div>
                     </Form>
