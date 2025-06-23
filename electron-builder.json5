@@ -3,7 +3,7 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "112",
   "asar": true,
-  "productName": "Koperasi Saferine Jaya Mandiri",
+  "productName": "Koperasi Seferine Jaya Mandiri",
   "win": {
     "icon": "./build/icon.png"
   },
