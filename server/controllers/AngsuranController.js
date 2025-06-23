@@ -63,19 +63,19 @@ export default class AngsuranController {
             let statusPinjaman = "aktif";
             const pinjaman = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
 
-            if ((parseInt(pinjaman.sisa_pembayaran) - parseInt(jumlah_bayar)) == 0 && status == "lunas") {
+            if ((parseInt(pinjaman.sisa_pembayaran) - parseInt(jumlah_bayar)) == 0 && status != "menunggak") {
                 statusPinjaman = "lunas";
             }
 
             const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
 
-            if (status == "lunas") {
+            if (status != "menunggak") {
                 sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt((pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran));
                 totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(pinjaman.jumlah_angsuran) : parseInt(pinjaman.besar_tunggakan);
                 await Angsuran.updateAngsuran(angsuran.id, {
                     asal_pembayaran,
                     jumlah_bayar: pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran,
-                    status: "lunas"
+                    status: status
                 });
                 await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
 

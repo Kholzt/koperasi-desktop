@@ -343,7 +343,8 @@ export default class LoanController {
                 persen_bunga,
                 status,
                 petugas_input,
-                total_bunga
+                total_bunga,
+                sisa_pembayaran: total_pinjaman
             };
             // Update data
             await Loan.update(data, id)

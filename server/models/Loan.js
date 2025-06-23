@@ -4,7 +4,7 @@ export default class Loan {
     static async findAll({ limit, offset, startDate, endDate, status, day, group }) {
         const query = db('pinjaman')
             .join('members', 'pinjaman.anggota_id', 'members.id')
-            .join('group_details', 'pinjaman.penanggung_jawab', 'group_details.staff_id')
+            .leftJoin('group_details', 'pinjaman.penanggung_jawab', 'group_details.staff_id')
             .groupBy("pinjaman.id")
             .whereNull('pinjaman.deleted_at');
 

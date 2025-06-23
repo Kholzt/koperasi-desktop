@@ -110,12 +110,12 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.jenis_ijazah}
+                                        {user.jenis_ijazah ? user.jenis_ijazah : "-"}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {formatDate(user.tanggal_masuk)}
+                                        {user.tanggal_masuk ? formatDate(user.tanggal_masuk) : "-"}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">

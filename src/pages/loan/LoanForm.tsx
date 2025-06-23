@@ -261,7 +261,7 @@ const LoanForm: React.FC = () => {
                                 <Label htmlFor="anggota_id">Anggota</Label>
                                 <SelectSearch
                                     label=""
-                                    placeholder="Pilih karyawan"
+                                    placeholder="Pilih anggota"
                                     options={anggota}
                                     defaultValue={getValues("anggota_id")}
                                     {...register("anggota_id")}

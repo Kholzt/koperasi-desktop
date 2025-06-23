@@ -171,7 +171,7 @@ function Action({ id, member_name, hasPinjaman }: { id: number, member_name: str
         >
             <ul className="flex flex-col gap-1  ">
                 <li>
-                    {user?.role != "staff" && !hasPinjaman && <DropdownItem
+                    {user?.role != "staff"  && <DropdownItem
                         onItemClick={closeDropdown}
                         tag="a"
                         to={`/member/${id}/edit`}
