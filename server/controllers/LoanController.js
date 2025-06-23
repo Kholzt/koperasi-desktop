@@ -231,7 +231,7 @@ export default class LoanController {
                 besar_tunggakan: 0,
                 total_bunga,
                 tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama),
-                created_at: tanggal_pinjam,
+                created_at: now,
             });
 
             // Loop angsuran per bulan

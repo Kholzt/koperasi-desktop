@@ -33,6 +33,7 @@ export default class Loan {
             .offset(offset)
             .select(
                 'pinjaman.*',
+                db.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
                 db.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`)
             );
 
@@ -71,6 +72,7 @@ export default class Loan {
             .orderBy('pinjaman.id')
             .select(
                 'pinjaman.*',
+                db.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
                 'members.complete_name as anggota_nama',
                 'pj.complete_name as pj_nama',
                 'pit.complete_name as pit_nama',

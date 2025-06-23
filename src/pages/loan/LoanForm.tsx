@@ -184,7 +184,7 @@ const LoanForm: React.FC = () => {
             axios.get("/api/loans/" + id).then(res => {
                 const loan = res.data.loan
                 console.log(loan);
-                reset({ ...loan, tanggal_pinjam: new Date(loan.created_at as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
+                reset({ ...loan, tanggal_pinjam: new Date(loan.tanggal_peminjaman as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
                 setHasAngsuran(loan.hasAngsuran);
                 setTimeout(() => {
                     setLoading(false)

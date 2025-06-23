@@ -89,7 +89,7 @@ export default class Member {
         return total > 0;
     }
 
-    static async nikExist(nik, notNull = false) {
+    static async nikExist(nik, notNull = false, ignoreId = null) {
         const query = db('members')
             .where("nik", nik)
         if (notNull) {
@@ -97,6 +97,25 @@ export default class Member {
         } else {
             query.whereNull("deleted_at");
         }
+        if (ignoreId) {
+            query.whereNot("id", ignoreId)
+        }
+        console.log(ignoreId);
+        const [{ total }] = await query.count('* as total');
+        return total > 0;
+    }
+    static async nokkExist(no_kk, notNull = false, ignoreId = null) {
+        const query = db('members')
+            .where("no_kk", no_kk)
+        if (notNull) {
+            query.whereNotNull("deleted_at");
+        } else {
+            query.whereNull("deleted_at");
+        }
+        if (ignoreId) {
+            query.whereNot("id", ignoreId)
+        }
+        console.log(ignoreId);
         const [{ total }] = await query.count('* as total');
         return total > 0;
     }

@@ -74781,6 +74781,7 @@ class Loan {
     }
     const loans = await query.orderBy("pinjaman.id", "desc").limit(limit).offset(offset2).select(
       "pinjaman.*",
+      db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
       db$1.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`)
     );
     const countQuery = db$1("pinjaman").whereNull("deleted_at");
@@ -74799,6 +74800,7 @@ class Loan {
   static async findById(id) {
     return await db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").join("users as pj", "pinjaman.penanggung_jawab", "pj.id").join("users as pit", "pinjaman.petugas_input", "pit.id").leftJoin("angsuran", "pinjaman.id", "angsuran.id_pinjaman").leftJoin("penagih_angsuran ", "penagih_angsuran.id_angsuran", "angsuran.id").leftJoin("users", "penagih_angsuran.id_karyawan", "users.id").whereNull("pinjaman.deleted_at").andWhere("pinjaman.id", id).orderBy("pinjaman.id").select(
       "pinjaman.*",
+      db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
       "members.complete_name as anggota_nama",
       "pj.complete_name as pj_nama",
       "pit.complete_name as pit_nama",
@@ -75032,7 +75034,7 @@ class LoanController {
         besar_tunggakan: 0,
         total_bunga,
         tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama),
-        created_at: tanggal_pinjam
+        created_at: now2
       });
       const totalMinggu = parseInt(process.env.VITE_APP_BULAN || "10");
       for (let i = 0; i < totalMinggu; i++) {
@@ -75232,13 +75234,31 @@ class Member {
     const [{ total }] = await db$1("members").join("pinjaman", "members.id", "pinjaman.anggota_id").where("members.id", id).count("* as total").whereNull("pinjaman.deleted_at");
     return total > 0;
   }
-  static async nikExist(nik, notNull = false) {
+  static async nikExist(nik, notNull = false, ignoreId = null) {
     const query = db$1("members").where("nik", nik);
     if (notNull) {
       query.whereNotNull("deleted_at");
     } else {
       query.whereNull("deleted_at");
     }
+    if (ignoreId) {
+      query.whereNot("id", ignoreId);
+    }
+    console.log(ignoreId);
+    const [{ total }] = await query.count("* as total");
+    return total > 0;
+  }
+  static async nokkExist(no_kk, notNull = false, ignoreId = null) {
+    const query = db$1("members").where("no_kk", no_kk);
+    if (notNull) {
+      query.whereNotNull("deleted_at");
+    } else {
+      query.whereNull("deleted_at");
+    }
+    if (ignoreId) {
+      query.whereNot("id", ignoreId);
+    }
+    console.log(ignoreId);
     const [{ total }] = await query.count("* as total");
     return total > 0;
   }
@@ -75339,8 +75359,14 @@ class MemberController {
       const { complete_name, area_id, address, nik, no_kk } = req.body;
       const nikExist = await Member.nikExist(nik, false);
       if (nikExist) {
-        return res.status(409).json({
-          message: "Nik sudah ada"
+        return res.status(400).json({
+          errors: { nik: "Nik sudah ada" }
+        });
+      }
+      const nokkExist = await Member.nikExist(no_kk, false);
+      if (nokkExist) {
+        return res.status(400).json({
+          errors: { no_kk: "No KK sudah ada" }
         });
       }
       const nikExistDelete = await Member.nikExist(nik, true);
@@ -75381,6 +75407,18 @@ class MemberController {
     try {
       const { id } = req.params;
       const { nik, no_kk, complete_name, area_id, address } = req.body;
+      const nikExist = await Member.nikExist(nik, false, id);
+      if (nikExist) {
+        return res.status(400).json({
+          errors: { nik: "Nik sudah ada" }
+        });
+      }
+      const nokkExist = await Member.nikExist(no_kk, false, id);
+      if (nokkExist) {
+        return res.status(400).json({
+          errors: { no_kk: "No KK sudah ada" }
+        });
+      }
       const data2 = { complete_name, area_id, address, id, nik, no_kk };
       await Member.update(data2, id);
       res.status(200).json({ message: "Anggota updated successfully" });
@@ -75413,10 +75451,24 @@ class MemberController {
   static async nixExist(req, res) {
     try {
       const { nik } = req.params;
-      const exist = await Member.nikExist(nik);
+      const { ignoreId } = req.query;
+      const exist = await Member.nikExist(nik, false, ignoreId);
       res.status(200).json({
         message: "Nik sudah ada",
         nikExist: exist
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while deleting the member. " + error.message });
+    }
+  }
+  static async nokkExist(req, res) {
+    try {
+      const { no_kk } = req.params;
+      const { ignoreId } = req.query;
+      const exist = await Member.nokkExist(no_kk, false, ignoreId);
+      res.status(200).json({
+        message: "No kk sudah ada",
+        no_kkExist: exist
       });
     } catch (error) {
       res.status(500).json({ error: "An error occurred while deleting the member. " + error.message });
@@ -75736,7 +75788,8 @@ app.get("/api/groups/:id", GroupController.show);
 app.put("/api/groups/:id", GroupController.update);
 app.delete("/api/groups/:id", GroupController.delete);
 app.get("/api/members", MemberController.index);
-app.get("/api/members/:nik/check", MemberController.nixExist);
+app.get("/api/members/:nik/nik-check", MemberController.nixExist);
+app.get("/api/members/:no_kk/nokk-check", MemberController.nokkExist);
 app.get("/api/members/count", MemberController.count);
 app.post("/api/members", MemberController.store);
 app.get("/api/members/:id", MemberController.show);
