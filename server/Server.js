@@ -11,6 +11,7 @@ import MemberController from './controllers/MemberController';
 import ScheduleController from './controllers/ScheduleController';
 import UserController from './controllers/UserController';
 import { exportDB, listBackup } from "./config/db";
+import { getAllHoliday, getHolidayJson, isHoliday } from "./config/holidays";
 
 
 dotenv.config();
@@ -110,6 +111,9 @@ app.get('/api/list-backup', (req, res) => {
     return res.json({ backups: listBackup() })
 });
 
-app.listen(port, () => {
+
+app.listen(port, async () => {
+    const re = await isHoliday("2025-07-11");
+    console.log(re);
     console.log(`Server running at http://localhost:${port}`);
 });
