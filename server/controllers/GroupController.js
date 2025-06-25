@@ -13,11 +13,7 @@ export default class GroupController {
                     map.set(row.group_id, {
                         id: row.group_id,
                         group_name: row.group_name,
-                        area_id: row.area_id,
-                        area: {
-                            id: row.area_id,
-                            area_name: row.area_name,
-                        },
+
                         staffs: [],
                     });
                 }
@@ -53,11 +49,6 @@ export default class GroupController {
             const group = {
                 id: rows[0].group_id,
                 group_name: rows[0].group_name,
-                area_id: rows[0].area_id,
-                area: {
-                    id: rows[0].area_id,
-                    area_name: rows[0].area_name,
-                },
                 staffs: rows
                     .filter(r => r.staff_id)
                     .map(r => ({ id: r.staff_id, complete_name: r.staff_name })),
@@ -71,7 +62,6 @@ export default class GroupController {
 
     static async store(req, res) {
         await body('group_name').notEmpty().run(req);
-        await body('area_id').notEmpty().run(req);
         await body('staffs').isArray({ min: 1 }).run(req);
         await body('staffs.*').notEmpty().run(req);
 
@@ -85,16 +75,16 @@ export default class GroupController {
         }
 
         try {
-            const { group_name, area_id, staffs } = req.body;
+            const { group_name, staffs } = req.body;
             //   const exists = await GroupModel.existsByName(group_name);
             //   if (exists) {
             //     return res.status(400).json({ errors: { group_name: 'Nama group sudah ada' } });
             //   }
 
-            const id = await GroupModel.create({ group_name, area_id });
+            const id = await GroupModel.create({ group_name });
             await GroupModel.insertStaffs(id, staffs);
 
-            res.status(200).json({ message: 'Group berhasil dibuat', group: { id, group_name, area_id } });
+            res.status(200).json({ message: 'Group berhasil dibuat', group: { id, group_name } });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -102,7 +92,6 @@ export default class GroupController {
 
     static async update(req, res) {
         await body('group_name').notEmpty().run(req);
-        await body('area_id').notEmpty().run(req);
         await body('staffs').isArray({ min: 1 }).run(req);
         await body('staffs.*').notEmpty().run(req);
 
@@ -117,14 +106,14 @@ export default class GroupController {
 
         try {
             const { id } = req.params;
-            const { group_name, area_id, staffs } = req.body;
+            const { group_name, staffs } = req.body;
 
             //   const exists = await GroupModel.existsByName(group_name, id);
             //   if (exists) {
             //     return res.status(400).json({ errors: { group_name: 'Nama group sudah terdaftar' } });
             //   }
 
-            await GroupModel.update({ id, group_name, area_id });
+            await GroupModel.update({ id, group_name });
             await GroupModel.deleteGroupDetails(id);
             await GroupModel.insertStaffs(id, staffs);
 

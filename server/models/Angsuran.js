@@ -18,6 +18,7 @@ export default class Angsuran {
         return {
             id: row.id,
             jumlah_bayar: row.jumlah_bayar,
+            jumlah_katrol: row.jumlah_katrol,
             jumlah_angsuran: row.jumlah_angsuran,
             asal_pembayaran: row.asal_pembayaran,
             status: row.status,
@@ -45,8 +46,9 @@ export default class Angsuran {
     static async deletePenagihAngsuranByIdAngsuran(id) {
         return await db("penagih_angsuran").where("id_angsuran", id).delete();
     }
-    static async createAngsuran({ idPinjaman, tanggalPembayaran }) {
-        return await db("angsuran").insert({ jumlah_bayar: 0, id_pinjaman: idPinjaman, asal_pembayaran: null, status: "aktif", tanggal_pembayaran: tanggalPembayaran });
+    static async createAngsuran({ idPinjaman, tanggalPembayaran, status, jumlah_bayar, jumlah_katrol, asal_pembayaran = null }) {
+        const [id] = await db("angsuran").insert({ jumlah_bayar, jumlah_katrol, id_pinjaman: idPinjaman, asal_pembayaran, status: "aktif", tanggal_pembayaran: tanggalPembayaran, status });
+        return id;
     }
     static async updatePinjaman(idPinjaman, data) {
         return await db("pinjaman").where("id", idPinjaman).update(data);
@@ -55,11 +57,32 @@ export default class Angsuran {
         return await db("angsuran").where("id_pinjaman", idPinjaman).orderBy("tanggal_pembayaran", "desc").first();
     }
 
-    static async getAngsuranAktifByIdPeminjaman(idPeminjaman) {
-        return await db("angsuran")
+    static async getAngsuranAktifByIdPeminjaman(idPeminjaman, ignoreId = null) {
+        const query = db("angsuran")
             .where("id_pinjaman", idPeminjaman)
             .where("status", "aktif")
-            .orderBy("id", "asc")
-            .first();
+            .orderBy("tanggal_pembayaran", "asc");
+        if (ignoreId) {
+            query.whereNot("id", ignoreId)
+        }
+
+        return await query.first()
+    }
+
+
+    static async updateSisaPembayaran(idPinjaman) {
+        const pinjaman = await db("pinjaman").where("id", idPinjaman).first();
+        const [sumResult] = await db("angsuran")
+            .where("id_pinjaman", idPinjaman)
+            .sum({ total_katrol: "jumlah_katrol" })
+            .sum({ total_bayar: "jumlah_bayar" });
+
+        const totalAngsuran = (Number(sumResult.total_katrol) || 0) + (Number(sumResult.total_bayar) || 0);
+        const sisaPembayaran = Number(pinjaman.total_pinjaman) - totalAngsuran;
+        return await db("pinjaman").where("id", idPinjaman).update({
+            sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran
+        });
+
+
     }
 }

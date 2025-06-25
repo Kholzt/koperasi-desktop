@@ -4,12 +4,10 @@ import { Link } from "react-router";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import Input from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
 import { useTheme } from "../../context/ThemeContext";
-import { SearchIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { ScheduleProps, PaginationProps } from "../../utils/types";
+import { PaginationProps, ScheduleProps } from "../../utils/types";
 import Table from "./ScheduleTable";
 const Schedule: React.FC = () => {
     const [search, setSearch] = useState<String | null>("");

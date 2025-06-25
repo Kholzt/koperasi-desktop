@@ -8,24 +8,29 @@ import axios from "../../utils/axios";
 import { AngsuranProps, LoanProps } from "../../utils/types";
 import { formatCurrency, formatDate, formatLongDate } from "../../utils/helpers";
 import { ChevronLeftIcon, PencilIcon } from "../../icons";
+import Button from "../../components/ui/button/Button";
+import { Modal } from "../../components/ui/modal";
+import AngsuranModal from './AngsuranModal';
+import { useUser } from "../../hooks/useUser";
 const LoanDetail: React.FC = () => {
     const { id } = useParams();
     const [loan, setLoan] = useState<LoanProps | null>(null);
-
+    const [showModal, setShowModal] = useState(false);
+    const { user } = useUser();
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
             setLoan(res.data.loan)
             console.log(res);
 
         });
-    }, []);
-    console.log(loan);
+    }, [showModal]);
 
     return (
         <>
             <PageMeta
                 title={`Detail Peminjaman | ${import.meta.env.VITE_APP_NAME}`}
                 description=""
+
             />
             <PageBreadcrumb pageTitle="Detail Peminjaman" />
             <div className="w-full   mx-auto mb-2">
@@ -71,7 +76,7 @@ const LoanDetail: React.FC = () => {
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{formatCurrency(loan?.modal_do)}</div>
 
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Penanggung Jawab</div>
-                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.penanggungJawab?.complete_name}</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.penanggungJawab.map((p) => p.complete_name).join(", ")}</div>
 
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Petugas Input</div>
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.petugas?.complete_name}</div>
@@ -93,11 +98,12 @@ const LoanDetail: React.FC = () => {
                     </div>
 
                 </ComponentCard>
-                <ComponentCard title="Detail Angsuran">
+                <ComponentCard title="Detail Angsuran" option={loan?.status != "lunas" && user?.role != "staff" && <Button type="button" onClick={() => setShowModal(true)}>Tambah angsuran</Button>}>
                     <table className="min-w-full text-sm border rounded-md overflow-hidden bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
                         <thead className=" text-gray-700">
                             <tr>
                                 <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Jumlah Bayar</th>
+                                <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Jumlah Katrol</th>
                                 <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Penagih</th>
                                 <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Keterangan</th>
                                 <th className=" text-gray-700   text-theme-sm dark:text-gray-400 p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-left">Tanggal Bayar</th>
@@ -109,9 +115,10 @@ const LoanDetail: React.FC = () => {
                                 loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => (
                                     <tr
                                         key={index}
-                                        className={angsuran.asal_pembayaran === "anggota" ? "bg-blue-500 text-white" : (angsuran.asal_pembayaran == "penagih" ? "bg-red-500" : (angsuran.status == "libur" ? "bg-yellow-500" : " "))}
+                                        className={angsuran.asal_pembayaran === "anggota" ? "bg-blue-500 text-white" : (angsuran.asal_pembayaran == "penagih" || angsuran.asal_pembayaran == "katrol" ? "bg-red-500" : (angsuran.status == "libur" ? "bg-yellow-500" : " "))}
                                     >
                                         <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{formatCurrency(angsuran.jumlah_bayar)}</td>
+                                        <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{formatCurrency(angsuran.jumlah_katrol)}</td>
                                         <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">{angsuran?.penagih.length > 0 ? angsuran?.penagih?.map((p: any) => {
                                             return p.complete_name;
                                         }).join(",") : "-"}</td>
@@ -120,7 +127,7 @@ const LoanDetail: React.FC = () => {
                                             {angsuran.tanggal_pembayaran ? formatLongDate(angsuran.tanggal_pembayaran) : "-"}
                                         </td>
                                         <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">
-                                            {angsuran.status == "lunas" && <Link to={`/loan/${loan.id}/angsuran/${angsuran.id}`}><PencilIcon fontSize={20} /></Link>}
+                                            {angsuran.status != "menunggak" && angsuran.status != "libur" && angsuran.status != "aktif" && user?.role != "staff" && <Link to={`/loan/${loan.id}/angsuran/${angsuran.id}`}><PencilIcon fontSize={20} /></Link>}
                                         </td>
                                     </tr>
                                 ))
@@ -133,9 +140,14 @@ const LoanDetail: React.FC = () => {
                             )}
                         </tbody>
                     </table>
-
-
                 </ComponentCard>
+
+
+
+                <Modal isOpen={showModal}
+                    onClose={() => setShowModal(false)} className="max-w-[800px] p-6 lg:p-10">
+                    <AngsuranModal onClose={() => setShowModal(false)} />
+                </Modal>
             </div>
         </>
     );

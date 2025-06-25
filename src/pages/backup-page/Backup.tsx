@@ -26,7 +26,7 @@ const Backup: React.FC = () => {
                 <ComponentCard title="Backup">
                     {firstItem ? (
                         <div className="space-y-4">
-                            <div className="grid grid-cols-4 gap-2 items-center">
+                            <div className="grid grid-cols-4 gap-2 items-center dark:text-white">
                                 <span className="font-semibold">Nama File</span>
                                 <span className="col-span-3 truncate">{firstItem.name}</span>
 

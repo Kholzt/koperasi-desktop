@@ -40,7 +40,7 @@ const ScheduleModel = {
         const query = db('schedule')
             .join('areas', 'schedule.area_id', 'areas.id')
             .join('groups', 'schedule.group_id', 'groups.id')
-            .where({ 'schedule.area_id': area_id, 'schedule.group_id': group_id, day }).whereNull('deleted_at');
+            .where({ 'schedule.area_id': area_id, 'schedule.group_id': group_id, day }).whereNull('schedule.deleted_at');
 
         if (excludeId) {
             query.andWhereNot('schedule.id', excludeId);

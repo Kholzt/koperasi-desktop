@@ -9,7 +9,7 @@ import Button from "../../components/ui/button/Button";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
 import { useTheme } from "../../context/ThemeContext";
 import axios from "../../utils/axios";
-import { GroupProps, LoanProps, PaginationProps } from "../../utils/types";
+import { GroupProps, LoanProps, PaginationProps, ScheduleProps } from "../../utils/types";
 import Table from "./LoanTable";
 import SelectSearch from "../../components/form/SelectSearch";
 import { toLocalDate } from "../../utils/helpers";
@@ -47,17 +47,19 @@ const Loan: React.FC = () => {
 
     useEffect(() => {
         axios
-            .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayFilter}&group=${groupFilter}`)
+            .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}`)
             .then((res: any) => {
                 setLoans(res.data.loans);
                 setPagination(res.data.pagination);
             });
         axios
-            .get(`/api/groups?limit=2000`)
+            .get(`/api/schedule?limit=2000`)
             .then((res: any) => {
-                setGroups(res.data.groups.map((group: GroupProps) => ({ label: group.group_name, value: group.id })))
+                const { schedule } = res.data
+                let scheduleFilter = schedule.filter((s: any) => dayFilter == "all" || s.day == dayFilter);
+                setGroups(scheduleFilter.map((group: ScheduleProps) => ({ label: group.group.group_name + " | " + group.day, value: group.group.id })))
             });
-
+        console.log(groupFilter, `/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}`);
     }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter]);
 
     return (
@@ -69,7 +71,7 @@ const Loan: React.FC = () => {
                 <div className="flex gap-2 mb-2 items-center">
                     <ul className="flex mt-1.5">
                         {days.map((day, i) => {
-                            const isActive = dayFilter === dayMap[day];
+                            const isActive = dayFilter === day;
                             return (
                                 <li
                                     key={i}
@@ -83,7 +85,7 @@ const Loan: React.FC = () => {
                                 >
                                     <button
                                         className="px-4 py-2 capitalize"
-                                        onClick={() => setDayFilter(dayMap[day])}
+                                        onClick={() => setDayFilter(day)}
                                     >
                                         {day}
                                     </button>
@@ -151,7 +153,6 @@ const Filter: React.FC<FilterProps> = ({ filter, setFilter }) => {
         setFilter({ startDate, endDate, status });
         closeDropdown();
     };
-    console.log(status);
 
     return (
         <div className="relative">

@@ -23,6 +23,7 @@ import axios from "../../utils/axios";
 import { formatCurrency, toLocalDate, unformatCurrency } from "../../utils/helpers";
 import { MemberProps, UserProps } from "../../utils/types";
 import SelectSearch from './../../components/form/SelectSearch';
+import MultiSelect from "../../components/form/MultiSelect";
 
 interface LoanFormInput {
     kode: string;
@@ -35,7 +36,7 @@ interface LoanFormInput {
     jumlah_angsuran: string;
     tanggal_angsuran_pertama?: string;
     modal_do: string;
-    penanggung_jawab: string;
+    penanggung_jawab: string[];
     petugas_input: number;
     sisa_pembayaran: string;
     besar_tunggakan: string;
@@ -54,7 +55,11 @@ const schema: yup.SchemaOf<LoanFormInput> = yup.object({
     total_pinjaman: yup.string().required(),
     jumlah_angsuran: yup.string().required(),
     modal_do: yup.string().required('Modal DO wajib diisi').min(0),
-    penanggung_jawab: yup.string().required('Penanggung jawab wajib dipilih'),
+    penanggung_jawab: yup.array().of(yup.string().trim()
+        .min(1, 'Silahkan pilih penanggung jawab')
+        .required('Silahkan pilih penanggung jawab'))
+        .min(1, "Minimal pilih satu penanggung jawab")
+        .required('Penanggung Jawab wajib dipilih'),
     status: yup
         .mixed<'aktif' | 'lunas' | 'menunggak'>()
         .oneOf(['aktif', 'lunas', 'menunggak'], 'Status harus salah satu dari: aktif, lunas, atau menunggak')
@@ -64,7 +69,7 @@ const schema: yup.SchemaOf<LoanFormInput> = yup.object({
 const LoanForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const [anggota, setAnggota] = useState<{ label: string, value: string }[]>([]);
-    const [users, setUsers] = useState<{ label: string, value: string }[]>([]);
+    const [users, setUsers] = useState<{ text: string, value: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [disabled, setDisabled] = useState(false);
     const [hasAngsuran, setHasAngsuran] = useState(false);
@@ -96,6 +101,7 @@ const LoanForm: React.FC = () => {
             modal_do: "0",
             sisa_pembayaran: "0",
             besar_tunggakan: "0",
+            penanggung_jawab: [],
             tanggal_pinjam: new Date().toISOString(),
         }
     });
@@ -181,10 +187,9 @@ const LoanForm: React.FC = () => {
     useEffect(() => {
         if (id) {
             setLoading(true);
-            axios.get("/api/loans/" + id).then(res => {
+            axios.get("/api/loans/" + id).then((res: any) => {
                 const loan = res.data.loan
-                console.log(loan);
-                reset({ ...loan, tanggal_pinjam: new Date(loan.tanggal_peminjaman as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
+                reset({ ...loan, penanggung_jawab: JSON.parse(loan.penanggung_jawab), tanggal_pinjam: new Date(loan.tanggal_peminjaman as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
                 setHasAngsuran(loan.hasAngsuran);
                 setTimeout(() => {
                     setLoading(false)
@@ -198,7 +203,7 @@ const LoanForm: React.FC = () => {
             setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id })));
         });
         axios.get("/api/employees?limit=2000").then(res => {
-            setUsers(res.data.employees.map((user: UserProps) => ({ label: user.complete_name, value: user.id })));
+            setUsers(res.data.employees.map((user: UserProps) => ({ text: user.complete_name, value: user.id })));
         });
     }, []);
 
@@ -212,7 +217,6 @@ const LoanForm: React.FC = () => {
             data.modal_do = unformatCurrency(data.modal_do).toString();
             data.total_bunga = unformatCurrency(data.total_bunga).toString();
             data.petugas_input = user?.id ?? 1;
-
             let res;
             if (!id) {
                 res = await axios.post("/api/loans", data);
@@ -353,9 +357,22 @@ const LoanForm: React.FC = () => {
 
 
                             <div>
+                                {/* <Label htmlFor="penanggung_jawab">Penanggung Jawab</Label> */}
+                                {/* <Select options={users} {...register("penanggung_jawab")} placeholder="Pilih penanggung jawab" />
+                                {errors.penanggung_jawab && <p className="text-sm text-red-500 mt-1">{errors.penanggung_jawab.message}</p>} */}
+
                                 <Label htmlFor="penanggung_jawab">Penanggung Jawab</Label>
-                                <Select options={users} {...register("penanggung_jawab")} placeholder="Pilih penanggung jawab" />
-                                {errors.penanggung_jawab && <p className="text-sm text-red-500 mt-1">{errors.penanggung_jawab.message}</p>}
+                                <MultiSelect
+                                    label=""
+                                    placeholder="Pilih karyawan"
+                                    options={users}
+                                    defaultSelected={getValues("penanggung_jawab")}
+                                    {...register("penanggung_jawab")}
+                                    onChange={(val) => setValue("penanggung_jawab", val)}
+                                />
+                                {errors.penanggung_jawab && typeof errors.penanggung_jawab?.message === 'string' && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.penanggung_jawab?.message}</p>
+                                )}
                             </div>
                             <div>
                                 <Label htmlFor="penanggung_jawab">Tanggal Pinjam</Label>
