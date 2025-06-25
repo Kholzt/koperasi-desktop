@@ -1,7 +1,7 @@
 {
-"name": "koperasi-seferine-jaya-mandiri",
+    "name": "koperasi-seferine-jaya-mandiri",
     "private": true,
-    "version": "1.0.0",
+    "version": "1.2",
     "type": "module",
     "icon": "build/icon",
     "scripts": {
