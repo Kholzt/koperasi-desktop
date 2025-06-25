@@ -43,12 +43,12 @@ export default class LoanController {
             const map = new Map();
             const hasAngsuran = await Loan.checkStatusAngsuran(id)
             for (const row of rows) {
+                const penanggungJawab = await Loan.findPenanggungJawab(row.penanggung_jawab)
                 if (!map.has(row.id)) {
                     map.set(row.id, {
                         ...row,
                         anggota: { complete_name: row.anggota_nama },
-                        penanggungJawab: { complete_name: row.pj_nama },
-                        //memiliki angsuran yg sudah bayar
+                        penanggungJawab: penanggungJawab,
                         hasAngsuran: hasAngsuran > 0,
                         petugas: { complete_name: row.pit_nama },
                         angsuran: new Map(), // gunakan Map untuk menghindari duplikat
@@ -62,6 +62,7 @@ export default class LoanController {
                     angsuranMap.set(row.id_angsuran, {
                         id: row.id_angsuran,
                         jumlah_bayar: row.jumlah_bayar,
+                        jumlah_katrol: row.jumlah_katrol,
                         asal_pembayaran: row.asal_pembayaran,
                         status: row.status_angsuran,
                         tanggal_pembayaran: row.tanggal_pembayaran,
@@ -196,7 +197,7 @@ export default class LoanController {
                 tanggal_pinjam
             } = req.body;
 
-            const loanExist = await Loan.existLoan(kode);
+            const loanExist = await Loan.existLoan(anggota_id, kode);
             if (loanExist) {
                 return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
             }
@@ -220,7 +221,7 @@ export default class LoanController {
                 total_pinjaman_diterima,
                 anggota_id,
                 kode,
-                penanggung_jawab,
+                penanggung_jawab: JSON.stringify(penanggung_jawab),
                 modal_do,
                 jumlah_angsuran,
                 total_pinjaman,
@@ -328,7 +329,7 @@ export default class LoanController {
             }
 
             // Cek kode unik (kode tidak boleh sama dengan entri lain)
-            const kodeCek = await Loan.existLoan(kode, id);
+            const kodeCek = await Loan.existLoan(anggota_id, kode, id);
             if (kodeCek) {
                 return res.status(400).json({ errors: { kode: 'Kode sudah digunakan oleh pinjaman lain.' } });
             }
@@ -336,7 +337,7 @@ export default class LoanController {
             const data = {
                 jumlah_pinjaman,
                 total_pinjaman_diterima,
-                penanggung_jawab,
+                penanggung_jawab: JSON.stringify(penanggung_jawab),
                 modal_do,
                 jumlah_angsuran,
                 total_pinjaman,

@@ -8,6 +8,7 @@ interface Option {
 
 interface MultiSelectProps {
     label: string;
+    readOnly: boolean;
     placeholder: string;
     options: Option[];
     defaultSelected?: string[];
@@ -16,6 +17,7 @@ interface MultiSelectProps {
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
+    readOnly = false,
     label,
     placeholder,
     options,
@@ -62,10 +64,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     };
 
     const filteredOptions = options
-        .filter((option) => !selectedOptions.includes(option.value))
+        .filter((option) => !selectedOptions.some(e => e == option.value))
         .filter((option) =>
             option.text.toLowerCase().includes(searchTerm.toLowerCase())
         );
+
 
     const selectedValuesText = selectedOptions.map(
         (value) => options.find((option) => option.value == value)?.text || ""
@@ -79,9 +82,9 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
             <div className="relative inline-block w-full" ref={wrapperRef}>
                 {/* <div className="relative z-20 inline-block w-full"> */}
-                <div className="relative flex flex-col items-center">
+                <div className={`relative flex flex-col items-center ${readOnly && " pointer-events-none"}`}>
                     <div onClick={toggleDropdown} className="w-full">
-                        <div className=" flex min-h-11 h-auto rounded-lg border border-gray-300 py-1.5 pl-3 pr-3 shadow-theme-xs outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring dark:border-gray-700 dark:bg-gray-900 dark:focus:border-brand-300">
+                        <div className={` flex min-h-11 h-auto rounded-lg border border-gray-300 py-1.5 pl-3 pr-3 shadow-theme-xs outline-hidden transition  ${readOnly ? "bg-gray-50 dark:bg-white/[0.03] text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90 dark:focus:border-brand-800 " : "focus:border-brand-300 focus:shadow-focus-ring dark:border-gray-700 dark:bg-gray-900 dark:focus:border-brand-300"}`}>
                             <div className="flex flex-wrap flex-auto gap-2">
                                 {selectedValuesText.length > 0 ? (
                                     selectedValuesText.map((text, index) => (

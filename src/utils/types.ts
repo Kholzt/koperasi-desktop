@@ -50,7 +50,8 @@ export interface AngsuranProps{
     id:number,
     jumlah_bayar:number,
     jumlah_angsuran?:number,
-    asal_pembayaran:"anggota"|"penagih",
+    jumlah_katrol:number,
+    asal_pembayaran:"anggota"|"penagih"|"katrol",
     status:"lunas"|"menunggak"|"aktif"|"libur",
     tanggal_pembayaran:Date,
     }
@@ -68,7 +69,7 @@ export interface LoanProps{
     tanggal_angsuran_pertama: string;
     modal_do: number;
     penanggung_jawab: string;
-    penanggungJawab:UserProps,
+    penanggungJawab:UserProps[],
     petugas_input: string;
     petugas:UserProps,
     sisa_pembayaran: number;

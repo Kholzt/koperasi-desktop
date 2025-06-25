@@ -1,32 +1,29 @@
-import React, { FormEvent, useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
+import { yupResolver } from "@hookform/resolvers/yup";
+import { Link, useNavigate, useParams } from "react-router";
+import { toast } from "react-toastify";
+import * as yup from 'yup';
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Label from "../../components/form/Label";
-import Input from "../../components/form/input/InputField";
-import Pagination from "../../components/tables/BasicTables/Pagination";
-import Badge from "../../components/ui/badge/Badge";
-import Button from "../../components/ui/button/Button";
-import { Modal } from "../../components/ui/modal";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "../../components/ui/table";
-import { useTheme } from "../../context/ThemeContext";
-import axios from "../../utils/axios";
-import { formatCurrency, formatDate, formatLongDate, isDatePassed, unformatCurrency } from "../../utils/helpers";
-import { AngsuranProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
 import MultiSelect from "../../components/form/MultiSelect";
 import Select from "../../components/form/Select";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from 'yup';
-import { toast } from "react-toastify";
-import { Link, useNavigate, useParams } from "react-router";
+import Input from "../../components/form/input/InputField";
 import Loading from "../../components/ui/Loading";
+import Button from "../../components/ui/button/Button";
+import { useTheme } from "../../context/ThemeContext";
+import axios from "../../utils/axios";
+import { formatCurrency, unformatCurrency } from "../../utils/helpers";
+import { AngsuranProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
 
 
 interface FormInputs {
     asal_pembayaran: string;
     jumlah_bayar: string;
+    jumlah_katrol: string;
     penagih: string[]; // atau number[] tergantung data
     status: "lunas" | "menunggak" | "kurang" | "lebih";
 };
@@ -62,61 +59,75 @@ const Angsuran: React.FC = () => {
 
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
+            console.log(res.data.loan);
             setLoans(res.data.loan)
-            reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) })
+            if (!idAngsuran) reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) });
         });
         axios.get("/api/employees?limit=2000").then(res => {
             setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
         });
-    }, [pagination.page, reload]);
-
-    useEffect(() => {
         if (idAngsuran) {
+            setIsLoading(true)
             axios.get(`/api/angsuran/${idAngsuran}`).then((res: any) => {
                 const { data: { angsuran } } = res;
-                reset({ asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) });
-                console.log(angsuran);
+                reset({ jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) });
                 setIsLoading(false)
+
             });
         }
-    }, [idAngsuran, reload]);
+    }, [pagination.page, reload]);
+
 
 
     const { register, handleSubmit, setValue, getValues, watch, setError, formState: { errors }, reset } = useForm<FormInputs>({
         resolver: yupResolver(schema),
+        defaultValues: {
+            jumlah_katrol: formatCurrency(0)
+        }
     });
 
     const lunasUpdate = watch("status")
 
     useEffect(() => {
-        setisLunas(lunasUpdate != "menunggak")
+        if (lunasUpdate) {
+            setisLunas(lunasUpdate != "menunggak")
+        }
     }, [lunasUpdate]);
 
     const jumlahBayar = watch("jumlah_bayar");
+    const jumlahKatrol = watch("jumlah_katrol");
+    const asalPembayaran = watch("asal_pembayaran");
 
     useEffect(() => {
         if (jumlahBayar) {
             const jumlahBayarFormat = unformatCurrency(jumlahBayar);
             setValue("jumlah_bayar", formatCurrency(jumlahBayarFormat));
         }
-    }, [jumlahBayar]);
+        if (jumlahKatrol) {
+            const jumlahKatrolFormat = unformatCurrency(jumlahKatrol);
+            setValue("jumlah_katrol", formatCurrency(jumlahKatrolFormat));
+        }
+    }, [jumlahBayar, jumlahKatrol]);
     const onSubmit = async (data: FormInputs) => {
         try {
-            if (data.asal_pembayaran == null && data.status == "lunas") return setError("asal_pembayaran", {
+            if (!data.asal_pembayaran && data.status != "menunggak") return setError("asal_pembayaran", {
                 type: "required",
                 message: "Asal pembayaran wajib diisi"
             })
 
+
             if (!idAngsuran) {
-                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar) });
+                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             } else {
-                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar) });
+                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             }
             navigate("/loan");
         } catch (error) {
             toast.error("Angsuran gagal diubah")
+            console.log(error);
+
         }
     };
 
@@ -136,12 +147,13 @@ const Angsuran: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4 mb-4" >
                             <div className="col-span-2">
                                 <Label>Jumlah bayar</Label>
-                                <Input readOnly={!!idAngsuran} type="text" {...register("jumlah_bayar")} defaultValue={formatCurrency(loans?.jumlah_angsuran)} />
+                                <Input type="text" {...register("jumlah_bayar")} />
                             </div>
 
                             <div  >
                                 <Label>Penagih</Label>
                                 <MultiSelect
+                                    readOnly={!!idAngsuran}
                                     label=""
                                     placeholder="Pilih penagih"
                                     options={staffs}
@@ -153,10 +165,10 @@ const Angsuran: React.FC = () => {
                                     <p className="mt-1 text-sm text-red-500">{errors.penagih?.message}</p>
                                 )}
                             </div>
-                            {!idAngsuran && <div>
+                            <div>
                                 <Label>Status</Label>
                                 <Select
-
+                                    readOnly={!!idAngsuran}
                                     options={[
                                         { label: "Lunas", value: "lunas" },
                                         { label: "Menunggak", value: "menunggak" },
@@ -166,18 +178,23 @@ const Angsuran: React.FC = () => {
                                 {errors.status && (
                                     <p className="mt-1 text-sm text-red-500">{errors.status.message}</p>
                                 )}
-                            </div>}
+                            </div>
                             {isLunas && <div>
                                 <Label>Asal Pembayaran</Label>
                                 <Select
-
+                                    readOnly={!!idAngsuran}
                                     options={[
                                         { label: "Anggota", value: "anggota" },
-                                        { label: "Penagih", value: "penagih" }
+                                        { label: "Penagih", value: "penagih" },
+                                        { label: "Katrol", value: "katrol" },
                                     ]} placeholder="Pilih asal pembayaran" {...register("asal_pembayaran")} />
                                 {errors.asal_pembayaran && (
                                     <p className="mt-1 text-sm text-red-500">{errors.asal_pembayaran.message}</p>
                                 )}
+                            </div>}
+                            {asalPembayaran == "katrol" && <div >
+                                <Label>Jumlah katrol</Label>
+                                <Input type="text" {...register("jumlah_katrol")} />
                             </div>}
 
                         </div>

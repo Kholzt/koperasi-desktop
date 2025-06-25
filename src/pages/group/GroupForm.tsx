@@ -21,7 +21,6 @@ import { AreaProps, UserProps } from "../../utils/types";
 import Loading from "../../components/ui/Loading"
 interface GroupFormInput {
     group_name: string;
-    area_id: number;
     staffs: string[]
 }
 
@@ -29,8 +28,6 @@ interface GroupFormInput {
 const schema: yup.SchemaOf<GroupFormInput> = yup.object({
     group_name: yup.string()
         .required('Nama kelompok  wajib dipilih'),
-    area_id: yup.string()
-        .required('Wilayah wajib diisi'),
     staffs: yup.array().of(yup.string().trim()
         .min(1, 'Silahkan pilih karyawan')
         .required('Silahkan pilih karyawan'))
@@ -60,7 +57,6 @@ const GroupForm: React.FC = () => {
         resolver: yupResolver(schema),
         defaultValues: {
             group_name: "",
-            area_id: undefined,
             staffs: []
         }
     });
@@ -159,34 +155,26 @@ const GroupForm: React.FC = () => {
                             </div>
                             <div>
                                 <Label>
-                                    Wilayah <span className="text-error-500">*</span>
+                                    Karyawan <span className="text-error-500">*</span>
                                 </Label>
-                                <Select options={areas} placeholder="Pilih area" {...register("area_id")} />
-                                {errors.area_id && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.area_id.message}</p>
+                                <MultiSelect
+                                    label=""
+                                    placeholder="Pilih karyawan"
+                                    options={staffs}
+                                    defaultSelected={getValues("staffs")}
+                                    {...register("staffs")}
+                                    onChange={(val) => setValue("staffs", val)}
+                                />
+
+
+                                {errors.staffs && typeof errors.staffs?.message === 'string' && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.staffs?.message}</p>
                                 )}
+
+
                             </div>
                         </div>
-                        <div >
-                            <Label>
-                                Karyawan <span className="text-error-500">*</span>
-                            </Label>
-                            <MultiSelect
-                                label=""
-                                placeholder="Pilih karyawan"
-                                options={staffs}
-                                defaultSelected={getValues("staffs")}
-                                {...register("staffs")}
-                                onChange={(val) => setValue("staffs", val)}
-                            />
 
-
-                            {errors.staffs && typeof errors.staffs?.message === 'string' && (
-                                <p className="mt-1 text-sm text-red-500">{errors.staffs?.message}</p>
-                            )}
-
-
-                        </div>
 
                         <div>
                             <Button size="sm">Simpan</Button>

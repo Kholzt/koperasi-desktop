@@ -29,7 +29,6 @@ interface LoanTableProps {
 
 const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
-    console.log(data);
 
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -176,7 +175,6 @@ function Action({ id, status, kode, completeName }: { id: number, kode: string, 
             let res = await axios.delete("/api/loans/" + id);
             toast.success("Pinjaman berhasil dihapus")
             setReload(!reload);
-            console.log(res);
             closeModal();
         } catch (error: any) {
             if (error.status == 409) {

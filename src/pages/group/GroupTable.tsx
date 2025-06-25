@@ -49,12 +49,6 @@ const GroupTable: React.FC<GroupTableProps> = ({ data, pagination, setPaginate }
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Wilayah
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
                                 Karyawan
                             </TableCell>
                             <TableCell
@@ -81,11 +75,6 @@ const GroupTable: React.FC<GroupTableProps> = ({ data, pagination, setPaginate }
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     {user.group_name}
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.area.area_name}
-                                    </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">

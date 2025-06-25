@@ -4,7 +4,7 @@ export default class Loan {
     static async findAll({ limit, offset, startDate, endDate, status, day, group }) {
         const query = db('pinjaman')
             .join('members', 'pinjaman.anggota_id', 'members.id')
-            .leftJoin('group_details', 'pinjaman.penanggung_jawab', 'group_details.staff_id')
+            // .leftJoin('group_details', 'pinjaman.penanggung_jawab', 'group_details.staff_id')
             .groupBy("pinjaman.id")
             .whereNull('pinjaman.deleted_at');
 
@@ -23,11 +23,8 @@ export default class Loan {
         if (day && day !== "all") {
             query.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
         }
-        if (group && group !== "all") {
-            query.andWhere('group_details.group_id', group);
-        }
 
-        const loans = await query
+        let loans = await query
             .orderBy('pinjaman.id', 'desc')
             .limit(limit)
             .offset(offset)
@@ -37,8 +34,34 @@ export default class Loan {
                 db.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`)
             );
 
+        if (group && group !== "all") {
+            loans = await Promise.all(loans.map(async loan => {
+                try {
+                    const staffIds = JSON.parse(loan.penanggung_jawab || '[]');
+                    if (!Array.isArray(staffIds) || staffIds.length === 0) return null;
+
+                    const [{ total }] = await db("group_details")
+                        .whereIn("staff_id", staffIds)
+                        .andWhere("group_id", group)
+                        .count({ total: '*' });
+
+                    return total > 0 ? loan : null;
+                } catch (err) {
+                    return null;
+                }
+            }));
+
+            // Hapus null hasil dari filter
+            loans = loans.filter(Boolean);
+        }
+
+
+
         // Buat query baru untuk count
-        const countQuery = db('pinjaman').whereNull('deleted_at');
+
+        let countQuery = db('pinjaman')
+            .select('pinjaman.*')
+            .whereNull('pinjaman.deleted_at');
 
         if (startDate && startDate !== "null") {
             countQuery.andWhere('pinjaman.created_at', '>=', startDate);
@@ -52,8 +75,31 @@ export default class Loan {
             countQuery.andWhere('pinjaman.status', status);
         }
 
-        const [{ total }] = await countQuery.count({ total: '*' });
+        // Ambil semua pinjaman untuk dihitung (tanpa limit & offset)
+        let countResults = await countQuery;
 
+        // Jika perlu filter berdasarkan group_id dari JSON staff_id
+        if (group && group !== "all") {
+            countResults = await Promise.all(countResults.map(async loan => {
+                try {
+                    const staffIds = JSON.parse(loan.penanggung_jawab || '[]');
+                    if (!Array.isArray(staffIds) || staffIds.length === 0) return null;
+
+                    const [{ total }] = await db("group_details")
+                        .whereIn("staff_id", staffIds)
+                        .andWhere("group_id", group)
+                        .count({ total: '*' });
+
+                    return total > 0 ? loan : null;
+                } catch (err) {
+                    return null;
+                }
+            }));
+
+            countResults = countResults.filter(Boolean);
+        }
+
+        const total = countResults.length;
         return { loans, total };
     }
 
@@ -62,22 +108,23 @@ export default class Loan {
     static async findById(id) {
         return await db('pinjaman')
             .join('members', 'pinjaman.anggota_id', 'members.id')
-            .join('users as pj', 'pinjaman.penanggung_jawab', 'pj.id')
+            // .join('users as pj', 'pinjaman.penanggung_jawab', 'pj.id')
             .join('users as pit', 'pinjaman.petugas_input', 'pit.id')
             .leftJoin('angsuran', 'pinjaman.id', 'angsuran.id_pinjaman')
             .leftJoin('penagih_angsuran ', 'penagih_angsuran.id_angsuran', 'angsuran.id')
             .leftJoin('users', 'penagih_angsuran.id_karyawan', 'users.id')
             .whereNull('pinjaman.deleted_at')
             .andWhere('pinjaman.id', id)
-            .orderBy('pinjaman.id')
+            .orderBy('angsuran.tanggal_pembayaran', "asc")
             .select(
                 'pinjaman.*',
                 db.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
                 'members.complete_name as anggota_nama',
-                'pj.complete_name as pj_nama',
+                // 'pj.complete_name as pj_nama',
                 'pit.complete_name as pit_nama',
                 'angsuran.id as id_angsuran',
                 'angsuran.jumlah_bayar',
+                'angsuran.jumlah_katrol',
                 'angsuran.tanggal_pembayaran',
                 'angsuran.status as status_angsuran',
                 'angsuran.asal_pembayaran',
@@ -88,12 +135,18 @@ export default class Loan {
     static async findByIdOnlyOne(id) {
         return await db('pinjaman').where("id", id).first();
     }
+    static async findPenanggungJawab(penanggung_jawab) {
+        return await db('users').whereIn("id", JSON.parse(penanggung_jawab));
+    }
     static async createAngsuran({ idPinjaman, tanggalPembayaran, status }) {
         return await db("angsuran").insert({ jumlah_bayar: 0, id_pinjaman: idPinjaman, asal_pembayaran: null, status, tanggal_pembayaran: tanggalPembayaran });
     }
-    static async existLoan(kode, excludeId) {
+    static async existLoan(anggota_id, kode, excludeId) {
+        const member = await db("members").where("id", anggota_id).first();
         const loan = db("pinjaman").where("kode", kode)
-        if (excludeId) loan.andWhereNot("id", excludeId)
+            .join("members", "pinjaman.anggota_id", "members.id")
+            .where("members.area_id", member.area_id)
+        if (excludeId) loan.andWhereNot("pinjaman.id", excludeId)
         return await loan.first();
     }
 
