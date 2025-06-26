@@ -244,7 +244,8 @@ export default class LoanController {
                 let sudahAktif = false;
 
                 while (!sudahAktif) {
-                    if (isHoliday(tanggalPembayaran)) {
+                    const isDay = await isHoliday(tanggalPembayaran);
+                    if (isDay) {
                         // Buat angsuran status "libur"
                         await Loan.createAngsuran({
                             idPinjaman: loanId,
@@ -257,10 +258,10 @@ export default class LoanController {
                         i++;
                     } else {
                         const existing = await Loan.findByTanggal(loanId, tanggalPembayaran);
+                        sudahAktif = true;
                         if (existing) {
                             break;
                         }
-                        sudahAktif = true;
                         await Loan.createAngsuran({
                             idPinjaman: loanId,
                             tanggalPembayaran: formatDate(tanggalPembayaran),

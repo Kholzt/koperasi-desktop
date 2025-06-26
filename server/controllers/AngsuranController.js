@@ -117,8 +117,8 @@ export default class AngsuranController {
                 let isAktifAdded = false;
                 while (!isAktifAdded) {
                     tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
-
-                    if (isHoliday(tanggalPembayaran)) {
+                    const isDay = await isHoliday(tanggalPembayaran);
+                    if (isDay) {
                         await Angsuran.createAngsuran({
                             idPinjaman: angsuran.id_pinjaman,
                             tanggalPembayaran: formatDate(tanggalPembayaran),
@@ -144,8 +144,9 @@ export default class AngsuranController {
                 let isAktifAdded = false;
                 while (!isAktifAdded) {
                     tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
+                    const isDay = await isHoliday(tanggalPembayaran);
 
-                    if (isHoliday(tanggalPembayaran)) {
+                    if (isDay) {
                         await Angsuran.createAngsuran({
                             idPinjaman: angsuran.id_pinjaman,
                             tanggalPembayaran: formatDate(tanggalPembayaran),

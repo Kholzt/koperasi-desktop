@@ -35,6 +35,10 @@
   {
     "from": "backups",
     "to": "."
+  },
+  {
+    "from": "extras",
+    "to": "."
   }
 ]
 ,

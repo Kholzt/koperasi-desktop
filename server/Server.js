@@ -11,6 +11,7 @@ import MemberController from './controllers/MemberController';
 import ScheduleController from './controllers/ScheduleController';
 import UserController from './controllers/UserController';
 import { exportDB, listBackup } from "./config/db";
+import { getAllHoliday, getHolidayJson, isHoliday, saveHolidayJson } from "./config/holidays";
 
 
 dotenv.config();
@@ -102,14 +103,17 @@ app.get('/api/configLoan', (req, res) => {
     return res.json({ config: { totalBulan, modalDo } })
 });
 
-app.post('/api/export-db', (req, res) => {
+app.post('/api/export-db', async (req, res) => {
     exportDB();
+    await saveHolidayJson();
     return res.json({ message: "Berhasil export db" })
 });
-app.get('/api/list-backup', (req, res) => {
+app.get('/api/list-backup', async (req, res) => {
     return res.json({ backups: listBackup() })
 });
 
-app.listen(port, () => {
+
+app.listen(port, async () => {
+
     console.log(`Server running at http://localhost:${port}`);
 });
