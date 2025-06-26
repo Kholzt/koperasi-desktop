@@ -4,7 +4,6 @@ import ical from "node-ical";
 import path from 'path';
 let hd = new Holidays("ID");
 
-
 // Cache global di modul
 let cachedHolidays = null;
 let lastFetched = null;
