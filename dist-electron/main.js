@@ -70466,8 +70466,10 @@ class Angsuran {
     const [sumResult] = await db$1("angsuran").where("id_pinjaman", idPinjaman).sum({ total_katrol: "jumlah_katrol" }).sum({ total_bayar: "jumlah_bayar" });
     const totalAngsuran = (Number(sumResult.total_katrol) || 0) + (Number(sumResult.total_bayar) || 0);
     const sisaPembayaran = Number(pinjaman.total_pinjaman) - totalAngsuran;
+    console.log(sisaPembayaran, totalAngsuran);
     return await db$1("pinjaman").where("id", idPinjaman).update({
-      sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran
+      sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran,
+      status: sisaPembayaran <= 0 ? "lunas" : "aktif"
     });
   }
 }
@@ -84524,6 +84526,33 @@ class AngsuranController {
         await Angsuran.createPenagihAngsuran({ id_karyawan: p2, id_angsuran: id });
       }
       await Angsuran.updateSisaPembayaran(angsuran.id_pinjaman);
+      const formatDate2 = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+      const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
+      const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
+      let isAktifAdded = false;
+      while (!isAktifAdded) {
+        tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
+        const isDay = await isHoliday(tanggalPembayaran);
+        if (isDay) {
+          await Angsuran.createAngsuran({
+            idPinjaman: angsuran.id_pinjaman,
+            tanggalPembayaran: formatDate2(tanggalPembayaran),
+            status: "libur"
+          });
+        } else {
+          await Angsuran.createAngsuran({
+            idPinjaman: angsuran.id_pinjaman,
+            tanggalPembayaran: formatDate2(tanggalPembayaran),
+            status: "aktif"
+          });
+          isAktifAdded = true;
+        }
+      }
       await trx.commit();
       res.status(200).json({
         angsuran

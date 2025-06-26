@@ -226,6 +226,37 @@ export default class AngsuranController {
                 await Angsuran.createPenagihAngsuran({ id_karyawan: p, id_angsuran: id });
             }
             await Angsuran.updateSisaPembayaran(angsuran.id_pinjaman);
+
+
+            const formatDate = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+            const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
+            const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
+            let isAktifAdded = false;
+            while (!isAktifAdded) {
+                tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
+                const isDay = await isHoliday(tanggalPembayaran);
+                if (isDay) {
+                    await Angsuran.createAngsuran({
+                        idPinjaman: angsuran.id_pinjaman,
+                        tanggalPembayaran: formatDate(tanggalPembayaran),
+                        status: "libur"
+                    });
+                } else {
+                    await Angsuran.createAngsuran({
+                        idPinjaman: angsuran.id_pinjaman,
+                        tanggalPembayaran: formatDate(tanggalPembayaran),
+                        status: "aktif"
+                    });
+                    isAktifAdded = true;
+                }
+            }
+
+
             await trx.commit();
             res.status(200).json({
                 angsuran,
