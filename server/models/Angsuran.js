@@ -79,8 +79,10 @@ export default class Angsuran {
 
         const totalAngsuran = (Number(sumResult.total_katrol) || 0) + (Number(sumResult.total_bayar) || 0);
         const sisaPembayaran = Number(pinjaman.total_pinjaman) - totalAngsuran;
+        console.log(sisaPembayaran, totalAngsuran);
         return await db("pinjaman").where("id", idPinjaman).update({
-            sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran
+            sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran,
+            status: sisaPembayaran <= 0 ? "lunas" : "aktif"
         });
 
 
