@@ -62,7 +62,7 @@ export default class AngsuranController {
             let statusPinjaman = "aktif";
             const pinjaman = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
 
-            if ((parseInt(pinjaman.sisa_pembayaran) - parseInt(jumlah_bayar)) <= 0 && status != "menunggak") {
+            if ((parseInt(pinjaman.sisa_pembayaran) - (parseInt(jumlah_bayar) + parseInt(jumlah_katrol))) <= 0 && status != "menunggak") {
                 statusPinjaman = "lunas";
             }
 
