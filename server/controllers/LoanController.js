@@ -236,7 +236,7 @@ export default class LoanController {
             });
 
             // Loop angsuran per bulan
-            const totalMinggu = parseInt(process.env.VITE_APP_BULAN || '10');
+            let totalMinggu = parseInt(process.env.VITE_APP_BULAN || '10');
             for (let i = 0; i < totalMinggu; i++) {
                 const tanggalPembayaran = new Date(tanggalAngsuranPertama);
                 tanggalPembayaran.setDate(tanggalPembayaran.getDate() + (i * 7));
@@ -256,12 +256,9 @@ export default class LoanController {
                         // Geser ke minggu berikutnya
                         tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
                         i++;
+                        totalMinggu++;
                     } else {
-                        const existing = await Loan.findByTanggal(loanId, tanggalPembayaran);
                         sudahAktif = true;
-                        if (existing) {
-                            break;
-                        }
                         await Loan.createAngsuran({
                             idPinjaman: loanId,
                             tanggalPembayaran: formatDate(tanggalPembayaran),

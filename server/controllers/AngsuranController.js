@@ -139,7 +139,7 @@ export default class AngsuranController {
             //handle jika angsuran terakhir tapi belum lunas
             const angsuranTerakhir = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman, angsuran.id);
             const pinjamanTerakhir = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
-            if (!angsuranTerakhir && (parseInt(pinjamanTerakhir.sisa_pembayaran) - parseInt(jumlah_bayar)) >= 0 && status != "menunggak") {
+            if (!angsuranTerakhir && (parseInt(pinjamanTerakhir.sisa_pembayaran) - (parseInt(jumlah_bayar) + parseInt(jumlah_katrol))) >= 0 && status != "menunggak") {
                 const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
                 let isAktifAdded = false;
                 while (!isAktifAdded) {
