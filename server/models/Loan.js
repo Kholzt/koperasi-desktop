@@ -9,13 +9,22 @@ export default class Loan {
             .whereNull('pinjaman.deleted_at');
 
         // Filter dengan benar hanya jika nilainya valid
-        if (startDate && startDate !== "null") {
-            query.andWhere('pinjaman.created_at', '>=', startDate);
+        if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+            query.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
+            );
+
+        } else if (startDate && startDate !== "null") {
+            query.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
+
+            );
+        } else if (endDate && endDate !== "null") {
+            query.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
+            );
         }
 
-        if (endDate && endDate !== "null") {
-            query.andWhere('pinjaman.created_at', '<=', endDate);
-        }
 
         if (status && status !== "null") {
             query.andWhere('pinjaman.status', status);
@@ -63,13 +72,22 @@ export default class Loan {
             .select('pinjaman.*')
             .whereNull('pinjaman.deleted_at');
 
-        if (startDate && startDate !== "null") {
-            countQuery.andWhere('pinjaman.created_at', '>=', startDate);
+        if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+            countQuery.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
+            );
+        } else if (startDate && startDate !== "null") {
+            countQuery.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
+
+            );
+        } else if (endDate && endDate !== "null") {
+            countQuery.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
+            );
         }
 
-        if (endDate && endDate !== "null") {
-            countQuery.andWhere('pinjaman.created_at', '<=', endDate);
-        }
+
 
         if (status && status !== "null") {
             countQuery.andWhere('pinjaman.status', status);

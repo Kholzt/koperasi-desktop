@@ -7,6 +7,7 @@ export interface UserProps{
     access_apps:"access"|"noAccess",
     position:string,
     status:"aktif"|"nonAktif",
+    status_ijazah:"sudah diambil"|"belum diambil",
     jenis_ijazah:string,
     tanggal_masuk:Date,
     tanggal_keluar:Date,

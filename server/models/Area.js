@@ -7,6 +7,8 @@ class AreaModel {
             .select('*')
             .whereNull('deleted_at')
             .andWhere('area_name', 'like', `%${search}%`)
+            .where("status", "aktif")
+
             .orderBy('id', 'desc')
             .limit(limit)
             .offset(offset);
@@ -16,6 +18,7 @@ class AreaModel {
         const result = await db('areas')
             .count('id as total')
             .whereNull('deleted_at')
+            .where("status", "aktif")
             .andWhere('area_name', 'like', `%${search}%`);
         return result[0].total;
     }

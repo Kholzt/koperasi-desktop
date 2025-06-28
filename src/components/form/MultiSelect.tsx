@@ -8,7 +8,7 @@ interface Option {
 
 interface MultiSelectProps {
     label: string;
-    readOnly: boolean;
+    readOnly?: boolean;
     placeholder: string;
     options: Option[];
     defaultSelected?: string[];

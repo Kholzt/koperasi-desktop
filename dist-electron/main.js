@@ -84565,10 +84565,10 @@ class AngsuranController {
 }
 class AreaModel {
   static async findAll({ search = "", limit = 10, offset: offset2 = 0 }) {
-    return db$1("areas").select("*").whereNull("deleted_at").andWhere("area_name", "like", `%${search}%`).orderBy("id", "desc").limit(limit).offset(offset2);
+    return db$1("areas").select("*").whereNull("deleted_at").andWhere("area_name", "like", `%${search}%`).where("status", "aktif").orderBy("id", "desc").limit(limit).offset(offset2);
   }
   static async getTotal(search = "") {
-    const result = await db$1("areas").count("id as total").whereNull("deleted_at").andWhere("area_name", "like", `%${search}%`);
+    const result = await db$1("areas").count("id as total").whereNull("deleted_at").where("status", "aktif").andWhere("area_name", "like", `%${search}%`);
     return result[0].total;
   }
   static async findById(id) {
@@ -86433,8 +86433,8 @@ const bcrypt = {
 class User {
   static async findAll({ page, limit, search }) {
     const offset2 = (page - 1) * limit;
-    const users = await db$1("users").whereNull("deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).whereNot("role", "super admin").orderBy("id", "desc").limit(limit).offset(offset2);
-    const [{ count }] = await db$1("users").whereNull("deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).count({ count: "*" });
+    const users = await db$1("users").whereNull("deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).whereNot("role", "super admin").orderBy("id", "desc").where("status", "aktif").limit(limit).offset(offset2);
+    const [{ count }] = await db$1("users").whereNull("deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).whereNot("role", "super admin").where("status", "aktif").count({ count: "*" });
     return { users, total: parseInt(count) };
   }
   static async findById(id) {
@@ -86535,8 +86535,8 @@ class EmployeController {
       const pageInt = parseInt(page);
       const limitInt = parseInt(limit);
       const offset2 = (pageInt - 1) * limitInt;
-      const employees = await db$1("users").whereNull("deleted_at").andWhere("complete_name", "like", `%${search}%`).andWhere("access_apps", "noAccess").orderBy("id", "desc").limit(limitInt).offset(offset2);
-      const [{ total }] = await db$1("users").whereNull("deleted_at").andWhere("complete_name", "like", `%${search}%`).andWhere("access_apps", "noAccess").count("id as total");
+      const employees = await db$1("users").whereNull("deleted_at").andWhere("complete_name", "like", `%${search}%`).andWhere("access_apps", "noAccess").orderBy("id", "desc").where("status", "aktif").limit(limitInt).offset(offset2);
+      const [{ total }] = await db$1("users").whereNull("deleted_at").andWhere("complete_name", "like", `%${search}%`).andWhere("access_apps", "noAccess").where("status", "aktif").count("id as total");
       res.status(200).json({
         employees,
         pagination: {
@@ -86576,6 +86576,7 @@ class EmployeController {
     await libExports.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
     await libExports.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
+    await libExports.body("status_ijazah").isIn(["belum diambil", "sudah diambil"]).withMessage("Status ijazah tidak valid").run(req);
     await libExports.body("jenis_ijazah").notEmpty().withMessage("Jenis Ijazah wajib diisi").run(req);
     await libExports.body("tanggal_masuk").notEmpty().withMessage("Tanggal Masuk wajib diisi").run(req);
     const errors = libExports.validationResult(req);
@@ -86587,7 +86588,7 @@ class EmployeController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah } = req.body;
+      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah } = req.body;
       const [insertedId] = await db$1("users").insert({
         complete_name,
         role: "staff",
@@ -86596,7 +86597,8 @@ class EmployeController {
         status,
         tanggal_masuk,
         tanggal_keluar,
-        jenis_ijazah
+        jenis_ijazah,
+        status_ijazah
       });
       const newUser = await db$1("users").where("id", insertedId).first();
       res.status(200).json({
@@ -86614,6 +86616,7 @@ class EmployeController {
     await libExports.body("tanggal_masuk").notEmpty().withMessage("Tanggal Masuk wajib diisi").run(req);
     await libExports.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
+    await libExports.body("status_ijazah").isIn(["belum diambil", "sudah diambil"]).withMessage("Status ijazah tidak valid").run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
@@ -86624,7 +86627,7 @@ class EmployeController {
     }
     try {
       const { id } = req.params;
-      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah } = req.body;
+      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah } = req.body;
       const existingUser = await db$1("users").where("id", id).first();
       if (!existingUser) {
         return res.status(404).json({ error: "Pengguna tidak ditemukan" });
@@ -86636,7 +86639,8 @@ class EmployeController {
         status,
         tanggal_masuk,
         tanggal_keluar,
-        jenis_ijazah
+        jenis_ijazah,
+        status_ijazah
       });
       res.status(200).json({ message: "User updated successfully" });
     } catch (error) {
@@ -86850,11 +86854,18 @@ class GroupController {
 class Loan {
   static async findAll({ limit, offset: offset2, startDate, endDate, status, day, group }) {
     const query = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
-    if (startDate && startDate !== "null") {
-      query.andWhere("pinjaman.created_at", ">=", startDate);
-    }
-    if (endDate && endDate !== "null") {
-      query.andWhere("pinjaman.created_at", "<=", endDate);
+    if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+      query.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
+      );
+    } else if (startDate && startDate !== "null") {
+      query.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
+      );
+    } else if (endDate && endDate !== "null") {
+      query.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
+      );
     }
     if (status && status !== "null") {
       query.andWhere("pinjaman.status", status);
@@ -86881,11 +86892,18 @@ class Loan {
       loans = loans.filter(Boolean);
     }
     let countQuery = db$1("pinjaman").select("pinjaman.*").whereNull("pinjaman.deleted_at");
-    if (startDate && startDate !== "null") {
-      countQuery.andWhere("pinjaman.created_at", ">=", startDate);
-    }
-    if (endDate && endDate !== "null") {
-      countQuery.andWhere("pinjaman.created_at", "<=", endDate);
+    if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+      countQuery.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
+      );
+    } else if (startDate && startDate !== "null") {
+      countQuery.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
+      );
+    } else if (endDate && endDate !== "null") {
+      countQuery.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
+      );
     }
     if (status && status !== "null") {
       countQuery.andWhere("pinjaman.status", status);
@@ -87622,7 +87640,7 @@ const ScheduleModel = {
       "groups.group_name",
       "areas.id as area_id",
       "areas.area_name"
-    ).join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").whereNull("schedule.deleted_at").orderBy("schedule.id", "desc").limit(limit).offset(offset2);
+    ).join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").whereNull("schedule.deleted_at").orderBy("schedule.id", "desc").where("schedule.status", "aktif").limit(limit).offset(offset2);
     if (day) query.andWhere("day", day);
     return await query;
   },

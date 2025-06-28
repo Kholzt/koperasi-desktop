@@ -17,6 +17,7 @@ const ScheduleModel = {
             .join('groups', 'schedule.group_id', 'groups.id')
             .whereNull('schedule.deleted_at')
             .orderBy('schedule.id', 'desc')
+            .where("schedule.status", "aktif")
             .limit(limit)
             .offset(offset);
 

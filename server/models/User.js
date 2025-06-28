@@ -11,6 +11,8 @@ export default class User {
             .where('complete_name', 'like', `%${search}%`)
             .whereNot("role", "super admin")
             .orderBy('id', 'desc')
+                .where("status", "aktif")
+
             .limit(limit)
             .offset(offset);
 
@@ -18,6 +20,9 @@ export default class User {
             .whereNull('deleted_at')
             .where('access_apps', 'access')
             .where('complete_name', 'like', `%${search}%`)
+            .whereNot("role", "super admin")
+                .where("status", "aktif")
+
             .count({ count: '*' });
 
         return { users, total: parseInt(count) };

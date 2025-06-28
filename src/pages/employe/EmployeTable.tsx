@@ -63,6 +63,12 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                Status Ijazah
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Tanggal Masuk
                             </TableCell>
                             <TableCell
@@ -111,6 +117,11 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
                                         {user.jenis_ijazah ? user.jenis_ijazah : "-"}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.status_ijazah ? user.status_ijazah : "-"}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">

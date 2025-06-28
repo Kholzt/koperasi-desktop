@@ -18,7 +18,7 @@ import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import Loading from "../../components/ui/Loading"
 import DatePicker from "../../components/form/date-picker";
-import { toLocalDate } from "../../utils/helpers";
+import { calculateDuration, toLocalDate } from "../../utils/helpers";
 interface EmployeFormInput {
     complete_name: string;
     // username: string;
@@ -26,10 +26,12 @@ interface EmployeFormInput {
     // role: 'staff' | 'controller' | 'pusat';
     // access_apps: 'access' | 'noAccess';
     jenis_ijazah: string,
+    masa_kerja: string,
     tanggal_masuk: string,
     tanggal_keluar: string,
     position: string;
     status: 'aktif' | 'nonAktif';
+    status_ijazah: 'belum diambil' | 'sudah diambil';
 }
 
 
@@ -41,6 +43,9 @@ const schema: yup.SchemaOf<EmployeFormInput> = yup.object({
     status: yup.mixed<'aktif' | 'nonAktif'>()
         .oneOf(['aktif', 'nonAktif'], 'Status tidak valid')
         .required('Status wajib dipilih'),
+    status_ijazah: yup.mixed<'belum diambil' | 'sudah diambil'>()
+        .oneOf(['belum diambil', 'sudah diambil'], 'Status ijazah tidak valid')
+        .required('Status ijazah wajib dipilih'),
 });
 
 const EmployeForm: React.FC = () => {
@@ -53,6 +58,7 @@ const EmployeForm: React.FC = () => {
         handleSubmit,
         setError,
         reset,
+        watch,
         getValues, setValue,
         formState: { errors }
     } = useForm<EmployeFormInput>({
@@ -65,13 +71,35 @@ const EmployeForm: React.FC = () => {
             axios.get("/api/employees/" + id).then((res: any) => {
                 const { user } = res.data;
 
-                reset({ ...user, tanggal_masuk: toLocalDate(new Date(user.tanggal_masuk)), tanggal_keluar: user.tanggal_keluar ? toLocalDate(new Date(user.tanggal_keluar)) : null })
+                reset({ ...user, tanggal_masuk: user.tanggal_masuk ? toLocalDate(new Date(user.tanggal_masuk)) : null, tanggal_keluar: user.tanggal_keluar ? toLocalDate(new Date(user.tanggal_keluar)) : null })
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
             });
         }
     }, []);
+
+
+
+    const tanggalKeluar = watch("tanggal_keluar");
+    const tanggalMasuk = watch("tanggal_masuk");
+
+    useEffect(() => {
+        if (tanggalKeluar && tanggalMasuk) {
+            const start = new Date(tanggalMasuk);
+            const end = new Date(tanggalKeluar);
+
+            if (end < start) {
+                setValue("masa_kerja", "Tanggal keluar tidak valid");
+                return;
+            }
+
+            const diff = calculateDuration(start, end);
+            setValue("masa_kerja", `${diff.years} tahun ${diff.months} bulan ${diff.days} hari`);
+        }
+    }, [tanggalKeluar, tanggalMasuk, setValue]);
+
+
     const onSubmit = async (data: EmployeFormInput) => {
         try {
             let res;
@@ -163,6 +191,18 @@ const EmployeForm: React.FC = () => {
                                 {errors.jenis_ijazah && <p className="text-sm text-red-500 mt-1">{errors.jenis_ijazah.message}</p>}
                             </div>
                             <div>
+                                <Label htmlFor="status_ijazah">Status Ijazah <span className="text-error-500">*</span></Label>
+                                <Select
+                                    {...register("status_ijazah")}
+                                    options={[
+                                        { label: "Sudah diambil", value: "sudah diambil" },
+                                        { label: "Belum diambil", value: "belum diambil" },
+                                    ]}
+                                    placeholder="Pilih jenis ijazah"
+                                />
+                                {errors.status_ijazah && <p className="text-sm text-red-500 mt-1">{errors.status_ijazah.message}</p>}
+                            </div>
+                            <div>
                                 <Label htmlFor="tanggal_masuk">Tanggal Masuk <span className="text-error-500">*</span></Label>
                                 <DatePicker
                                     id={"tanggal_masuk"}
@@ -170,7 +210,7 @@ const EmployeForm: React.FC = () => {
                                     placeholder="Tanggal masuk"
                                     defaultDate={getValues("tanggal_masuk")}
                                     onChange={(date) => {
-                                        setValue("tanggal_masuk", toLocalDate(date[0]));
+                                        setValue("tanggal_masuk", date[0] ? toLocalDate(date[0]) : date[0]);
                                     }}
                                 />
                                 {errors.tanggal_masuk && <p className="text-sm text-red-500 mt-1">{errors.tanggal_masuk.message}</p>}
@@ -183,8 +223,9 @@ const EmployeForm: React.FC = () => {
                                     mode="single"
                                     placeholder="Tanggal keluar"
                                     defaultDate={getValues("tanggal_keluar")}
+                                    hasClear
                                     onChange={(date) => {
-                                        setValue("tanggal_keluar", toLocalDate(date[0]));
+                                        setValue("tanggal_keluar", date[0] ? toLocalDate(date[0]) : date[0]);
                                     }}
                                 />
                                 {errors.tanggal_keluar && <p className="text-sm text-red-500 mt-1">{errors.tanggal_keluar.message}</p>}
@@ -212,6 +253,17 @@ const EmployeForm: React.FC = () => {
                                 {errors.status && (
                                     <p className="mt-1 text-sm text-red-500">{errors.status.message}</p>
                                 )}
+                            </div>
+                            <div>
+                                <Label>
+                                    Masa kerja
+                                </Label>
+                                <Input
+                                    readOnly
+                                    placeholder="-"
+                                    {...register("masa_kerja")}
+                                />
+
                             </div>
                         </div>
                         <div>
