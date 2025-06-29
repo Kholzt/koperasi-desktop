@@ -11,8 +11,11 @@ const ScheduleModel = {
                 'groups.id as group_id',
                 'groups.group_name',
                 'areas.id as area_id',
-                'areas.area_name'
+                'areas.area_name',
+                "nama_pos"
             )
+            .select("schedule.*", "nama_pos")
+            .leftJoin("pos", "schedule.pos_id", "pos.id")
             .join('areas', 'schedule.area_id', 'areas.id')
             .join('groups', 'schedule.group_id', 'groups.id')
             .whereNull('schedule.deleted_at')
@@ -34,7 +37,10 @@ const ScheduleModel = {
     },
 
     async findById(id) {
-        return await db('schedule').where({ id }).first();
+        return await db('schedule')
+            .select("schedule.*", "nama_pos")
+            .leftJoin("pos", "schedule.pos_id", "pos.id")
+            .where("schedule.id", id).first();
     },
 
     async checkContraint({ area_id, group_id, day, excludeId = null }) {
@@ -50,14 +56,14 @@ const ScheduleModel = {
         return query.first();
     },
 
-    async create({ area_id, group_id, day, status }) {
-        return db('schedule').insert({ area_id, group_id, day, status });
+    async create(data) {
+        return db('schedule').insert(data);
     },
 
-    async update(id, { area_id, group_id, day, status }) {
+    async update(id, data) {
         return await db('schedule')
             .where({ id })
-            .update({ area_id, group_id, day, status });
+            .update(data);
     },
 
     async softDelete(id) {

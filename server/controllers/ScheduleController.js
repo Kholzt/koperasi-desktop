@@ -15,6 +15,7 @@ export default class ScheduleController {
                 id: row.id,
                 day: row.day,
                 status: row.status,
+                pos: { nama_pos: row.nama_pos },
                 area: {
                     id: row.area_id,
                     area_name: row.area_name
@@ -42,9 +43,13 @@ export default class ScheduleController {
     static async show(req, res) {
         try {
             const { id } = req.params;
-            const schedule = await ScheduleModel.findById(id);
-            if (!schedule) {
+            const row = await ScheduleModel.findById(id);
+            if (!row) {
                 return res.status(404).json({ error: 'Schedule tidak ditemukan' });
+            }
+            const schedule = {
+                ...row,
+                pos: { nama_pos: row.nama_pos },
             }
             res.status(200).json({ schedule });
         } catch (error) {
@@ -57,6 +62,7 @@ export default class ScheduleController {
         await body('group_id').notEmpty().withMessage('Kelompok wajib diisi').run(req);
         await body('day').notEmpty().withMessage('Hari wajib diisi').run(req);
         await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status must be active or inactive').run(req);
+        await body('pos_id').notEmpty().run(req);
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -68,7 +74,7 @@ export default class ScheduleController {
         }
 
         try {
-            const { area_id, group_id, day, status } = req.body;
+            const { area_id, group_id, day, status, pos_id } = req.body;
 
             const conflict = await ScheduleModel.checkContraint({ area_id, group_id, day });
             if (conflict) {
@@ -77,7 +83,7 @@ export default class ScheduleController {
                 });
             }
 
-            const [newId] = await ScheduleModel.create({ area_id, group_id, day, status });
+            const [newId] = await ScheduleModel.create({ area_id, group_id, day, status, pos_id });
             const newSchedule = await ScheduleModel.findById(newId);
 
             res.status(200).json({
@@ -94,6 +100,7 @@ export default class ScheduleController {
         await body('group_id').notEmpty().withMessage('Kelompok wajib diisi').run(req);
         await body('day').notEmpty().withMessage('Hari wajib diisi').run(req);
         await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status must be active or inactive').run(req);
+        await body('pos_id').notEmpty().run(req);
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -106,7 +113,7 @@ export default class ScheduleController {
 
         try {
             const { id } = req.params;
-            const { area_id, group_id, day, status } = req.body;
+            const { area_id, group_id, day, status, pos_id } = req.body;
 
             const existing = await ScheduleModel.findById(id);
             if (!existing) {
@@ -120,7 +127,7 @@ export default class ScheduleController {
                 });
             }
 
-            await ScheduleModel.update(id, { area_id, group_id, day, status });
+            await ScheduleModel.update(id, { area_id, group_id, day, status, pos_id });
 
             res.status(200).json({ message: 'Schedule updated successfully' });
         } catch (error) {

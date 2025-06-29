@@ -87059,7 +87059,7 @@ class PosController {
 }
 class Loan {
   static async findAll({ limit, offset: offset2, startDate, endDate, status, day, group }) {
-    const query = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
+    const query = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").leftJoin("pos", "members.pos_id", "pos.id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
     if (startDate && endDate && startDate !== "null" && endDate !== "null") {
       query.andWhereRaw(
         `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
@@ -87082,7 +87082,8 @@ class Loan {
     let loans = await query.orderBy("pinjaman.id", "desc").limit(limit).offset(offset2).select(
       "pinjaman.*",
       db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
-      db$1.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`)
+      db$1.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`),
+      db$1.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
     );
     if (group && group !== "all") {
       loans = await Promise.all(loans.map(async (loan) => {
@@ -87132,7 +87133,7 @@ class Loan {
     return { loans, total };
   }
   static async findById(id) {
-    return await db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").join("users as pit", "pinjaman.petugas_input", "pit.id").leftJoin("angsuran", "pinjaman.id", "angsuran.id_pinjaman").leftJoin("penagih_angsuran ", "penagih_angsuran.id_angsuran", "angsuran.id").leftJoin("users", "penagih_angsuran.id_karyawan", "users.id").whereNull("pinjaman.deleted_at").andWhere("pinjaman.id", id).orderBy("angsuran.tanggal_pembayaran", "asc").select(
+    return await db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").join("users as pit", "pinjaman.petugas_input", "pit.id").leftJoin("angsuran", "pinjaman.id", "angsuran.id_pinjaman").leftJoin("penagih_angsuran ", "penagih_angsuran.id_angsuran", "angsuran.id").leftJoin("users", "penagih_angsuran.id_karyawan", "users.id").leftJoin("pos", "members.pos_id", "pos.id").whereNull("pinjaman.deleted_at").andWhere("pinjaman.id", id).orderBy("angsuran.tanggal_pembayaran", "asc").select(
       "pinjaman.*",
       db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
       "members.complete_name as anggota_nama",
@@ -87144,7 +87145,8 @@ class Loan {
       "angsuran.tanggal_pembayaran",
       "angsuran.status as status_angsuran",
       "angsuran.asal_pembayaran",
-      "users.complete_name as penagih_nama"
+      "users.complete_name as penagih_nama",
+      "nama_pos"
     );
   }
   static async findByIdOnlyOne(id) {
@@ -87232,6 +87234,7 @@ class LoanController {
             penanggungJawab,
             hasAngsuran: hasAngsuran > 0,
             petugas: { complete_name: row.pit_nama },
+            pos: { nama_pos: row.nama_pos },
             angsuran: /* @__PURE__ */ new Map()
             // gunakan Map untuk menghindari duplikat
           });
@@ -87856,8 +87859,9 @@ const ScheduleModel = {
       "groups.id as group_id",
       "groups.group_name",
       "areas.id as area_id",
-      "areas.area_name"
-    ).join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").whereNull("schedule.deleted_at").orderBy("schedule.id", "desc").where("schedule.status", "aktif").limit(limit).offset(offset2);
+      "areas.area_name",
+      "nama_pos"
+    ).select("schedule.*", "nama_pos").leftJoin("pos", "schedule.pos_id", "pos.id").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").whereNull("schedule.deleted_at").orderBy("schedule.id", "desc").where("schedule.status", "aktif").limit(limit).offset(offset2);
     if (day) query.andWhere("day", day);
     return await query;
   },
@@ -87866,7 +87870,7 @@ const ScheduleModel = {
     return total;
   },
   async findById(id) {
-    return await db$1("schedule").where({ id }).first();
+    return await db$1("schedule").select("schedule.*", "nama_pos").leftJoin("pos", "schedule.pos_id", "pos.id").where("schedule.id", id).first();
   },
   async checkContraint({ area_id, group_id, day, excludeId = null }) {
     const query = db$1("schedule").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").where({ "schedule.area_id": area_id, "schedule.group_id": group_id, day }).whereNull("schedule.deleted_at");
@@ -87875,11 +87879,11 @@ const ScheduleModel = {
     }
     return query.first();
   },
-  async create({ area_id, group_id, day, status }) {
-    return db$1("schedule").insert({ area_id, group_id, day, status });
+  async create(data2) {
+    return db$1("schedule").insert(data2);
   },
-  async update(id, { area_id, group_id, day, status }) {
-    return await db$1("schedule").where({ id }).update({ area_id, group_id, day, status });
+  async update(id, data2) {
+    return await db$1("schedule").where({ id }).update(data2);
   },
   async softDelete(id) {
     return await db$1("schedule").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
@@ -87896,6 +87900,7 @@ class ScheduleController {
         id: row.id,
         day: row.day,
         status: row.status,
+        pos: { nama_pos: row.nama_pos },
         area: {
           id: row.area_id,
           area_name: row.area_name
@@ -87921,10 +87926,14 @@ class ScheduleController {
   static async show(req, res) {
     try {
       const { id } = req.params;
-      const schedule = await ScheduleModel.findById(id);
-      if (!schedule) {
+      const row = await ScheduleModel.findById(id);
+      if (!row) {
         return res.status(404).json({ error: "Schedule tidak ditemukan" });
       }
+      const schedule = {
+        ...row,
+        pos: { nama_pos: row.nama_pos }
+      };
       res.status(200).json({ schedule });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -87935,6 +87944,7 @@ class ScheduleController {
     await libExports.body("group_id").notEmpty().withMessage("Kelompok wajib diisi").run(req);
     await libExports.body("day").notEmpty().withMessage("Hari wajib diisi").run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
@@ -87944,14 +87954,14 @@ class ScheduleController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { area_id, group_id, day, status } = req.body;
+      const { area_id, group_id, day, status, pos_id } = req.body;
       const conflict = await ScheduleModel.checkContraint({ area_id, group_id, day });
       if (conflict) {
         return res.status(409).json({
           error: `Jadwal konflik dengan kelompok ${conflict.group_name} di wilayah ${conflict.area_name} pada hari ${day}`
         });
       }
-      const [newId] = await ScheduleModel.create({ area_id, group_id, day, status });
+      const [newId] = await ScheduleModel.create({ area_id, group_id, day, status, pos_id });
       const newSchedule = await ScheduleModel.findById(newId);
       res.status(200).json({
         message: "Schedule berhasil dibuat",
@@ -87966,6 +87976,7 @@ class ScheduleController {
     await libExports.body("group_id").notEmpty().withMessage("Kelompok wajib diisi").run(req);
     await libExports.body("day").notEmpty().withMessage("Hari wajib diisi").run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status must be active or inactive").run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
@@ -87976,7 +87987,7 @@ class ScheduleController {
     }
     try {
       const { id } = req.params;
-      const { area_id, group_id, day, status } = req.body;
+      const { area_id, group_id, day, status, pos_id } = req.body;
       const existing = await ScheduleModel.findById(id);
       if (!existing) {
         return res.status(404).json({ error: "Schedule tidak ditemukan" });
@@ -87987,7 +87998,7 @@ class ScheduleController {
           error: `Jadwal konflik dengan kelompok ${conflict.group_name} di wilayah ${conflict.area_name} pada hari ${day}`
         });
       }
-      await ScheduleModel.update(id, { area_id, group_id, day, status });
+      await ScheduleModel.update(id, { area_id, group_id, day, status, pos_id });
       res.status(200).json({ message: "Schedule updated successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });

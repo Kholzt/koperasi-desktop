@@ -51,6 +51,7 @@ export default class LoanController {
                         penanggungJawab: penanggungJawab,
                         hasAngsuran: hasAngsuran > 0,
                         petugas: { complete_name: row.pit_nama },
+                        pos: { nama_pos: row.nama_pos },
                         angsuran: new Map(), // gunakan Map untuk menghindari duplikat
                     });
                 }

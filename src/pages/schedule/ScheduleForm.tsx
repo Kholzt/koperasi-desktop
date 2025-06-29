@@ -21,14 +21,14 @@ import { AreaProps, GroupProps } from "../../utils/types";
 interface ScheduleFormInput {
     area_id: number;
     group_id: number;
-    pos: string;
+    pos_id: string;
     day: "senin" | "selasa" | "rabu" | "kamis" | "jum'at" | "sabtu" | "minggu",
     status: 'aktif' | 'nonAktif';
 }
 
 
 const schema: yup.SchemaOf<ScheduleFormInput> = yup.object({
-    pos: yup.string().required('Pos  wajib dipilih'),
+    pos_id: yup.string().required('Pos  wajib dipilih'),
     area_id: yup.string().required('Wilayah  wajib diisi'),
     group_id: yup.string().required('Kelompok  wajib diisi'),
     day: yup.string().required('Hari  wajib diisi'),
@@ -191,10 +191,10 @@ const ScheduleForm: React.FC = () => {
                             <Label>
                                 Pos <span className="text-error-500">*</span>
                             </Label>
-                            <Select options={pos} placeholder="Pilih pos" {...register("pos")} />
+                            <Select options={pos} placeholder="Pilih pos" {...register("pos_id")} />
 
-                            {errors.pos && (
-                                <p className="mt-1 text-sm text-red-500">{errors.pos.message}</p>
+                            {errors.pos_id && (
+                                <p className="mt-1 text-sm text-red-500">{errors.pos_id.message}</p>
                             )}
                         </div>
                         <div>

@@ -45,6 +45,8 @@ const LoanDetail: React.FC = () => {
             <div className="space-y-6">
                 <ComponentCard title="Detail Peminjaman">
                     <div className="grid grid-cols-4 gap-px border rounded-md overflow-hidden text-sm  bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+                        <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Pos</div>
+                        <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.pos.nama_pos ?? "-"}</div>
                         <div className="bg-gray-50 dark:bg-white/[0.03] dark:text-white p-3  divide-y divide-gray-100 dark:divide-white/[0.05] text-gray-700">Kode</div>
                         <div className=" p-3 font-medium divide-y divide-gray-100 dark:divide-white/[0.05] dark:text-white">{loan?.kode}</div>
 
