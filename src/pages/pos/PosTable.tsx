@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { toast } from 'react-toastify';
 import Pagination from '../../components/tables/BasicTables/Pagination';
-import Badge from "../../components/ui/badge/Badge";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../components/ui/dropdown/DropdownItem";
 import { Modal } from "../../components/ui/modal";
@@ -16,16 +15,15 @@ import { useTheme } from "../../context/ThemeContext";
 import { useModal } from "../../hooks/useModal";
 import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { PaginationProps, UserProps } from "../../utils/types";
-import { formatDate } from "../../utils/helpers";
+import { PosProps, PaginationProps } from "../../utils/types";
 // import { toast } from 'react-hot-toast';
-interface EmployeTableProps {
-    data: UserProps[],
+interface PosTableProps {
+    data: PosProps[],
     pagination: PaginationProps,
     setPaginate: (page: number) => void
 }
 
-const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPaginate }) => {
+const PosTable: React.FC<PosTableProps> = ({ data, pagination, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -45,49 +43,25 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Nama
+                                Nama Pos
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Pos
+                                Penanggung Jawab
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Posisi
+                                Alamat
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Jenis Ijazah
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Status Ijazah
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Tanggal Masuk
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Tanggal Keluar
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Status
+                                No Telepon
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -100,7 +74,7 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
 
                     {/* Table Body */}
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                        {data.map((user: UserProps, index: number) => (
+                        {data.map((user: PosProps, index: number) => (
                             <TableRow key={user.id}>
                                 <TableCell className="px-5 py-4 sm:px-6 text-start">
                                     <div className="flex items-center gap-3">
@@ -112,57 +86,30 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.complete_name ?? "-"}
-                                    </span>
+                                    {user.nama_pos}
                                 </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.pos.nama_pos ?? "-"}
-                                    </span>
-                                </TableCell>
-
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.position ?? "-"}
+                                        {user.penanggungJawab.complete_name}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.jenis_ijazah ? user.jenis_ijazah : "-"}
+                                        {user.alamat}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.status_ijazah ? user.status_ijazah : "-"}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.tanggal_masuk ? formatDate(user.tanggal_masuk) : "-"}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.tanggal_keluar ? formatDate(user.tanggal_keluar) : "-"}
+                                        {user.no_telepon}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Badge
-                                        size="sm"
-                                        color={user.status === "aktif" ? "success" : "error"}
-                                    >
-                                        {user.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Action id={user.id} complete_name={user.complete_name} />
+                                    <Action id={user.id} nama_pos={user.nama_pos} />
                                 </TableCell>
                             </TableRow>
                         ))}
-
                         {data.length === 0 && <TableRow >
-                            <TableCell colSpan={10} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                            <TableCell colSpan={5} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                                 Tidak ada data
                             </TableCell></TableRow>}
                     </TableBody>
@@ -176,7 +123,7 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
 
 
 
-function Action({ id, complete_name }: { id: number, complete_name: string }) {
+function Action({ id, nama_pos }: { id: number, nama_pos: string }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const openDropdown = () => setIsOpenDropdown(true);
     const closeDropdown = () => setIsOpenDropdown(false);
@@ -184,13 +131,13 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
     const { setReload, reload } = useTheme();
     const deleteAction = async () => {
         try {
-            let res = await axios.delete("/api/employees/" + id);
-            toast.success("Pengguna berhasil dihapus")
+            let res = await axios.delete("/api/pos/" + id);
+            toast.success("Kelompok berhasil dihapus")
             setReload(!reload);
             closeModal();
         } catch (error: any) {
             if (error.status == 409) {
-                toast.error("Karyawan gagal dihapus, Data  digunakan di bagian lain sistem");
+                toast.error("Pos gagal dihapus, Data  digunakan di bagian lain sistem");
                 setReload(!reload);
                 closeModal();
             }
@@ -213,7 +160,7 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
                     <DropdownItem
                         onItemClick={closeDropdown}
                         tag="a"
-                        to={`/employe/${id}/edit`}
+                        to={`/pos/${id}/edit`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                         <PencilIcon fontSize={20} />
@@ -224,7 +171,7 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
                     <DropdownItem
                         onItemClick={openModal}
                         tag="button"
-                        to={`/employe/${id}/edit`}
+                        to={`/pos/${id}/edit`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                         <TrashBinIcon fontSize={20} />
@@ -240,13 +187,13 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
             onClose={closeModal}
             className="max-w-[600px] p-6 lg:p-10"
         >
-            <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
+            <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar normal-case">
                 <div>
                     <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
                         Pemberitahuan
                     </h5>
-                    <p className="text-base text-gray-800 dark:text-gray-400">
-                        Apakah Anda yakin untuk menghapus pengguna {complete_name}?
+                    <p className="text-base text-gray-800 dark:text-gray-400 ">
+                        Apakah Anda yakin untuk menghapus pos {nama_pos}?
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                         Data yang dihapus dapat dikembalikan nanti
@@ -272,4 +219,4 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
         </Modal>
     </div>
 }
-export default EmployeTable;
+export default PosTable;

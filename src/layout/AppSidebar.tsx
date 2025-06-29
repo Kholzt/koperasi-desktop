@@ -78,6 +78,12 @@ const masterDataItems: NavItem[] = [
         path: "/group",
         access: ["pusat", "super admin"]
     },
+    {
+        icon: <LocationIcon />,
+        name: "POS",
+        path: "/pos",
+        access: ["pusat", "super admin"]
+    },
 ];
 
 const othersItems: NavItem[] = [

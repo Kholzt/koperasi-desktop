@@ -4,11 +4,11 @@ import db from '../config/db.js';
 class AreaModel {
     static async findAll({ search = "", limit = 10, offset = 0 }) {
         return db('areas')
-            .select('*')
-            .whereNull('deleted_at')
+            .select('areas.*', "nama_pos")
+            .whereNull('areas.deleted_at')
             .andWhere('area_name', 'like', `%${search}%`)
             .where("status", "aktif")
-
+            .leftJoin("pos", "areas.pos_id", "pos.id")
             .orderBy('id', 'desc')
             .limit(limit)
             .offset(offset);
@@ -17,7 +17,7 @@ class AreaModel {
     static async getTotal(search = "") {
         const result = await db('areas')
             .count('id as total')
-            .whereNull('deleted_at')
+            .whereNull('areas.deleted_at')
             .where("status", "aktif")
             .andWhere('area_name', 'like', `%${search}%`);
         return result[0].total;
@@ -25,8 +25,10 @@ class AreaModel {
 
     static async findById(id) {
         return db('areas')
-            .where({ id })
-            .first();
+            .select('areas.*', "nama_pos")
+            .leftJoin("pos", "areas.pos_id", "pos.id")
+            .where("areas.id", id)
+            ;
     }
 
     static async existsByName(area_name) {

@@ -6,6 +6,7 @@ import AreaController from './controllers/AreaController';
 import AuthController from './controllers/AuthController';
 import EmployeController from './controllers/EmployeController';
 import GroupController from './controllers/GroupController';
+import PosController from './controllers/PosController';
 import LoanController from './controllers/LoanController';
 import MemberController from './controllers/MemberController';
 import ScheduleController from './controllers/ScheduleController';
@@ -65,6 +66,14 @@ app.post('/api/groups', GroupController.store);
 app.get('/api/groups/:id', GroupController.show);
 app.put('/api/groups/:id', GroupController.update);
 app.delete('/api/groups/:id', GroupController.delete);
+
+// Pos
+app.get('/api/pos', PosController.index);
+app.get('/api/pos/count', PosController.count);
+app.post('/api/pos', PosController.store);
+app.get('/api/pos/:id', PosController.show);
+app.put('/api/pos/:id', PosController.update);
+app.delete('/api/pos/:id', PosController.delete);
 
 // Group
 app.get('/api/members', MemberController.index);

@@ -9,6 +9,8 @@ export interface UserProps{
     status:"aktif"|"nonAktif",
     status_ijazah:"sudah diambil"|"belum diambil",
     jenis_ijazah:string,
+    pos_id:string,
+    pos:PosProps,
     tanggal_masuk:Date,
     tanggal_keluar:Date,
     created_at:Date,
@@ -20,6 +22,8 @@ export interface EmployeProps{
     name:string,
     job_title:string,
     status:"aktif"|"nonAktif",
+   pos_id:string,
+    pos:PosProps,
     created_at:Date,
     updated_at:Date,
     deleted_at:Date,}
@@ -31,6 +35,8 @@ export interface AreaProps{
     village:string,
     address:string,
     status:"aktif"|"nonAktif",
+    pos_id:string,
+    pos:PosProps,
     created_at:Date,
     updated_at:Date,
     deleted_at:Date
@@ -43,6 +49,8 @@ export interface ScheduleProps{
     group:GroupProps,
     day:"senin"|"selasa"|"rabu"|"kamis"|"jum'at"|"sabtu"|"minggu",
     status:"aktif"|"nonAktif",
+    pos_id:string,
+    pos:PosProps,
     created_at:Date,
     updated_at:Date,
     deleted_at:Date
@@ -54,6 +62,7 @@ export interface AngsuranProps{
     jumlah_katrol:number,
     asal_pembayaran:"anggota"|"penagih"|"katrol",
     status:"lunas"|"menunggak"|"aktif"|"libur",
+
     tanggal_pembayaran:Date,
     }
 export interface LoanProps{
@@ -77,6 +86,8 @@ export interface LoanProps{
     besar_tunggakan: number;
     angsuran:AngsuranProps[];
     status: 'aktif' | 'lunas' | 'menunggak';
+    pos_id:string,
+    pos:PosProps,
     created_at: string;
     updated_at: string;
     deleted_at?: string | null;
@@ -90,6 +101,8 @@ export interface MemberProps{
     area_id:number,
     area:AreaProps,
     sequence_number:number,
+    pos_id:string,
+    pos:PosProps,
     created_at:Date,
     updated_at:Date,
     deleted_at:Date
@@ -100,6 +113,8 @@ export interface GroupProps{
     area_id:string,
     staffs:UserProps[],
     area:AreaProps,
+    pos_id:string,
+    pos:PosProps,
     created_at:Date,
     updated_at:Date,
     deleted_at:Date
@@ -110,4 +125,13 @@ export interface PaginationProps{
     page: number,
     limit: number,
     totalPages: number,
+}
+
+export interface PosProps{
+    id:number,
+    nama_pos: string,
+    alamat: string,
+    penanggung_jawab: string;
+    penanggungJawab:UserProps,
+    no_telepon: string,
 }

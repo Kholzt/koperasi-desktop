@@ -84565,14 +84565,14 @@ class AngsuranController {
 }
 class AreaModel {
   static async findAll({ search = "", limit = 10, offset: offset2 = 0 }) {
-    return db$1("areas").select("*").whereNull("deleted_at").andWhere("area_name", "like", `%${search}%`).where("status", "aktif").orderBy("id", "desc").limit(limit).offset(offset2);
+    return db$1("areas").select("areas.*", "nama_pos").whereNull("areas.deleted_at").andWhere("area_name", "like", `%${search}%`).where("status", "aktif").leftJoin("pos", "areas.pos_id", "pos.id").orderBy("id", "desc").limit(limit).offset(offset2);
   }
   static async getTotal(search = "") {
-    const result = await db$1("areas").count("id as total").whereNull("deleted_at").where("status", "aktif").andWhere("area_name", "like", `%${search}%`);
+    const result = await db$1("areas").count("id as total").whereNull("areas.deleted_at").where("status", "aktif").andWhere("area_name", "like", `%${search}%`);
     return result[0].total;
   }
   static async findById(id) {
-    return db$1("areas").where({ id }).first();
+    return db$1("areas").select("areas.*", "nama_pos").leftJoin("pos", "areas.pos_id", "pos.id").where("areas.id", id);
   }
   static async existsByName(area_name) {
     return db$1("areas").where({ area_name }).first();
@@ -84609,10 +84609,19 @@ class AreaController {
     try {
       const { page = 1, limit = 10, search = "" } = req.query;
       const offset2 = (parseInt(page) - 1) * parseInt(limit);
-      const areas = await AreaModel.findAll({ search, limit: parseInt(limit), offset: offset2 });
+      const rows = await AreaModel.findAll({ search, limit: parseInt(limit), offset: offset2 });
       const total = await AreaModel.getTotal(search);
+      const map2 = /* @__PURE__ */ new Map();
+      for (const row of rows) {
+        if (!map2.has(row.id)) {
+          map2.set(row.id, {
+            ...row,
+            pos: { nama_pos: row.nama_pos }
+          });
+        }
+      }
       res.status(200).json({
-        areas,
+        areas: Array.from(map2.values()),
         pagination: {
           total,
           page: parseInt(page),
@@ -84634,8 +84643,12 @@ class AreaController {
   }
   static async show(req, res) {
     try {
-      const area = await AreaModel.findById(req.params.id);
-      if (!area) return res.status(404).json({ error: "Area tidak ditemukan" });
+      const rows = await AreaModel.findById(req.params.id);
+      if (!rows.length) return res.status(404).json({ error: "Area tidak ditemukan" });
+      const area = {
+        ...rows[0],
+        pos: { nama_pos: rows[0].nama_pos }
+      };
       res.status(200).json({ area });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -84646,6 +84659,7 @@ class AreaController {
     await libExports.body("city").notEmpty().run(req);
     await libExports.body("subdistrict").notEmpty().run(req);
     await libExports.body("village").notEmpty().run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     await libExports.body("address").notEmpty().run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).run(req);
     const errors = libExports.validationResult(req);
@@ -84657,10 +84671,10 @@ class AreaController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { area_name, city, subdistrict, village, address, status } = req.body;
+      const { area_name, city, subdistrict, village, address, status, pos_id } = req.body;
       const exists = await AreaModel.existsByName(area_name);
       if (exists) return res.status(400).json({ errors: { area_name: "Nama area sudah ada" } });
-      const area = await AreaModel.create({ area_name, city, subdistrict, village, address, status });
+      const area = await AreaModel.create({ area_name, city, subdistrict, village, address, status, pos_id });
       res.status(200).json({ message: "Area berhasil dibuat", area });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -84672,6 +84686,7 @@ class AreaController {
     await libExports.body("subdistrict").notEmpty().run(req);
     await libExports.body("village").notEmpty().run(req);
     await libExports.body("address").notEmpty().run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
@@ -84683,12 +84698,12 @@ class AreaController {
     }
     try {
       const { id } = req.params;
-      const { area_name, city, subdistrict, village, address, status } = req.body;
+      const { area_name, city, subdistrict, village, address, status, pos_id } = req.body;
       const area = await AreaModel.findById(id);
       if (!area) return res.status(404).json({ error: "Area tidak ditemukan" });
       const duplicate = await AreaModel.existsByNameExceptId(area_name, id);
       if (duplicate) return res.status(400).json({ errors: { area_name: "Nama area sudah terdaftar" } });
-      await AreaModel.update(id, { area_name, city, subdistrict, village, address, status });
+      await AreaModel.update(id, { area_name, city, subdistrict, village, address, status, pos_id });
       res.status(200).json({ message: "Area updated successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -86433,12 +86448,12 @@ const bcrypt = {
 class User {
   static async findAll({ page, limit, search }) {
     const offset2 = (page - 1) * limit;
-    const users = await db$1("users").whereNull("deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).whereNot("role", "super admin").orderBy("id", "desc").where("status", "aktif").limit(limit).offset(offset2);
+    const users = await db$1("users").select("users.*", "nama_pos").whereNull("users.deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).whereNot("role", "super admin").leftJoin("pos", "users.pos_id", "pos.id").orderBy("users.id", "desc").where("users.status", "aktif").limit(limit).offset(offset2);
     const [{ count }] = await db$1("users").whereNull("deleted_at").where("access_apps", "access").where("complete_name", "like", `%${search}%`).whereNot("role", "super admin").where("status", "aktif").count({ count: "*" });
     return { users, total: parseInt(count) };
   }
   static async findById(id) {
-    return await db$1("users").where({ id }).first();
+    return await db$1("users").select("users.*", "nama_pos").leftJoin("pos", "users.pos_id", "pos.id").where("users.id", id).first();
   }
   static async findByUsername(username) {
     return await db$1("users").where({ username, access_apps: "access", status: "aktif" }).whereNull("deleted_at").first();
@@ -86535,10 +86550,19 @@ class EmployeController {
       const pageInt = parseInt(page);
       const limitInt = parseInt(limit);
       const offset2 = (pageInt - 1) * limitInt;
-      const employees = await db$1("users").whereNull("deleted_at").andWhere("complete_name", "like", `%${search}%`).andWhere("access_apps", "noAccess").orderBy("id", "desc").where("status", "aktif").limit(limitInt).offset(offset2);
+      const rows = await db$1("users").select("users.*", "nama_pos").whereNull("users.deleted_at").andWhere("complete_name", "like", `%${search}%`).andWhere("access_apps", "noAccess").leftJoin("pos", "users.pos_id", "pos.id").orderBy("users.id", "desc").where("users.status", "aktif").limit(limitInt).offset(offset2);
       const [{ total }] = await db$1("users").whereNull("deleted_at").andWhere("complete_name", "like", `%${search}%`).andWhere("access_apps", "noAccess").where("status", "aktif").count("id as total");
+      const map2 = /* @__PURE__ */ new Map();
+      for (const row of rows) {
+        if (!map2.has(row.id)) {
+          map2.set(row.id, {
+            ...row,
+            pos: { nama_pos: row.nama_pos }
+          });
+        }
+      }
       res.status(200).json({
-        employees,
+        employees: Array.from(map2.values()),
         pagination: {
           total: parseInt(total),
           page: pageInt,
@@ -86562,10 +86586,14 @@ class EmployeController {
   static async show(req, res) {
     try {
       const { id } = req.params;
-      const user = await db$1("users").where("id", id).first();
-      if (!user) {
+      const rows = await db$1("users").select("users.*", "nama_pos").where("users.id", id).leftJoin("pos", "users.pos_id", "pos.id").first();
+      if (!rows) {
         return res.status(404).json({ error: "Pengguna tidak ditemukan" });
       }
+      const user = {
+        ...rows,
+        pos: { nama_pos: rows.nama_pos }
+      };
       res.status(200).json({ user });
     } catch (error) {
       res.status(500).json({ error: "An error occurred while retrieving the user." });
@@ -86575,6 +86603,7 @@ class EmployeController {
   static async store(req, res) {
     await libExports.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
     await libExports.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
     await libExports.body("status_ijazah").isIn(["belum diambil", "sudah diambil"]).withMessage("Status ijazah tidak valid").run(req);
     await libExports.body("jenis_ijazah").notEmpty().withMessage("Jenis Ijazah wajib diisi").run(req);
@@ -86588,7 +86617,7 @@ class EmployeController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah } = req.body;
+      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id } = req.body;
       const [insertedId] = await db$1("users").insert({
         complete_name,
         role: "staff",
@@ -86598,7 +86627,8 @@ class EmployeController {
         tanggal_masuk,
         tanggal_keluar,
         jenis_ijazah,
-        status_ijazah
+        status_ijazah,
+        pos_id
       });
       const newUser = await db$1("users").where("id", insertedId).first();
       res.status(200).json({
@@ -86615,6 +86645,7 @@ class EmployeController {
     await libExports.body("jenis_ijazah").notEmpty().withMessage("Jenis Ijazah wajib diisi").run(req);
     await libExports.body("tanggal_masuk").notEmpty().withMessage("Tanggal Masuk wajib diisi").run(req);
     await libExports.body("position").notEmpty().withMessage("Posisi wajib diisi").run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif dan nonAktif").run(req);
     await libExports.body("status_ijazah").isIn(["belum diambil", "sudah diambil"]).withMessage("Status ijazah tidak valid").run(req);
     const errors = libExports.validationResult(req);
@@ -86627,7 +86658,7 @@ class EmployeController {
     }
     try {
       const { id } = req.params;
-      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah } = req.body;
+      const { complete_name, position: position2, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id } = req.body;
       const existingUser = await db$1("users").where("id", id).first();
       if (!existingUser) {
         return res.status(404).json({ error: "Pengguna tidak ditemukan" });
@@ -86640,7 +86671,8 @@ class EmployeController {
         tanggal_masuk,
         tanggal_keluar,
         jenis_ijazah,
-        status_ijazah
+        status_ijazah,
+        pos_id
       });
       res.status(200).json({ message: "User updated successfully" });
     } catch (error) {
@@ -86676,28 +86708,32 @@ class Group {
   static async findAll({ page = 1, limit = 10, search = "" }) {
     const offset2 = (page - 1) * limit;
     const rows = await db$1("groups as g").select(
+      "g.*",
       "g.id as group_id",
       "g.group_name",
       "u.id as staff_id",
-      "u.complete_name as staff_name"
+      "u.complete_name as staff_name",
+      "nama_pos"
     ).join("group_details as gd", function() {
       this.on("gd.group_id", "=", "g.id").andOnNull("gd.deleted_at");
-    }).join("users as u", "gd.staff_id", "u.id").whereNull("g.deleted_at").andWhere("g.group_name", "like", `%${search}%`).orderBy("g.id", "desc").limit(limit).offset(offset2);
+    }).leftJoin("pos", "g.pos_id", "pos.id").join("users as u", "gd.staff_id", "u.id").whereNull("g.deleted_at").andWhere("g.group_name", "like", `%${search}%`).orderBy("g.id", "desc").limit(limit).offset(offset2);
     const [{ total }] = await db$1("groups").count("* as total").whereNull("deleted_at").andWhere("group_name", "like", `%${search}%`);
     return { rows, total };
   }
   static async findById(id) {
     return await db$1("groups as g").select(
+      "g.*",
       "g.id as group_id",
       "g.group_name",
       "u.id as staff_id",
-      "u.complete_name as staff_name"
-    ).join("group_details as gd", function() {
+      "u.complete_name as staff_name",
+      "nama_pos"
+    ).leftJoin("pos", "g.pos_id", "pos.id").join("group_details as gd", function() {
       this.on("gd.group_id", "=", "g.id").andOnNull("gd.deleted_at");
     }).join("users as u", "gd.staff_id", "u.id").where("g.id", id).whereNull("g.deleted_at");
   }
-  static async create({ group_name }) {
-    const [id] = await db$1("groups").insert({ group_name });
+  static async create(data2) {
+    const [id] = await db$1("groups").insert(data2);
     return id;
   }
   static async insertStaffs(group_id, staffs) {
@@ -86707,8 +86743,8 @@ class Group {
     }));
     await db$1("group_details").insert(inserts);
   }
-  static async update({ id, group_name }) {
-    return db$1("groups").where({ id }).update({ group_name });
+  static async update(id, data2) {
+    return db$1("groups").where({ id }).update(data2);
   }
   static async deleteGroupDetails(group_id) {
     return db$1("group_details").where({ group_id }).del();
@@ -86745,6 +86781,8 @@ class GroupController {
           map2.set(row.group_id, {
             id: row.group_id,
             group_name: row.group_name,
+            pos_id: row.pos_id,
+            pos: { nama_pos: row.nama_pos },
             staffs: []
           });
         }
@@ -86772,10 +86810,12 @@ class GroupController {
     try {
       const { id } = req.params;
       const rows = await Group.findById(id);
-      if (!rows.length) return res.status(404).json({ error: "Group tidak ditemukan" });
+      if (!rows.length) return res.status(404).json({ error: "Kelompok tidak ditemukan" });
       const group = {
         id: rows[0].group_id,
         group_name: rows[0].group_name,
+        pos_id: rows[0].pos_id,
+        pos: { nama_pos: rows[0].nama_pos },
         staffs: rows.filter((r) => r.staff_id).map((r) => ({ id: r.staff_id, complete_name: r.staff_name }))
       };
       res.status(200).json({ group });
@@ -86787,6 +86827,7 @@ class GroupController {
     await libExports.body("group_name").notEmpty().run(req);
     await libExports.body("staffs").isArray({ min: 1 }).run(req);
     await libExports.body("staffs.*").notEmpty().run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formatted = errors.array().reduce((acc, err) => {
@@ -86796,10 +86837,10 @@ class GroupController {
       return res.status(400).json({ errors: formatted });
     }
     try {
-      const { group_name, staffs } = req.body;
-      const id = await Group.create({ group_name });
+      const { group_name, staffs, pos_id } = req.body;
+      const id = await Group.create({ group_name, pos_id });
       await Group.insertStaffs(id, staffs);
-      res.status(200).json({ message: "Group berhasil dibuat", group: { id, group_name } });
+      res.status(200).json({ message: "Kelompok berhasil dibuat", group: { id, group_name } });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -86808,6 +86849,7 @@ class GroupController {
     await libExports.body("group_name").notEmpty().run(req);
     await libExports.body("staffs").isArray({ min: 1 }).run(req);
     await libExports.body("staffs.*").notEmpty().run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formatted = errors.array().reduce((acc, err) => {
@@ -86818,11 +86860,11 @@ class GroupController {
     }
     try {
       const { id } = req.params;
-      const { group_name, staffs } = req.body;
-      await Group.update({ id, group_name });
+      const { group_name, staffs, pos_id } = req.body;
+      await Group.update(id, { group_name, pos_id });
       await Group.deleteGroupDetails(id);
       await Group.insertStaffs(id, staffs);
-      res.status(200).json({ message: "Group updated successfully" });
+      res.status(200).json({ message: "Kelompok updated successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -86837,7 +86879,7 @@ class GroupController {
         });
       }
       await Group.softDelete(id);
-      res.status(200).json({ message: "Group berhasil dihapus" });
+      res.status(200).json({ message: "Kelompok berhasil dihapus" });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -86845,6 +86887,170 @@ class GroupController {
   static async count(req, res) {
     try {
       const total = await Group.count();
+      res.status(200).json({ total });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+}
+class PosModel {
+  static async findAll({ page = 1, limit = 10, search = "" }) {
+    const offset2 = (page - 1) * limit;
+    const rows = await db$1("pos as p").select(
+      "p.*",
+      "u.complete_name"
+    ).join("users as u", "p.penanggung_jawab", "u.id").whereNull("p.deleted_at").andWhere("p.nama_pos", "like", `%${search}%`).orderBy("p.id", "desc").limit(limit).offset(offset2);
+    const [{ total }] = await db$1("pos").count("* as total").whereNull("deleted_at").andWhere("nama_pos", "like", `%${search}%`);
+    return { rows, total };
+  }
+  static async findById(id) {
+    return await db$1("pos as p").select(
+      "p.*",
+      "u.complete_name"
+    ).join("users as u", "p.penanggung_jawab", "u.id").where("p.id", id).whereNull("p.deleted_at");
+  }
+  static async create(data2) {
+    const [id] = await db$1("pos").insert(data2);
+    return id;
+  }
+  static async update(id, data2) {
+    return db$1("pos").where({ id }).update(data2);
+  }
+  static async softDelete(id) {
+    return db$1("pos").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
+  }
+  static async checkContraint(id) {
+    const checks = [
+      db$1("schedule").where("pos_id", id).whereNull("deleted_at").first()
+    ];
+    const [schedule] = await Promise.all(checks);
+    return schedule;
+  }
+  static async count() {
+    const [{ total }] = await db$1("pos").count("* as total").whereNull("deleted_at");
+    return total;
+  }
+  static async existsByName(name, excludeId = null) {
+    const query = db$1("pos").where({ nama_pos: name }).whereNull("deleted_at");
+    if (excludeId) query.andWhereNot({ id: excludeId });
+    const result = await query.first();
+    return !!result;
+  }
+}
+class PosController {
+  static async index(req, res) {
+    try {
+      const { page = 1, limit = 10, search = "" } = req.query;
+      const { rows, total } = await PosModel.findAll({ page, limit, search });
+      const map2 = /* @__PURE__ */ new Map();
+      for (const row of rows) {
+        if (!map2.has(row.id)) {
+          map2.set(row.id, {
+            ...row,
+            penanggungJawab: {
+              complete_name: row.complete_name
+            }
+          });
+        }
+      }
+      res.status(200).json({
+        pos: Array.from(map2.values()),
+        pagination: {
+          total,
+          page: +page,
+          limit: +limit,
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async show(req, res) {
+    try {
+      const { id } = req.params;
+      const rows = await PosModel.findById(id);
+      if (!rows.length) return res.status(404).json({ error: "Pos tidak ditemukan" });
+      const pos = {
+        ...rows[0],
+        penanggungJawab: {
+          complete_name: rows[0].complete_name
+        }
+      };
+      res.status(200).json({ pos });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async store(req, res) {
+    await libExports.body("nama_pos").notEmpty().run(req);
+    await libExports.body("alamat").notEmpty().run(req);
+    await libExports.body("no_telepon").notEmpty().run(req);
+    await libExports.body("penanggung_jawab").notEmpty().run(req);
+    const errors = libExports.validationResult(req);
+    if (!errors.isEmpty()) {
+      const formatted = errors.array().reduce((acc, err) => {
+        acc[err.path] = err.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formatted });
+    }
+    try {
+      const { nama_pos, alamat, no_telepon, penanggung_jawab } = req.body;
+      const exists = await PosModel.existsByName(nama_pos);
+      if (exists) {
+        return res.status(400).json({ errors: { nama_pos: "Nama pos sudah ada" } });
+      }
+      const id = await PosModel.create({ nama_pos, alamat, no_telepon, penanggung_jawab });
+      res.status(200).json({ message: "Pos berhasil dibuat", pos: { id, nama_pos } });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async update(req, res) {
+    await libExports.body("nama_pos").notEmpty().run(req);
+    await libExports.body("alamat").notEmpty().run(req);
+    await libExports.body("no_telepon").notEmpty().run(req);
+    await libExports.body("penanggung_jawab").notEmpty().run(req);
+    const errors = libExports.validationResult(req);
+    if (!errors.isEmpty()) {
+      const formatted = errors.array().reduce((acc, err) => {
+        acc[err.path] = err.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formatted });
+    }
+    try {
+      const { id } = req.params;
+      const { nama_pos, alamat, no_telepon, penanggung_jawab } = req.body;
+      const exists = await PosModel.existsByName(nama_pos, id);
+      if (exists) {
+        return res.status(400).json({ errors: { nama_pos: "Nama pos sudah ada" } });
+      }
+      await PosModel.update(id, { nama_pos, alamat, no_telepon, penanggung_jawab });
+      res.status(200).json({ message: "Pos updated successfully" });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const isUsed = await PosModel.checkContraint(id);
+      if (isUsed) {
+        return res.status(409).json({
+          error: "Pos gagal dihapus, Data sedang digunakan dibagian lain sistem"
+        });
+      }
+      await PosModel.softDelete(id);
+      res.status(200).json({ message: "Pos berhasil dihapus" });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async count(req, res) {
+    try {
+      const total = await PosModel.count();
       res.status(200).json({ total });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -87314,6 +87520,7 @@ class LoanController {
 class Member {
   static async findAll({ offset: offset2, limit, search }) {
     const rows = await db$1("members as m").join("areas as a", "m.area_id", "a.id").select(
+      "m.pos_id",
       "m.id as member_id",
       "m.complete_name",
       "m.nik",
@@ -87322,15 +87529,17 @@ class Member {
       "m.sequence_number",
       "m.area_id",
       "a.id as area_id",
-      "a.area_name as area_name"
+      "a.area_name as area_name",
+      "nama_pos"
     ).whereNull("m.deleted_at").andWhere(function() {
       this.where("m.complete_name", "like", `%${search}%`).orWhere("m.nik", "like", `%${search}%`);
-    }).orderBy("m.created_at", "desc").limit(parseInt(limit)).offset(offset2);
+    }).leftJoin("pos", "m.pos_id", "pos.id").orderBy("m.created_at", "desc").limit(parseInt(limit)).offset(offset2);
     const [{ total }] = await db$1("members").count("id as total").whereNull("deleted_at").andWhere("complete_name", "like", `%${search}%`);
     return { total, rows };
   }
   static async findById(id) {
     return await db$1("members as m").join("areas as a", "m.area_id", "a.id").select(
+      "m.pos_id",
       "m.id as member_id",
       "m.sequence_number",
       "m.complete_name",
@@ -87339,8 +87548,9 @@ class Member {
       "m.address",
       "m.area_id",
       "a.id as area_id",
-      "a.area_name as area_name"
-    ).whereNull("m.deleted_at").andWhere("m.id", id).first();
+      "a.area_name as area_name",
+      "nama_pos"
+    ).leftJoin("pos", "m.pos_id", "pos.id").whereNull("m.deleted_at").andWhere("m.id", id).first();
   }
   static async getSequenceNumber(area_id) {
     return await db$1("members").where("area_id", area_id).whereNull("deleted_at").orderBy("created_at", "desc").first();
@@ -87432,12 +87642,14 @@ class MemberController {
           map2.set(row.member_id, {
             id: row.member_id,
             nik: row.nik,
+            pos_id: row.pos_id,
             no_kk: row.no_kk,
             complete_name: row.complete_name,
             address: row.address,
             sequence_number: row.sequence_number,
             area_id: row.area_id,
             hasPinjaman,
+            pos: { nama_pos: row.nama_pos },
             area: {
               id: row.area_id,
               area_name: row.area_name
@@ -87480,11 +87692,13 @@ class MemberController {
       const member = {
         id: row.member_id,
         nik: row.nik,
+        pos_id: row.pos_id,
         no_kk: row.no_kk,
         complete_name: row.complete_name,
         address: row.address,
         area_id: row.area_id,
         hasPinjaman,
+        pos: { nama_pos: row.nama_pos },
         area: {
           id: row.area_id,
           area_name: row.area_name
@@ -87498,9 +87712,12 @@ class MemberController {
     }
   }
   static async store(req, res) {
+    await libExports.body("nik").notEmpty().withMessage("NIK wajib diisi").run(req);
+    await libExports.body("no_kk").notEmpty().withMessage("NO KK wajib diisi").run(req);
     await libExports.body("complete_name").notEmpty().withMessage("Nama wajib diisi").run(req);
     await libExports.body("area_id").notEmpty().withMessage("Area wajib diisi").run(req);
     await libExports.body("address").notEmpty().withMessage("Alamat wajib diisi").run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
@@ -87510,7 +87727,7 @@ class MemberController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { complete_name, area_id, address, nik, no_kk } = req.body;
+      const { complete_name, area_id, address, nik, no_kk, pos_id } = req.body;
       const nikExist = await Member.nikExist(nik, false);
       if (nikExist) {
         return res.status(400).json({
@@ -87526,7 +87743,7 @@ class MemberController {
       const nikExistDelete = await Member.nikExist(nik, true);
       const member = await Member.getSequenceNumber(area_id);
       const sequence_number = member ? (member == null ? void 0 : member.sequence_number) + 1 : 1;
-      const data2 = { nik, no_kk, complete_name, area_id, address, sequence_number, created_at: /* @__PURE__ */ new Date(), deleted_at: null };
+      const data2 = { nik, no_kk, complete_name, area_id, address, sequence_number, created_at: /* @__PURE__ */ new Date(), deleted_at: null, pos_id };
       let memberId;
       if (!nikExistDelete) {
         memberId = await Member.create(data2);
@@ -87547,9 +87764,9 @@ class MemberController {
     await libExports.body("nik").notEmpty().withMessage("NIK wajib diisi").run(req);
     await libExports.body("no_kk").notEmpty().withMessage("NO KK wajib diisi").run(req);
     await libExports.body("complete_name").notEmpty().withMessage("Nama wajib diisi").run(req);
-    await libExports.body("complete_name").notEmpty().withMessage("Nama wajib diisi").run(req);
     await libExports.body("area_id").notEmpty().withMessage("Area wajib diisi").run(req);
     await libExports.body("address").notEmpty().withMessage("Alamat wajib diisi").run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
@@ -87560,7 +87777,7 @@ class MemberController {
     }
     try {
       const { id } = req.params;
-      const { nik, no_kk, complete_name, area_id, address } = req.body;
+      const { nik, no_kk, complete_name, area_id, address, pos_id } = req.body;
       const nikExist = await Member.nikExist(nik, false, id);
       if (nikExist) {
         return res.status(400).json({
@@ -87573,7 +87790,7 @@ class MemberController {
           errors: { no_kk: "No KK sudah ada" }
         });
       }
-      const data2 = { complete_name, area_id, address, id, nik, no_kk };
+      const data2 = { complete_name, area_id, address, id, nik, no_kk, pos_id };
       await Member.update(data2, id);
       res.status(200).json({ message: "Anggota updated successfully" });
     } catch (error) {
@@ -87802,8 +88019,17 @@ class UserController {
         limit: parseInt(limit),
         search
       });
+      const map2 = /* @__PURE__ */ new Map();
+      for (const row of pagination.users) {
+        if (!map2.has(row.id)) {
+          map2.set(row.id, {
+            ...row,
+            pos: { nama_pos: row.nama_pos }
+          });
+        }
+      }
       res.status(200).json({
-        users: pagination.users,
+        users: Array.from(map2.values()),
         pagination: {
           total: pagination.total,
           page: parseInt(page),
@@ -87818,8 +88044,12 @@ class UserController {
   static async show(req, res) {
     try {
       const { id } = req.params;
-      const user = await User.findById(id);
-      if (!user) return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      const rows = await User.findById(id);
+      if (!rows) return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      const user = {
+        ...rows,
+        pos: { nama_pos: rows.nama_pos }
+      };
       res.status(200).json({ user });
     } catch (error) {
       res.status(500).json({ error: "An error occurred while retrieving the user." });
@@ -87829,6 +88059,7 @@ class UserController {
     await libExports.body("username").notEmpty().withMessage("Username wajib diisi").run(req);
     await libExports.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
     await libExports.body("role").notEmpty().withMessage("Role wajib diisi").run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif atau nonAktif").run(req);
     await libExports.body("password").isLength({ min: 6 }).withMessage("Password harus 6 karakter atau lebih").run(req);
     const errors = libExports.validationResult(req);
@@ -87837,7 +88068,7 @@ class UserController {
       return res.status(400).json({ errors: formatted });
     }
     try {
-      const { username, complete_name, role, access_apps, position: position2, status, password } = req.body;
+      const { username, complete_name, role, access_apps, position: position2, status, password, pos_id } = req.body;
       const existingUser = await User.findByUsernameOnly(username);
       if (existingUser) return res.status(400).json({ errors: { username: "Username sudah terdaftar" } });
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -87848,7 +88079,8 @@ class UserController {
         access_apps: "access",
         position: position2,
         status,
-        password: hashedPassword
+        password: hashedPassword,
+        pos_id
       });
       res.status(200).json({ message: "Pengguna berhasil dibuat", user });
     } catch (error) {
@@ -87859,6 +88091,7 @@ class UserController {
     await libExports.body("username").notEmpty().withMessage("Username wajib diisi").run(req);
     await libExports.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
     await libExports.body("role").notEmpty().withMessage("Role wajib diisi").run(req);
+    await libExports.body("pos_id").notEmpty().run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif atau nonAktif").run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
@@ -87867,7 +88100,7 @@ class UserController {
     }
     try {
       const { id } = req.params;
-      const { username, complete_name, role, access_apps, position: position2, status } = req.body;
+      const { username, complete_name, role, access_apps, position: position2, status, pos_id } = req.body;
       const user = await User.findById(id);
       if (!user) return res.status(404).json({ error: "Pengguna tidak ditemukan" });
       const existingUser = await User.existsByUsernameExcludingId(username, id);
@@ -87878,7 +88111,8 @@ class UserController {
         role,
         access_apps: "access",
         position: position2,
-        status
+        status,
+        pos_id
       });
       res.status(200).json({ message: "User updated successfully" });
     } catch (error) {
@@ -87942,6 +88176,12 @@ app.post("/api/groups", GroupController.store);
 app.get("/api/groups/:id", GroupController.show);
 app.put("/api/groups/:id", GroupController.update);
 app.delete("/api/groups/:id", GroupController.delete);
+app.get("/api/pos", PosController.index);
+app.get("/api/pos/count", PosController.count);
+app.post("/api/pos", PosController.store);
+app.get("/api/pos/:id", PosController.show);
+app.put("/api/pos/:id", PosController.update);
+app.delete("/api/pos/:id", PosController.delete);
 app.get("/api/members", MemberController.index);
 app.get("/api/members/:nik/nik-check", MemberController.nixExist);
 app.get("/api/members/:no_kk/nokk-check", MemberController.nokkExist);

@@ -11,38 +11,37 @@ import PageMeta from "../../components/common/PageMeta";
 import Form from "../../components/form/Form";
 import Label from "../../components/form/Label";
 import MultiSelect from "../../components/form/MultiSelect";
-import Select from "../../components/form/Select";
 import Input from "../../components/form/input/InputField";
+import Loading from "../../components/ui/Loading";
 import Alert from "../../components/ui/alert/Alert";
 import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { AreaProps, UserProps } from "../../utils/types";
-import Loading from "../../components/ui/Loading"
-interface GroupFormInput {
-    group_name: string;
-    pos_id: string;
-    staffs: string[]
+import Select from "../../components/form/Select";
+interface PosFormInput {
+    nama_pos: string;
+    penanggung_jawab: number,
+    alamat: string,
+    no_telepon: string
 }
 
 
-const schema: yup.SchemaOf<GroupFormInput> = yup.object({
-    pos_id: yup.string().required('Pos  wajib dipilih'),
-    group_name: yup.string()
-        .required('Nama kelompok  wajib dipilih'),
-    staffs: yup.array().of(yup.string().trim()
-        .min(1, 'Silahkan pilih karyawan')
-        .required('Silahkan pilih karyawan'))
-        .min(1, "Minimal pilih satu karyawan")
-        .required('Karyawan wajib dipilih'),
+const schema: yup.SchemaOf<PosFormInput> = yup.object({
+    nama_pos: yup.string()
+        .required('Nama pos wajib diisi'),
+    alamat: yup.string()
+        .required('Alamat wajib diisi'),
+    no_telepon: yup.string()
+        .required('No telepon wajib diisi').min(12, "No telepon minimal 12 karakter"),
+    penanggung_jawab: yup.string()
+        .required('Penanggung jawab wajib diisi'),
 });
 
-const GroupForm: React.FC = () => {
+const PosForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const [areas, setAreas] = useState<{ label: string, value: string }[]>([]);
-    const [staffs, setStaffs] = useState<{ text: string, value: string }[]>([]);
-    const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
-
+    const [staffs, setStaffs] = useState<{ label: string, value: string }[]>([]);
     const [loading, setLoading] = useState(true);
 
     const { id } = useParams();
@@ -55,56 +54,54 @@ const GroupForm: React.FC = () => {
         setError,
         reset,
         setValue,
-        getValues,
+        getValues, watch,
         formState: { errors }
-    } = useForm<GroupFormInput>({
+    } = useForm<PosFormInput>({
         resolver: yupResolver(schema),
-        defaultValues: {
-            group_name: "",
-            staffs: []
-        }
     });
 
     useEffect(() => {
         if (id) {
             setLoading(true);
-            axios.get("/api/groups/" + id).then(res => {
-                const data = res.data.group
-                data.staffs = data.staffs.map((d: any) => {
-                    return d.id.toString()
-                });
+            axios.get("/api/pos/" + id).then(res => {
+                const data = res.data.pos
                 reset(data)
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
             });
         }
-        axios.get("/api/areas?limit=2000").then(res => {
-            setAreas(res.data.areas.map((area: AreaProps) => ({ label: area.area_name, value: area.id })))
-        });
         axios.get("/api/employees?limit=2000").then(res => {
-            setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
-        });
-        axios.get("/api/pos?limit=20000").then(res => {
-            setPos(res.data.pos.map((p: any) => ({ label: p.nama_pos, value: p.id })))
+            setStaffs(res.data.employees.map((employe: UserProps) => ({ label: employe.complete_name, value: employe.id })))
         });
     }, []);
 
+    const noHp = watch("no_telepon");
+    useEffect(() => {
+        if (noHp) {
+            if (parseInt(noHp) < 0) {
+                setValue('no_telepon', "0")
+            }
+            setValue('no_telepon', noHp.slice(0, 13))
+        }
 
-    const onSubmit = async (data: GroupFormInput) => {
+    }, [noHp]);
+
+    const onSubmit = async (data: PosFormInput) => {
+
         try {
             let res;
             if (!id) {
-                res = await axios.post("/api/groups", data);
+                res = await axios.post("/api/pos", data);
             } else {
-                res = await axios.put("/api/groups/" + id, data)
+                res = await axios.put("/api/pos/" + id, data)
             }
             if (res.status == 200) {
                 if (!id)
-                    toast.success("Kelompok berhasil ditambah")
+                    toast.success("Pos berhasil ditambah")
                 else
-                    toast.success("Kelompok berhasil diubah")
-                navigate("/group")
+                    toast.success("Pos berhasil diubah")
+                navigate("/pos")
             }
         } catch (error: any) {
             if (error.status == 400) {
@@ -128,65 +125,80 @@ const GroupForm: React.FC = () => {
     return (
         <>
             <PageMeta
-                title={`${!id ? "Tambah Kelompok" : "Ubah Kelompok"} | ${import.meta.env.VITE_APP_NAME}`}
+                title={`${!id ? "Tambah Pos" : "Ubah Pos"} | ${import.meta.env.VITE_APP_NAME}`}
                 description=""
 
             />
-            <PageBreadcrumb pageTitle={!id ? "Tambah Kelompok" : "Ubah Kelompok"} />
+            <PageBreadcrumb pageTitle={!id ? "Tambah Pos" : "Ubah Pos"} />
             <div className="w-full   mx-auto mb-2">
                 <Link
-                    to="/group"
+                    to="/pos"
                     className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
                     <ChevronLeftIcon className="size-5" />
-                    Kembali ke Kelompok
+                    Kembali ke Pos
                 </Link>
             </div>
 
             <div className="space-y-6">
                 {alert && <div className="mb-4"><Alert variant="error" title="Pemberitahuan" message={alert} /></div>}
-                <ComponentCard title={!id ? "Tambah Kelompok" : "Ubah Kelompok"}>
+                <ComponentCard title={!id ? "Tambah Pos" : "Ubah Pos"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
                             <div>
                                 <Label>
-                                    Nama kelompok <span className="text-error-500">*</span>
+                                    Nama Pos <span className="text-error-500">*</span>
                                 </Label>
                                 <Input
-                                    placeholder="Masukkan nama lengkap"
-                                    {...register("group_name")}
+                                    placeholder="Masukkan nama Pos"
+                                    {...register("nama_pos")}
                                 />
-                                {errors.group_name && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.group_name.message}</p>
+                                {errors.nama_pos && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.nama_pos.message}</p>
+                                )}
+                            </div>
+                            <div>
+                                <Label>
+                                    Alamat <span className="text-error-500">*</span>
+                                </Label>
+                                <Input
+                                    placeholder="Masukkan alamat"
+                                    {...register("alamat")}
+                                />
+                                {errors.alamat && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.alamat.message}</p>
+                                )}
+                            </div>
+                            <div>
+                                <Label>
+                                    No Telepon <span className="text-error-500">*</span>
+                                </Label>
+                                <Input
+                                    min={0}
+                                    type="number"
+                                    placeholder="Masukkan no telepon"
+                                    {...register("no_telepon")}
+                                />
+                                {errors.no_telepon && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.no_telepon.message}</p>
                                 )}
                             </div>
                             <div>
                                 <Label>
                                     Karyawan <span className="text-error-500">*</span>
                                 </Label>
-                                <MultiSelect
-                                    label=""
+                                <Select
                                     placeholder="Pilih karyawan"
                                     options={staffs}
-                                    defaultSelected={getValues("staffs")}
-                                    {...register("staffs")}
-                                    onChange={(val) => setValue("staffs", val)}
+                                    {...register("penanggung_jawab")}
                                 />
 
 
-                                {errors.staffs && typeof errors.staffs?.message === 'string' && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.staffs?.message}</p>
+                                {errors.penanggung_jawab && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.penanggung_jawab.message}</p>
                                 )}
-                            </div>
-                            <div>
-                                <Label>
-                                    Pos <span className="text-error-500">*</span>
-                                </Label>
-                                <Select options={pos} placeholder="Pilih pos" {...register("pos_id")} />
 
-                                {errors.pos_id && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.pos_id.message}</p>
-                                )}
+
                             </div>
                         </div>
 
@@ -202,4 +214,4 @@ const GroupForm: React.FC = () => {
     );
 }
 
-export default GroupForm;
+export default PosForm;

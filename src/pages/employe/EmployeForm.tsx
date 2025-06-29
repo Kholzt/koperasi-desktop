@@ -30,6 +30,7 @@ interface EmployeFormInput {
     tanggal_masuk: string,
     tanggal_keluar: string,
     position: string;
+    pos_id: string;
     status: 'aktif' | 'nonAktif';
     status_ijazah: 'belum diambil' | 'sudah diambil';
 }
@@ -38,6 +39,7 @@ interface EmployeFormInput {
 const schema: yup.SchemaOf<EmployeFormInput> = yup.object({
     complete_name: yup.string().required('Nama Lengkap wajib diisi'),
     tanggal_masuk: yup.string().required('Tanggal Masuk wajib diisi'),
+    pos_id: yup.string().required('Pos wajib dipilih'),
     jenis_ijazah: yup.string().required('Jenis Ijazah wajib diisi'),
     position: yup.string().required('Posisi wajib diisi'),
     status: yup.mixed<'aktif' | 'nonAktif'>()
@@ -52,6 +54,8 @@ const EmployeForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
+    const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
+
     const isUpdate = !!id;
     const {
         register,
@@ -77,6 +81,9 @@ const EmployeForm: React.FC = () => {
                 }, 1000);
             });
         }
+        axios.get("/api/pos?limit=20000").then(res => {
+            setPos(res.data.pos.map((p: any) => ({ label: p.nama_pos, value: p.id })))
+        });
     }, []);
 
 
@@ -242,6 +249,16 @@ const EmployeForm: React.FC = () => {
                                 />
                                 {errors.position && (
                                     <p className="mt-1 text-sm text-red-500">{errors.position.message}</p>
+                                )}
+                            </div>
+                            <div>
+                                <Label>
+                                    Pos <span className="text-error-500">*</span>
+                                </Label>
+                                <Select options={pos} placeholder="Pilih pos" {...register("pos_id")} />
+
+                                {errors.pos_id && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.pos_id.message}</p>
                                 )}
                             </div>
                             <div>

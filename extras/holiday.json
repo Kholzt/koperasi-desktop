@@ -572,10 +572,6 @@
     "date": "2024-02-09"
   },
   {
-    "title": "Satu Muharam / Tahun Baru Hijriah (belum pasti)",
-    "date": "2025-06-27"
-  },
-  {
     "title": "Maulid Nabi Muhammad (belum pasti)",
     "date": "2025-09-05"
   },
@@ -678,5 +674,9 @@
   {
     "title": "Idul Adha (Lebaran Haji)",
     "date": "2025-06-06"
+  },
+  {
+    "title": "Satu Muharam / Tahun Baru Hijriah",
+    "date": "2025-06-27"
   }
 ]

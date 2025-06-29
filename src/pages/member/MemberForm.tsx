@@ -20,6 +20,7 @@ import { AreaProps } from "../../utils/types";
 import Loading from "../../components/ui/Loading"
 
 interface MemberFormInput {
+    pos_id: string;
     nik: string;
     no_kk: string;
     complete_name: string;
@@ -30,15 +31,13 @@ interface MemberFormInput {
 
 const schema: yup.SchemaOf<MemberFormInput> = yup.object({
     nik: yup.string()
-        // .min(16, "NIK minimal 16")
-        // .max(16, "NIK maksimal 16")
         .required('NIK  wajib diisi'),
     no_kk: yup.string()
-        // .min(16, "No KK minimal 16")
-        // .max(16, "No KK maksimal 16")
         .required('NO KK  wajib diisi'),
     complete_name: yup.string()
         .required('Nama kelompok  wajib diisi'),
+    pos_id: yup.string()
+        .required('Pos  wajib dipilih'),
     area_id: yup.string()
         .required('Area wajib diisi'),
     address: yup.string().required('Alamat  wajib diisi'),
@@ -52,6 +51,8 @@ const MemberForm: React.FC = () => {
     const [nikExist, setNikExist] = useState(false);
     const [noKKExist, setNoKKExist] = useState(false);
     const [hasPinjaman, setHasPinjaman] = useState(false);
+    const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
+
     const { id } = useParams();
     const isUpdate = !!id;
     const navigate = useNavigate();
@@ -62,7 +63,6 @@ const MemberForm: React.FC = () => {
         setError,
         reset,
         setValue,
-        getValues,
         watch,
         formState: { errors }
     } = useForm<MemberFormInput>({
@@ -83,7 +83,7 @@ const MemberForm: React.FC = () => {
             axios.get("/api/members/" + id).then(res => {
                 const data = res.data.member
                 setHasPinjaman(data.hasPinjaman)
-
+                console.log(res.data, "halo");
                 reset(data)
                 setTimeout(() => {
                     setLoading(false)
@@ -92,6 +92,10 @@ const MemberForm: React.FC = () => {
         }
         axios.get("/api/areas?limit=2000").then(res => {
             setAreas(res.data.areas.map((area: AreaProps) => ({ label: area.area_name, value: area.id })))
+        });
+
+        axios.get("/api/pos?limit=20000").then(res => {
+            setPos(res.data.pos.map((p: any) => ({ label: p.nama_pos, value: p.id })))
         });
     }, []);
 
@@ -264,7 +268,16 @@ const MemberForm: React.FC = () => {
                                 <p className="mt-1 text-sm text-red-500">{errors.address.message}</p>
                             )}
                         </div>
+                        <div>
+                            <Label>
+                                Pos <span className="text-error-500">*</span>
+                            </Label>
+                            <Select options={pos} placeholder="Pilih pos" {...register("pos_id")} />
 
+                            {errors.pos_id && (
+                                <p className="mt-1 text-sm text-red-500">{errors.pos_id.message}</p>
+                            )}
+                        </div>
                         <div>
                             <Button
                                 disabled={nikExist || noKKExist}

@@ -10,12 +10,14 @@ export default class EmployeController {
             const limitInt = parseInt(limit);
             const offset = (pageInt - 1) * limitInt;
 
-            const employees = await db('users')
-                .whereNull('deleted_at')
+            const rows = await db('users')
+                .select("users.*", "nama_pos")
+                .whereNull('users.deleted_at')
                 .andWhere('complete_name', 'like', `%${search}%`)
                 .andWhere('access_apps', 'noAccess')
-                .orderBy('id', 'desc')
-                .where("status", "aktif")
+                .leftJoin("pos", "users.pos_id", "pos.id")
+                .orderBy('users.id', 'desc')
+                .where("users.status", "aktif")
                 .limit(limitInt)
                 .offset(offset);
 
@@ -25,9 +27,17 @@ export default class EmployeController {
                 .andWhere('access_apps', 'noAccess')
                 .where("status", "aktif")
                 .count('id as total');
-
+            const map = new Map();
+            for (const row of rows) {
+                if (!map.has(row.id)) {
+                    map.set(row.id, {
+                        ...row,
+                        pos: { nama_pos: row.nama_pos },
+                    });
+                }
+            }
             res.status(200).json({
-                employees,
+                employees: Array.from(map.values()),
                 pagination: {
                     total: parseInt(total),
                     page: pageInt,
@@ -56,10 +66,19 @@ export default class EmployeController {
     static async show(req, res) {
         try {
             const { id } = req.params;
-            const user = await db('users').where('id', id).first();
+            const rows = await db('users')
+                .select("users.*", "nama_pos")
+                .where('users.id', id)
+                .leftJoin("pos", "users.pos_id", "pos.id")
+                .first();
 
-            if (!user) {
+            if (!rows) {
                 return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
+            }
+            const user = {
+                ...rows,
+                pos: { nama_pos: rows.nama_pos },
+
             }
             res.status(200).json({ user });
         } catch (error) {
@@ -71,6 +90,7 @@ export default class EmployeController {
     static async store(req, res) {
         await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
         await body('position').notEmpty().withMessage('Posisi wajib diisi').run(req);
+        await body('pos_id').notEmpty().run(req);
         await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif dan nonAktif').run(req);
         await body('status_ijazah').isIn(['belum diambil', 'sudah diambil']).withMessage('Status ijazah tidak valid').run(req);
         // await body('masa_kerja').notEmpty().withMessage('Masa kerja wajib diisi').run(req);
@@ -87,7 +107,7 @@ export default class EmployeController {
         }
 
         try {
-            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah } = req.body;
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id } = req.body;
 
             const [insertedId] = await db('users').insert({
                 complete_name,
@@ -98,7 +118,8 @@ export default class EmployeController {
                 tanggal_masuk,
                 tanggal_keluar,
                 jenis_ijazah,
-                status_ijazah
+                status_ijazah,
+                pos_id
             });
 
             const newUser = await db('users').where('id', insertedId).first();
@@ -118,6 +139,7 @@ export default class EmployeController {
         await body('jenis_ijazah').notEmpty().withMessage('Jenis Ijazah wajib diisi').run(req);
         await body('tanggal_masuk').notEmpty().withMessage('Tanggal Masuk wajib diisi').run(req);
         await body('position').notEmpty().withMessage('Posisi wajib diisi').run(req);
+        await body('pos_id').notEmpty().run(req);
         await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif dan nonAktif').run(req);
         await body('status_ijazah').isIn(['belum diambil', 'sudah diambil']).withMessage('Status ijazah tidak valid').run(req);
         const errors = validationResult(req);
@@ -132,7 +154,7 @@ export default class EmployeController {
 
         try {
             const { id } = req.params;
-            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah } = req.body;
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id } = req.body;
 
             const existingUser = await db('users').where('id', id).first();
             if (!existingUser) {
@@ -149,7 +171,8 @@ export default class EmployeController {
                     tanggal_masuk,
                     tanggal_keluar,
                     jenis_ijazah,
-                    status_ijazah
+                    status_ijazah,
+                    pos_id
                 });
 
             res.status(200).json({ message: 'User updated successfully' });

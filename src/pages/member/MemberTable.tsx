@@ -58,6 +58,12 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                Pos
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Alamat
                             </TableCell>
                             <TableCell
@@ -95,10 +101,19 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    {user.nik}
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.nik}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    {user.complete_name}
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.complete_name}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user?.pos?.nama_pos ?? "-"}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
@@ -122,7 +137,7 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                             </TableRow>
                         ))}
                         {data.length === 0 && <TableRow >
-                            <TableCell colSpan={6} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                            <TableCell colSpan={8} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                                 Tidak ada data
                             </TableCell></TableRow>}
                     </TableBody>
@@ -171,7 +186,7 @@ function Action({ id, member_name, hasPinjaman }: { id: number, member_name: str
         >
             <ul className="flex flex-col gap-1  ">
                 <li>
-                    {user?.role != "staff"  && <DropdownItem
+                    {user?.role != "staff" && <DropdownItem
                         onItemClick={closeDropdown}
                         tag="a"
                         to={`/member/${id}/edit`}

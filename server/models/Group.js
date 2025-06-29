@@ -6,14 +6,17 @@ class Group {
 
         const rows = await db('groups as g')
             .select(
+                "g.*",
                 'g.id as group_id',
                 'g.group_name',
                 'u.id as staff_id',
                 'u.complete_name as staff_name'
+                , "nama_pos"
             )
             .join('group_details as gd', function () {
                 this.on('gd.group_id', '=', 'g.id').andOnNull('gd.deleted_at');
             })
+            .leftJoin("pos", "g.pos_id", "pos.id")
             .join('users as u', 'gd.staff_id', 'u.id')
             .whereNull('g.deleted_at')
             .andWhere('g.group_name', 'like', `%${search}%`)
@@ -32,11 +35,14 @@ class Group {
     static async findById(id) {
         return await db('groups as g')
             .select(
+                "g.*",
                 'g.id as group_id',
                 'g.group_name',
                 'u.id as staff_id',
                 'u.complete_name as staff_name'
+                , "nama_pos"
             )
+            .leftJoin("pos", "g.pos_id", "pos.id")
             .join('group_details as gd', function () {
                 this.on('gd.group_id', '=', 'g.id').andOnNull('gd.deleted_at');
             })
@@ -47,8 +53,8 @@ class Group {
     }
 
 
-    static async create({ group_name }) {
-        const [id] = await db('groups').insert({ group_name });
+    static async create(data) {
+        const [id] = await db('groups').insert(data);
         return id;
     }
 
@@ -60,8 +66,8 @@ class Group {
         await db('group_details').insert(inserts);
     }
 
-    static async update({ id, group_name }) {
-        return db('groups').where({ id }).update({ group_name });
+    static async update(id, data) {
+        return db('groups').where({ id }).update(data);
     }
 
     static async deleteGroupDetails(group_id) {

@@ -19,12 +19,14 @@ export default class MemberController {
                     map.set(row.member_id, {
                         id: row.member_id,
                         nik: row.nik,
+                        pos_id: row.pos_id,
                         no_kk: row.no_kk,
                         complete_name: row.complete_name,
                         address: row.address,
                         sequence_number: row.sequence_number,
                         area_id: row.area_id,
                         hasPinjaman: hasPinjaman,
+                        pos: { nama_pos: row.nama_pos },
                         area: {
                             id: row.area_id,
                             area_name: row.area_name,
@@ -75,11 +77,13 @@ export default class MemberController {
             const member = {
                 id: row.member_id,
                 nik: row.nik,
+                pos_id: row.pos_id,
                 no_kk: row.no_kk,
                 complete_name: row.complete_name,
                 address: row.address,
                 area_id: row.area_id,
                 hasPinjaman: hasPinjaman,
+                pos: { nama_pos: row.nama_pos },
                 area: {
                     id: row.area_id,
                     area_name: row.area_name,
@@ -98,9 +102,12 @@ export default class MemberController {
 
 
     static async store(req, res) {
+        await body("nik").notEmpty().withMessage("NIK wajib diisi").run(req);
+        await body("no_kk").notEmpty().withMessage("NO KK wajib diisi").run(req);
         await body("complete_name").notEmpty().withMessage("Nama wajib diisi").run(req);
         await body("area_id").notEmpty().withMessage("Area wajib diisi").run(req);
         await body('address').notEmpty().withMessage('Alamat wajib diisi').run(req);
+        await body('pos_id').notEmpty().run(req);
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -112,7 +119,7 @@ export default class MemberController {
         }
 
         try {
-            const { complete_name, area_id, address, nik, no_kk } = req.body;
+            const { complete_name, area_id, address, nik, no_kk, pos_id } = req.body;
             const nikExist = await Member.nikExist(nik, false);
             if (nikExist) {
                 return res.status(400).json({
@@ -131,7 +138,7 @@ export default class MemberController {
             const member = await Member.getSequenceNumber(area_id);
             // res.status(500).json(member);
             const sequence_number = member ? member?.sequence_number + 1 : 1;
-            const data = { nik, no_kk, complete_name, area_id, address, sequence_number, created_at: new Date(), deleted_at: null };
+            const data = { nik, no_kk, complete_name, area_id, address, sequence_number, created_at: new Date(), deleted_at: null, pos_id };
             let memberId;
             if (!nikExistDelete) {
                 memberId = await Member.create(data);
@@ -154,9 +161,9 @@ export default class MemberController {
         await body("nik").notEmpty().withMessage("NIK wajib diisi").run(req);
         await body("no_kk").notEmpty().withMessage("NO KK wajib diisi").run(req);
         await body("complete_name").notEmpty().withMessage("Nama wajib diisi").run(req);
-        await body("complete_name").notEmpty().withMessage("Nama wajib diisi").run(req);
         await body("area_id").notEmpty().withMessage("Area wajib diisi").run(req);
         await body('address').notEmpty().withMessage('Alamat wajib diisi').run(req);
+        await body('pos_id').notEmpty().run(req);
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -169,7 +176,7 @@ export default class MemberController {
 
         try {
             const { id } = req.params;
-            const { nik, no_kk, complete_name, area_id, address } = req.body;
+            const { nik, no_kk, complete_name, area_id, address, pos_id } = req.body;
             const nikExist = await Member.nikExist(nik, false, id);
             if (nikExist) {
                 return res.status(400).json({
@@ -183,7 +190,7 @@ export default class MemberController {
                 });
             }
 
-            const data = { complete_name, area_id, address, id, nik, no_kk }
+            const data = { complete_name, area_id, address, id, nik, no_kk, pos_id }
             await Member.update(data, id);
 
             res.status(200).json({ message: "Anggota updated successfully" });
