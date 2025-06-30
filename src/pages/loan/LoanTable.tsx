@@ -116,14 +116,17 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    {user.anggota.nik}
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
 
                                         {user.pos.nama_pos ?? "-"}
                                     </span>
                                 </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.anggota.nik}
+                                    </span>
+                                </TableCell>
+
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
                                         {user.anggota.complete_name}
