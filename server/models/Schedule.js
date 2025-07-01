@@ -29,15 +29,17 @@ const ScheduleModel = {
         return await query;
     },
 
-    async getTotal() {
-        const [{ total }] = await db('schedule')
+    async getTotal(day = null) {
+        const query = db('schedule')
             .leftJoin("pos", "schedule.pos_id", "pos.id")
             .join('areas', 'schedule.area_id', 'areas.id')
             .join('groups', 'schedule.group_id', 'groups.id')
             .whereNull('schedule.deleted_at')
             .orderBy('schedule.id', 'desc')
             .where("schedule.status", "aktif")
-            .count({ total: '*' });
+            ;
+        if (day) query.andWhere('day', day);
+        const [{ total }] = query.count({ total: '*' });
         return total;
     },
 
