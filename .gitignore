@@ -9,6 +9,7 @@ lerna-debug.log*
 release
 node_modules
 dist
+dist-electron
 dist-ssr
 *.local
 .env
@@ -23,7 +24,7 @@ release/*
 *.njsproj
 *.sln
 *.sw?
-"release/" 
+"release/"
 
 
 Koperasi Seferine Jaya Mandiri/
