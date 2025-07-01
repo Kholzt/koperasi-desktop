@@ -39,7 +39,7 @@ const ScheduleModel = {
             .where("schedule.status", "aktif")
             ;
         if (day) query.andWhere('day', day);
-        const [{ total }] = query.count({ total: '*' });
+        const [{ total }] = await query.count({ total: '*' });
         return total;
     },
 
