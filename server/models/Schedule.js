@@ -32,6 +32,7 @@ const ScheduleModel = {
     async getTotal() {
         const [{ total }] = await db('schedule')
             .whereNull('deleted_at')
+            .where("schedule.status", "aktif")
             .count({ total: '*' });
         return total;
     },
