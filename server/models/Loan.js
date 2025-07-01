@@ -4,18 +4,28 @@ export default class Loan {
     static async findAll({ limit, offset, startDate, endDate, status, day, group }) {
         const query = db('pinjaman')
             .join('members', 'pinjaman.anggota_id', 'members.id')
+            .leftJoin("pos", "members.pos_id", "pos.id")
             // .leftJoin('group_details', 'pinjaman.penanggung_jawab', 'group_details.staff_id')
             .groupBy("pinjaman.id")
             .whereNull('pinjaman.deleted_at');
 
         // Filter dengan benar hanya jika nilainya valid
-        if (startDate && startDate !== "null") {
-            query.andWhere('pinjaman.created_at', '>=', startDate);
+        if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+            query.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
+            );
+
+        } else if (startDate && startDate !== "null") {
+            query.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
+
+            );
+        } else if (endDate && endDate !== "null") {
+            query.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
+            );
         }
 
-        if (endDate && endDate !== "null") {
-            query.andWhere('pinjaman.created_at', '<=', endDate);
-        }
 
         if (status && status !== "null") {
             query.andWhere('pinjaman.status', status);
@@ -31,7 +41,8 @@ export default class Loan {
             .select(
                 'pinjaman.*',
                 db.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
-                db.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`)
+                db.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`),
+                db.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
             );
 
         if (group && group !== "all") {
@@ -63,13 +74,22 @@ export default class Loan {
             .select('pinjaman.*')
             .whereNull('pinjaman.deleted_at');
 
-        if (startDate && startDate !== "null") {
-            countQuery.andWhere('pinjaman.created_at', '>=', startDate);
+        if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+            countQuery.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
+            );
+        } else if (startDate && startDate !== "null") {
+            countQuery.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
+
+            );
+        } else if (endDate && endDate !== "null") {
+            countQuery.andWhereRaw(
+                `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
+            );
         }
 
-        if (endDate && endDate !== "null") {
-            countQuery.andWhere('pinjaman.created_at', '<=', endDate);
-        }
+
 
         if (status && status !== "null") {
             countQuery.andWhere('pinjaman.status', status);
@@ -113,6 +133,7 @@ export default class Loan {
             .leftJoin('angsuran', 'pinjaman.id', 'angsuran.id_pinjaman')
             .leftJoin('penagih_angsuran ', 'penagih_angsuran.id_angsuran', 'angsuran.id')
             .leftJoin('users', 'penagih_angsuran.id_karyawan', 'users.id')
+            .leftJoin("pos", "members.pos_id", "pos.id")
             .whereNull('pinjaman.deleted_at')
             .andWhere('pinjaman.id', id)
             .orderBy('angsuran.tanggal_pembayaran', "asc")
@@ -129,6 +150,7 @@ export default class Loan {
                 'angsuran.status as status_angsuran',
                 'angsuran.asal_pembayaran',
                 "users.complete_name as penagih_nama",
+                "nama_pos"
             )
     }
 

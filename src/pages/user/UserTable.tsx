@@ -50,6 +50,12 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                Pos
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Role
                             </TableCell>
                             {/* <TableCell
@@ -87,7 +93,14 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    {user.complete_name}
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.complete_name ?? "-"}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.pos.nama_pos ?? "-"}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
@@ -114,7 +127,7 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
                         ))}
 
                         {data.length === 0 && <TableRow >
-                            <TableCell colSpan={3} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                            <TableCell colSpan={6} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                                 Tidak ada data
                             </TableCell></TableRow>}
                     </TableBody>

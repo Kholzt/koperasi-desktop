@@ -22,9 +22,8 @@ interface UserFormInput {
     complete_name: string;
     username: string;
     password: string;
+    pos_id: string;
     role: 'staff' | 'controller' | 'pusat' | 'super admin';
-    // access_apps: 'access' | 'noAccess';
-    // position: string;
     status: 'aktif' | 'nonAktif';
 }
 
@@ -32,16 +31,13 @@ interface UserFormInput {
 const schema: yup.SchemaOf<UserFormInput> = yup.object({
     complete_name: yup.string().required('Nama Lengkap wajib diisi'),
     username: yup.string().required('Username wajib diisi'),
+    pos_id: yup.string().required('Pos wajib dipilih'),
     password: yup.string()
         .min(6, 'Password minimal 6 karakter')
         .nullable(),
     role: yup.mixed<'staff' | 'controller' | 'pusat' | 'super admin'>()
         .oneOf(['staff', 'controller', 'pusat', 'super admin'], 'Role tidak valid')
         .required('Role wajib dipilih'),
-    // access_apps: yup.mixed<'access' | 'noAccess'>()
-    //     .oneOf(['access', 'noAccess'], 'Access Apps tidak valid')
-    //     .required('Akses aplikasi wajib dipilih'),
-    // position: yup.string().required('Posisi wajib diisi'),
     status: yup.mixed<'aktif' | 'nonAktif'>()
         .oneOf(['aktif', 'nonAktif'], 'Status tidak valid')
         .required('Status wajib dipilih'),
@@ -51,6 +47,7 @@ const UserForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
+    const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
 
     const isUpdate = !!id;
     const {
@@ -66,7 +63,6 @@ const UserForm: React.FC = () => {
     useEffect(() => {
         if (id) {
             setLoading(true);
-
             axios.get("/api/users/" + id).then(res => {
                 reset(res.data.user)
                 setTimeout(() => {
@@ -74,6 +70,9 @@ const UserForm: React.FC = () => {
                 }, 1000);
             });
         }
+        axios.get("/api/pos?limit=20000").then(res => {
+            setPos(res.data.pos.map((p: any) => ({ label: p.nama_pos, value: p.id })))
+        });
     }, []);
     const onSubmit = async (data: UserFormInput) => {
         try {
@@ -188,28 +187,17 @@ const UserForm: React.FC = () => {
                                     <p className="mt-1 text-sm text-red-500">{errors.role.message}</p>
                                 )}
                             </div>
-                            {/* <div>
-                                <Label>
-                                    Access Apps <span className="text-error-500">*</span>
-                                </Label>
-                                <Select options={[{ label: 'Access', value: "access" }, { label: 'NoAccess', value: "noAccess" }]} placeholder="Pilih access apps" {...register("access_apps")} />
 
-                                {errors.access_apps && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.access_apps.message}</p>
-                                )}
-                            </div> */}
-                            {/* <div>
+                            <div>
                                 <Label>
-                                    Jabatan <span className="text-error-500">*</span>
+                                    Pos <span className="text-error-500">*</span>
                                 </Label>
-                                <Input
-                                    placeholder="Masukkan jabatan"
-                                    {...register("position")}
-                                />
-                                {errors.position && (
-                                    <p className="mt-1 text-sm text-red-500">{errors.position.message}</p>
+                                <Select options={pos} placeholder="Pilih pos" {...register("pos_id")} />
+
+                                {errors.pos_id && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.pos_id.message}</p>
                                 )}
-                            </div> */}
+                            </div>
                             <div>
                                 <Label>
                                     Status <span className="text-error-500">*</span>

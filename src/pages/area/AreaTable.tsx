@@ -50,6 +50,12 @@ const AreaTable: React.FC<AreaTableProps> = ({ data, pagination, setPaginate }) 
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                Pos
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Kota
                             </TableCell>
                             <TableCell
@@ -99,7 +105,14 @@ const AreaTable: React.FC<AreaTableProps> = ({ data, pagination, setPaginate }) 
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    {user.area_name}
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.area_name}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.pos.nama_pos ?? "-"}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
@@ -135,7 +148,7 @@ const AreaTable: React.FC<AreaTableProps> = ({ data, pagination, setPaginate }) 
                             </TableRow>
                         ))}
                         {data.length === 0 && <TableRow >
-                            <TableCell colSpan={7} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                            <TableCell colSpan={9} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                                 Tidak ada data
                             </TableCell></TableRow>}
                     </TableBody>

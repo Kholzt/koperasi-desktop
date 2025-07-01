@@ -35,6 +35,8 @@ import LoanDetail from './pages/loan/LoanDetail';
 import Angsuran from './pages/loan/Angsuran';
 import UserProfiles from "./pages/UserProfiles";
 import Backup from './pages/backup-page/Backup';
+import Pos from './pages/pos/Pos';
+import PosForm from './pages/pos/PosForm';
 
 export default function App() {
     return (
@@ -63,6 +65,10 @@ export default function App() {
                         <Route path="/group" element={<Group />} />
                         <Route path="/group/create" element={<GroupForm />} />
                         <Route path="/group/:id/edit" element={<GroupForm />} />
+
+                        <Route path="/pos" element={<Pos />} />
+                        <Route path="/pos/create" element={<PosForm />} />
+                        <Route path="/pos/:id/edit" element={<PosForm />} />
 
                         <Route path="/member" element={<Member />} />
                         <Route path="/member/create" element={<MemberForm />} />

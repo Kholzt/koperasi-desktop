@@ -23,6 +23,7 @@ interface AreaFormInput {
     city: string;
     subdistrict: string;
     village: string;
+    pos_id: string;
     address: string;
     status: 'aktif' | 'nonAktif';
 }
@@ -30,6 +31,7 @@ interface AreaFormInput {
 
 const schema: yup.SchemaOf<AreaFormInput> = yup.object({
     area_name: yup.string().required('Nama wilayah  wajib diisi'),
+    pos_id: yup.string().required('Pos  wajib dipilih'),
     city: yup.string().required('Kota   wajib diisi'),
     subdistrict: yup.string().required('Kecamatan  wajib diisi'),
     village: yup.string().required('Desa  wajib diisi'),
@@ -43,6 +45,7 @@ const AreaForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
+    const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
 
     const isUpdate = !!id;
     const {
@@ -65,6 +68,10 @@ const AreaForm: React.FC = () => {
                 }, 500);
             });
         }
+
+        axios.get("/api/pos?limit=20000").then(res => {
+            setPos(res.data.pos.map((p: any) => ({ label: p.nama_pos, value: p.id })))
+        });
     }, []);
     const onSubmit = async (data: AreaFormInput) => {
         try {
@@ -190,7 +197,16 @@ const AreaForm: React.FC = () => {
                                     <p className="mt-1 text-sm text-red-500">{errors.address.message}</p>
                                 )}
                             </div>
+                            <div>
+                                <Label>
+                                    Pos <span className="text-error-500">*</span>
+                                </Label>
+                                <Select options={pos} placeholder="Pilih pos" {...register("pos_id")} />
 
+                                {errors.pos_id && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.pos_id.message}</p>
+                                )}
+                            </div>
                             <div>
                                 <Label>
                                     Status <span className="text-error-500">*</span>

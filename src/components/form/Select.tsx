@@ -11,7 +11,7 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
     className?: string;
     // react-hook-form support
     value?: string;
-    readOnly: boolean;
+    readOnly?: boolean;
     defaultValue?: string;
     inputRef?: React.Ref<HTMLSelectElement>;
 }

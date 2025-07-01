@@ -48,3 +48,22 @@ export function toLocalDate (date: Date)  {
 
   return targetDate < today;
 }
+
+export function calculateDuration(start:any, end:any) {
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  let days = end.getDate() - start.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+    days += prevMonth.getDate(); // jumlah hari di bulan sebelumnya
+  }
+
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  return { years, months, days };
+}

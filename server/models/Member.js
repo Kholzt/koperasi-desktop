@@ -5,6 +5,8 @@ export default class Member {
         const rows = await db('members as m')
             .join('areas as a', 'm.area_id', 'a.id')
             .select(
+                'm.pos_id',
+                'm.description',
                 'm.id as member_id',
                 'm.complete_name',
                 'm.nik',
@@ -13,13 +15,15 @@ export default class Member {
                 'm.sequence_number',
                 'm.area_id',
                 'a.id as area_id',
-                'a.area_name as area_name'
+                'a.area_name as area_name',
+                "nama_pos"
             )
             .whereNull('m.deleted_at')
             .andWhere(function () {
                 this.where('m.complete_name', 'like', `%${search}%`)
                     .orWhere('m.nik', 'like', `%${search}%`)
             })
+            .leftJoin("pos", "m.pos_id", "pos.id")
             .orderBy('m.created_at', 'desc')
             .limit(parseInt(limit))
             .offset(offset);
@@ -36,6 +40,8 @@ export default class Member {
         return await db('members as m')
             .join('areas as a', 'm.area_id', 'a.id')
             .select(
+                'm.pos_id',
+                'm.description',
                 'm.id as member_id',
                 "m.sequence_number",
                 'm.complete_name',
@@ -44,8 +50,10 @@ export default class Member {
                 'm.address',
                 'm.area_id',
                 'a.id as area_id',
-                'a.area_name as area_name'
+                'a.area_name as area_name',
+                "nama_pos"
             )
+            .leftJoin("pos", "m.pos_id", "pos.id")
             .whereNull('m.deleted_at')
             .andWhere('m.id', id)
             .first();

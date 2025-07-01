@@ -21,12 +21,14 @@ import { AreaProps, GroupProps } from "../../utils/types";
 interface ScheduleFormInput {
     area_id: number;
     group_id: number;
+    pos_id: string;
     day: "senin" | "selasa" | "rabu" | "kamis" | "jum'at" | "sabtu" | "minggu",
     status: 'aktif' | 'nonAktif';
 }
 
 
 const schema: yup.SchemaOf<ScheduleFormInput> = yup.object({
+    pos_id: yup.string().required('Pos  wajib dipilih'),
     area_id: yup.string().required('Wilayah  wajib diisi'),
     group_id: yup.string().required('Kelompok  wajib diisi'),
     day: yup.string().required('Hari  wajib diisi'),
@@ -40,6 +42,7 @@ const ScheduleForm: React.FC = () => {
     const [areas, setAreas] = useState<{ label: string, value: string }[]>([]);
     const [groups, setGroups] = useState<{ label: string, value: string }[]>([]);
     const [loading, setLoading] = useState(true);
+    const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
 
     const { id } = useParams();
     const isUpdate = !!id;
@@ -71,6 +74,10 @@ const ScheduleForm: React.FC = () => {
         });
         axios.get("/api/groups?limit=2000").then(res => {
             setGroups(res.data.groups.map((group: GroupProps) => ({ label: group.group_name, value: group.id })))
+        });
+
+        axios.get("/api/pos?limit=20000").then(res => {
+            setPos(res.data.pos.map((p: any) => ({ label: p.nama_pos, value: p.id })))
         });
     }, []);
 
@@ -178,6 +185,16 @@ const ScheduleForm: React.FC = () => {
                             <Select options={days} placeholder="Pilih hari" {...register("day")} />
                             {errors.day && (
                                 <p className="mt-1 text-sm text-red-500">{errors.day.message}</p>
+                            )}
+                        </div>
+                        <div>
+                            <Label>
+                                Pos <span className="text-error-500">*</span>
+                            </Label>
+                            <Select options={pos} placeholder="Pilih pos" {...register("pos_id")} />
+
+                            {errors.pos_id && (
+                                <p className="mt-1 text-sm text-red-500">{errors.pos_id.message}</p>
                             )}
                         </div>
                         <div>

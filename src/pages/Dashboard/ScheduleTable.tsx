@@ -46,6 +46,12 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ data, pagination, setPagi
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                Pos
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Wilayah
                             </TableCell>
                             <TableCell
@@ -70,6 +76,9 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ data, pagination, setPagi
                                             </span>
                                         </div>
                                     </div>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    {user.pos.nama_pos ?? "-"}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     {user.area.area_name}

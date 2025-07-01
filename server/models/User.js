@@ -6,11 +6,14 @@ export default class User {
         const offset = (page - 1) * limit;
 
         const users = await db('users')
-            .whereNull('deleted_at')
+            .select("users.*", "nama_pos")
+            .whereNull('users.deleted_at')
             .where('access_apps', 'access')
             .where('complete_name', 'like', `%${search}%`)
             .whereNot("role", "super admin")
-            .orderBy('id', 'desc')
+            .leftJoin("pos", "users.pos_id", "pos.id")
+            .orderBy('users.id', 'desc')
+            .where("users.status", "aktif")
             .limit(limit)
             .offset(offset);
 
@@ -18,13 +21,19 @@ export default class User {
             .whereNull('deleted_at')
             .where('access_apps', 'access')
             .where('complete_name', 'like', `%${search}%`)
+            .whereNot("role", "super admin")
+            .where("status", "aktif")
+
             .count({ count: '*' });
 
         return { users, total: parseInt(count) };
     }
 
     static async findById(id) {
-        return await db('users').where({ id }).first();
+        return await db('users')
+            .select("users.*", "nama_pos")
+            .leftJoin("pos", "users.pos_id", "pos.id")
+            .where("users.id", id).first();
     }
 
     static async findByUsername(username) {

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.css";
 import Label from "./Label";
@@ -14,6 +14,7 @@ type PropsType = {
     label?: string;
     placeholder?: string;
     readonly?: boolean;
+    hasClear?: boolean
 };
 
 export default function DatePicker({
@@ -23,8 +24,10 @@ export default function DatePicker({
     label,
     defaultDate,
     placeholder,
-    readonly = false
+    readonly = false,
+    hasClear = false
 }: PropsType) {
+    const [clear, setClear] = useState(false);
     useEffect(() => {
         const flatPickr = flatpickr(`#${id}`, {
             mode: mode || "single",
@@ -33,14 +36,18 @@ export default function DatePicker({
             dateFormat: "Y-m-d",
             defaultDate,
             onChange,
-        });
 
+        });
+        if (clear && hasClear && !Array.isArray(flatPickr)) {
+            flatPickr.clear();
+        }
         return () => {
             if (!Array.isArray(flatPickr)) {
                 flatPickr.destroy();
+                setClear(false);
             }
         };
-    }, [mode, onChange, id, defaultDate]);
+    }, [mode, onChange, id, defaultDate, clear]);
 
     return (
         <div>
@@ -58,6 +65,9 @@ export default function DatePicker({
                     <CalenderIcon className="size-6" />
                 </span>
             </div>
+            <button className="text-black dark:text-white text-sm" type="button" onClick={() => {
+                setClear(true);
+            }}>Reset</button>
         </div>
     );
 }
