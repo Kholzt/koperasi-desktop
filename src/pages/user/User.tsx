@@ -22,7 +22,7 @@ const User: React.FC = () => {
     });
     const { reload } = useTheme();
     useEffect(() => {
-        axios.get(`/api/users?page=${pagination?.page}&search=${search}`).then((res: any) => {
+        axios.get(`/api/users?page=${pagination?.page}&search=${search}&status=all`).then((res: any) => {
             setUsers(res.data.users)
             setPagination(res.data.pagination)
         });

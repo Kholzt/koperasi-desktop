@@ -19,6 +19,8 @@ export interface UserProps{
 }
 export interface EmployeProps{
     id:number,
+    nip:string,
+    address:string,
     name:string,
     job_title:string,
     status:"aktif"|"nonAktif",

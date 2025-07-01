@@ -26,6 +26,7 @@ interface EmployeFormInput {
     // role: 'staff' | 'controller' | 'pusat';
     // access_apps: 'access' | 'noAccess';
     jenis_ijazah: string,
+    address: string,
     masa_kerja: string,
     tanggal_masuk: string,
     tanggal_keluar: string,
@@ -39,6 +40,7 @@ interface EmployeFormInput {
 const schema: yup.SchemaOf<EmployeFormInput> = yup.object({
     complete_name: yup.string().required('Nama Lengkap wajib diisi'),
     tanggal_masuk: yup.string().required('Tanggal Masuk wajib diisi'),
+    address: yup.string().required('Alamat wajib diisi'),
     pos_id: yup.string().required('Pos wajib dipilih'),
     jenis_ijazah: yup.string().required('Jenis Ijazah wajib diisi'),
     position: yup.string().required('Posisi wajib diisi'),
@@ -249,6 +251,18 @@ const EmployeForm: React.FC = () => {
                                 />
                                 {errors.position && (
                                     <p className="mt-1 text-sm text-red-500">{errors.position.message}</p>
+                                )}
+                            </div>
+                            <div>
+                                <Label>
+                                    Alamat <span className="text-error-500">*</span>
+                                </Label>
+                                <Input
+                                    placeholder="Masukkan alamat"
+                                    {...register("address")}
+                                />
+                                {errors.address && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.address.message}</p>
                                 )}
                             </div>
                             <div>

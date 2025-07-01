@@ -22,7 +22,7 @@ const Area: React.FC = () => {
     });
     const { reload } = useTheme();
     useEffect(() => {
-        axios.get(`/api/areas?page=${pagination?.page}&search=${search}`).then((res: any) => {
+        axios.get(`/api/areas?page=${pagination?.page}&search=${search}&status=all`).then((res: any) => {
             setAreas(res.data.areas)
             setPagination(res.data.pagination)
         });

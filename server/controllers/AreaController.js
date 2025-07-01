@@ -4,11 +4,11 @@ import AreaModel from '../models/Area.js';
 export default class AreaController {
     static async index(req, res) {
         try {
-            const { page = 1, limit = 10, search = "" } = req.query;
+            const { page = 1, limit = 10, search = "", status = "aktif" } = req.query;
             const offset = (parseInt(page) - 1) * parseInt(limit);
 
-            const rows = await AreaModel.findAll({ search, limit: parseInt(limit), offset });
-            const total = await AreaModel.getTotal(search);
+            const rows = await AreaModel.findAll({ search, limit: parseInt(limit), offset, status });
+            const total = await AreaModel.getTotal(search, status);
 
             const map = new Map();
             for (const row of rows) {

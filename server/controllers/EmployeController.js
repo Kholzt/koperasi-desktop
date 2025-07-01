@@ -5,28 +5,29 @@ export default class EmployeController {
     // Menampilkan daftar pengguna dengan pagination
     static async index(req, res) {
         try {
-            const { page = 1, limit = 10, search = "" } = req.query;
+            const { page = 1, limit = 10, search = "", status = "aktif" } = req.query;
             const pageInt = parseInt(page);
             const limitInt = parseInt(limit);
             const offset = (pageInt - 1) * limitInt;
-
-            const rows = await db('users')
+            const usersQuery = db('users')
                 .select("users.*", "nama_pos")
                 .whereNull('users.deleted_at')
                 .andWhere('complete_name', 'like', `%${search}%`)
                 .andWhere('access_apps', 'noAccess')
                 .leftJoin("pos", "users.pos_id", "pos.id")
                 .orderBy('users.id', 'desc')
-                .where("users.status", "aktif")
                 .limit(limitInt)
                 .offset(offset);
+            if (status != "all") usersQuery.where("status", status);
+            const rows = await usersQuery;
 
-            const [{ total }] = await db('users')
+            const usersCount = db('users')
                 .whereNull('deleted_at')
                 .andWhere('complete_name', 'like', `%${search}%`)
                 .andWhere('access_apps', 'noAccess')
-                .where("status", "aktif")
                 .count('id as total');
+            if (status != "all") usersCount.where("status", status);
+            const [{ total }] = await usersCount;
             const map = new Map();
             for (const row of rows) {
                 if (!map.has(row.id)) {
@@ -107,8 +108,9 @@ export default class EmployeController {
         }
 
         try {
-            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id } = req.body;
-
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address } = req.body;
+            ;
+            const nip = await generateNip();
             const [insertedId] = await db('users').insert({
                 complete_name,
                 role: "staff",
@@ -119,7 +121,9 @@ export default class EmployeController {
                 tanggal_keluar,
                 jenis_ijazah,
                 status_ijazah,
-                pos_id
+                pos_id,
+                nip,
+                address
             });
 
             const newUser = await db('users').where('id', insertedId).first();
@@ -129,7 +133,7 @@ export default class EmployeController {
                 user: newUser,
             });
         } catch (error) {
-            res.status(500).json({ error: 'An error occurred while creating the user.' });
+            res.status(500).json({ error: 'An error occurred while creating the user.', errors: error });
         }
     }
 
@@ -154,7 +158,7 @@ export default class EmployeController {
 
         try {
             const { id } = req.params;
-            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id } = req.body;
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address } = req.body;
 
             const existingUser = await db('users').where('id', id).first();
             if (!existingUser) {
@@ -172,7 +176,8 @@ export default class EmployeController {
                     tanggal_keluar,
                     jenis_ijazah,
                     status_ijazah,
-                    pos_id
+                    pos_id,
+                    address
                 });
 
             res.status(200).json({ message: 'User updated successfully' });
@@ -206,7 +211,7 @@ export default class EmployeController {
                     return res.status(409).json({ error: 'Karyawan gagal dihapus, Data sedang digunakan dibagian lain sistem' });
                 }
             }
-
+            await updateNip(id)
             await db('users').where('id', id).update({ deleted_at: new Date() });
 
             res.status(200).json({ user });
@@ -214,4 +219,43 @@ export default class EmployeController {
             res.status(500).json({ error: 'An error occurred while retrieving the user.' });
         }
     }
+
+
+}
+
+
+async function generateNip() {
+    try {
+        const lastEmployee = await db("users")
+            .whereNull("users.deleted_at")
+            .andWhere("access_apps", "noAccess")
+            .andWhere("status", "aktif")
+            .orderBy("id", "desc")
+            .first();
+
+        if (!lastEmployee || !lastEmployee.nip) return "000001";
+
+        const lastNipNumber = parseInt(lastEmployee.nip, 10);
+        const nextNipNumber = lastNipNumber + 1;
+        // Format ke 6 digit dengan leading zero
+        return String(nextNipNumber).padStart(6, "0");
+    } catch (error) {
+        console.log(error);
+        throw new Error(error.message);
+
+    }
+}
+
+async function updateNip(id) {
+    const users = await db("users").whereRaw("id > " + id)
+    await Promise.all(
+        users.map(async (user) => {
+            const nipNumber = parseInt(user.nip, 10);
+            const newNipNumber = nipNumber - 1;
+            await db("users").where("id", user.id).update({
+                nip:
+                    String(newNipNumber).padStart(6, "0")
+            })
+        })
+    )
 }

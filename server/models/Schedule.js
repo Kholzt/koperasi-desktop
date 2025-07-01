@@ -2,7 +2,7 @@
 import db from "../config/db.js";
 
 const ScheduleModel = {
-    async findAll({ limit, offset, day }) {
+    async findAll({ limit, offset, day, status = "aktif" }) {
         const query = db('schedule')
             .select(
                 'schedule.id',
@@ -20,26 +20,28 @@ const ScheduleModel = {
             .join('groups', 'schedule.group_id', 'groups.id')
             .whereNull('schedule.deleted_at')
             .orderBy('schedule.id', 'desc')
-            .where("schedule.status", "aktif")
+
             .limit(limit)
             .offset(offset);
 
         if (day) query.andWhere('day', day);
+        if (status != "all") query.where("schedule.status", status);
 
         return await query;
     },
 
-    async getTotal(day = null) {
+    async getTotal(day = null, status = "aktif") {
         const query = db('schedule')
             .leftJoin("pos", "schedule.pos_id", "pos.id")
             .join('areas', 'schedule.area_id', 'areas.id')
             .join('groups', 'schedule.group_id', 'groups.id')
             .whereNull('schedule.deleted_at')
             .orderBy('schedule.id', 'desc')
-            .where("schedule.status", "aktif")
             ;
         if (day) query.andWhere('day', day);
         const [{ total }] = await query.count({ total: '*' });
+        if (status != "all") query.where("schedule.status", status);
+
         return total;
     },
 

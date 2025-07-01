@@ -5,11 +5,12 @@ import User from '../models/User.js';
 export default class UserController {
     static async index(req, res) {
         try {
-            const { page = 1, limit = 10, search = '' } = req.query;
+            const { page = 1, limit = 10, search = '', status = "aktif" } = req.query;
             const pagination = await User.findAll({
                 page: parseInt(page),
                 limit: parseInt(limit),
                 search,
+                status
             });
             const map = new Map();
             for (const row of pagination.users) {

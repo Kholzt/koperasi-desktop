@@ -2,10 +2,10 @@
 import db from '../config/db.js';
 
 export default class User {
-    static async findAll({ page, limit, search }) {
+    static async findAll({ page, limit, search, status = "aktif" }) {
         const offset = (page - 1) * limit;
 
-        const users = await db('users')
+        const usersQuery = db('users')
             .select("users.*", "nama_pos")
             .whereNull('users.deleted_at')
             .where('access_apps', 'access')
@@ -13,19 +13,18 @@ export default class User {
             .whereNot("role", "super admin")
             .leftJoin("pos", "users.pos_id", "pos.id")
             .orderBy('users.id', 'desc')
-            .where("users.status", "aktif")
             .limit(limit)
             .offset(offset);
 
-        const [{ count }] = await db('users')
+        if (status != "all") usersQuery.where("users.status", status)
+        const users = await usersQuery;
+        const countQuery = db('users')
             .whereNull('deleted_at')
             .where('access_apps', 'access')
             .where('complete_name', 'like', `%${search}%`)
-            .whereNot("role", "super admin")
-            .where("status", "aktif")
-
-            .count({ count: '*' });
-
+            .whereNot("role", "super admin");
+        if (status != "all") countQuery.where("users.status", status)
+        const [{ count }] = await countQuery.count({ count: '*' });
         return { users, total: parseInt(count) };
     }
 
