@@ -87874,7 +87874,7 @@ const ScheduleModel = {
     return await query;
   },
   async getTotal() {
-    const [{ total }] = await db$1("schedule").whereNull("deleted_at").count({ total: "*" });
+    const [{ total }] = await db$1("schedule").whereNull("deleted_at").where("schedule.status", "aktif").count({ total: "*" });
     return total;
   },
   async findById(id) {
