@@ -12,9 +12,9 @@ export default class PosController {
                 if (!map.has(row.id)) {
                     map.set(row.id, {
                         ...row,
-                        penanggungJawab: {
-                            complete_name: row.complete_name
-                        },
+                        // penanggungJawab: {
+                        //     complete_name: row.complete_name
+                        // },
                     });
                 }
             }
@@ -42,9 +42,9 @@ export default class PosController {
 
             const pos = {
                 ...rows[0],
-                penanggungJawab: {
-                    complete_name: rows[0].complete_name
-                },
+                // penanggungJawab: {
+                //     complete_name: rows[0].complete_name
+                // },
             };
 
             res.status(200).json({ pos });
@@ -102,7 +102,7 @@ export default class PosController {
             const { id } = req.params;
             const { nama_pos, alamat, no_telepon, penanggung_jawab } = req.body;
 
-            const exists = await PosModel.existsByName(nama_pos,id);
+            const exists = await PosModel.existsByName(nama_pos, id);
             if (exists) {
                 return res.status(400).json({ errors: { nama_pos: 'Nama pos sudah ada' } });
             }

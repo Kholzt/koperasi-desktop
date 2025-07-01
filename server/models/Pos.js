@@ -7,10 +7,10 @@ class PosModel {
         const rows = await db('pos as p')
             .select(
                 'p.*',
-                'u.complete_name'
+                // 'u.complete_name'
             )
 
-            .join('users as u', 'p.penanggung_jawab', 'u.id')
+            // .join('users as u', 'p.penanggung_jawab', 'u.id')
             .whereNull('p.deleted_at')
             .andWhere('p.nama_pos', 'like', `%${search}%`)
             .orderBy('p.id', 'desc')
@@ -29,9 +29,9 @@ class PosModel {
         return await db('pos as p')
             .select(
                 'p.*',
-                'u.complete_name'
+                // 'u.complete_name'
             )
-            .join('users as u', 'p.penanggung_jawab', 'u.id')
+            // .join('users as u', 'p.penanggung_jawab', 'u.id')
             .where("p.id", id)
             .whereNull('p.deleted_at')
             ;
