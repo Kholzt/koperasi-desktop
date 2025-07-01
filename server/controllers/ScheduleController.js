@@ -9,7 +9,7 @@ export default class ScheduleController {
             const offset = (parseInt(page) - 1) * parseInt(limit);
             const rows = await ScheduleModel.findAll({ limit: parseInt(limit), offset, day });
 
-            const total = await ScheduleModel.getTotal();
+            const total = await ScheduleModel.getTotal(day);
 
             const schedule = rows.map(row => ({
                 id: row.id,
