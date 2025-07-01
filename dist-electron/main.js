@@ -12467,14 +12467,14 @@ function requireParseurl() {
       return parse2(str);
     }
     var pathname = str;
-    var query = null;
+    var query2 = null;
     var search = null;
     for (var i = 1; i < str.length; i++) {
       switch (str.charCodeAt(i)) {
         case 63:
           if (search === null) {
             pathname = str.substring(0, i);
-            query = str.substring(i + 1);
+            query2 = str.substring(i + 1);
             search = str.substring(i);
           }
           break;
@@ -12500,7 +12500,7 @@ function requireParseurl() {
     url2.href = str;
     url2.pathname = pathname;
     if (search !== null) {
-      url2.query = query;
+      url2.query = query2;
       url2.search = search;
     }
     return url2;
@@ -15998,7 +15998,7 @@ function requireRequest() {
     if (!range3) return;
     return parseRange(size2, range3, options);
   };
-  defineGetter(req, "query", function query() {
+  defineGetter(req, "query", function query2() {
     var queryparse = this.app.get("query parser fn");
     if (!queryparse) {
       return /* @__PURE__ */ Object.create(null);
@@ -17689,8 +17689,8 @@ function exportDB() {
   const recentBackupExists = files.some((file2) => {
     const match = file2.match(/(\d{4})-(\d{2})-(\d{2})/);
     if (match) {
-      const [_2, year2, month2, day2] = match;
-      const fileDate = /* @__PURE__ */ new Date(`${year2}-${month2}-${day2}`);
+      const [_2, year2, month2, day22] = match;
+      const fileDate = /* @__PURE__ */ new Date(`${year2}-${month2}-${day22}`);
       return fileDate >= sevenWeeksAgo;
     }
     return false;
@@ -17701,8 +17701,8 @@ function exportDB() {
   }
   const year = now2.getFullYear();
   const month = String(now2.getMonth() + 1).padStart(2, "0");
-  const day = String(now2.getDate()).padStart(2, "0");
-  const timestamp = `${year}-${month}-${day}`;
+  const day2 = String(now2.getDate()).padStart(2, "0");
+  const timestamp = `${year}-${month}-${day2}`;
   const backupFile = path.join(backupDir, `${process.env.VITE_APP_DBNAME}-backup-${timestamp}.sql`);
   const command = `mysqldump -h ${process.env.VITE_APP_DBHOST} -u ${process.env.VITE_APP_DBUSER} -p${process.env.VITE_APP_DBPASS} ${process.env.VITE_APP_DBNAME} > "${backupFile}"`;
   exec(command, (error, stdout, stderr) => {
@@ -18982,12 +18982,12 @@ function getSetDayOfWeek(input) {
   if (!this.isValid()) {
     return input != null ? this : NaN;
   }
-  var day = get$1(this, "Day");
+  var day2 = get$1(this, "Day");
   if (input != null) {
     input = parseWeekday$1(input, this.localeData());
-    return this.add(input - day, "d");
+    return this.add(input - day2, "d");
   } else {
-    return day;
+    return day2;
   }
 }
 function getSetLocaleDayOfWeek(input) {
@@ -22703,9 +22703,9 @@ function toDate$1(str, isUTC) {
   const m2 = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?.*$/.exec((str || "").toString());
   if (m2) {
     m2.shift();
-    const [year, month, day] = m2.map((num) => parseInt(num || 1, 10));
+    const [year, month, day2] = m2.map((num) => parseInt(num || 1, 10));
     {
-      return new Date(year, month - 1, day);
+      return new Date(year, month - 1, day2);
     }
   }
 }
@@ -23911,9 +23911,9 @@ class PostRule {
 const isoDate = (isoDateStr) => String(isoDateStr).split("-").map((v) => toNumber$1(v));
 function _findEventInYear(_year, arr = []) {
   for (const item of arr) {
-    const [year, month, day] = isoDate(item);
-    if (year === _year && month && day) {
-      return new CalEvent({ year, month, day }).inYear(year);
+    const [year, month, day2] = isoDate(item);
+    if (year === _year && month && day2) {
+      return new CalEvent({ year, month, day: day2 }).inYear(year);
     }
   }
 }
@@ -23942,10 +23942,10 @@ function pre(num, l) {
   return s2.substr(s2.length - l, l);
 }
 class EasterDate {
-  constructor(year, month, day) {
+  constructor(year, month, day2) {
     this.year = year;
     this.month = month;
-    this.day = day;
+    this.day = day2;
   }
   toString() {
     return [pre(this.year, 4), pre(this.month), pre(this.day)].join("-");
@@ -23971,15 +23971,15 @@ function _easter(year, julian2, gregorian) {
     os = os + Math.floor(year / 100) - Math.floor(year / 400) - 2;
   }
   const daysPerMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31];
-  let day = os;
+  let day2 = os;
   let month;
   for (month = 3; month < 8; month++) {
-    if (day <= daysPerMonth[month]) {
+    if (day2 <= daysPerMonth[month]) {
       break;
     }
-    day -= daysPerMonth[month];
+    day2 -= daysPerMonth[month];
   }
-  return new EasterDate(year, month, day);
+  return new EasterDate(year, month, day2);
 }
 function gregorianEaster(year) {
   return _easter(year);
@@ -26078,13 +26078,13 @@ class Calendar {
    * @param {number} [month]
    * @param {number} [day]
    */
-  constructor(year, month = 1, day = 1) {
+  constructor(year, month = 1, day2 = 1) {
     if (year instanceof Date) {
       this.fromDate(year);
     } else {
       this.year = year;
       this.month = month;
-      this.day = day;
+      this.day = day2;
     }
   }
   getDate() {
@@ -26107,9 +26107,9 @@ class Calendar {
     };
   }
   toISOString() {
-    const { year, month, day } = this.getDate();
+    const { year, month, day: day2 } = this.getDate();
     const { hour, minute, second, millisecond } = this.getTime();
-    return `${pad(year, 4)}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}.${pad(millisecond, 3)}Z`;
+    return `${pad(year, 4)}-${pad(month)}-${pad(day2)}T${pad(hour)}:${pad(minute)}:${pad(second)}.${pad(millisecond, 3)}Z`;
   }
   isGregorian() {
     return isCalendarGregorian(this.year, this.month, this.day);
@@ -26122,12 +26122,12 @@ class Calendar {
   fromDate(date) {
     this.year = date.getUTCFullYear();
     this.month = date.getUTCMonth() + 1;
-    const day = date.getUTCDate();
+    const day2 = date.getUTCDate();
     const hour = date.getUTCHours();
     const minute = date.getUTCMinutes();
     const second = date.getUTCSeconds();
     const ms2 = date.getMilliseconds();
-    this.day = day + (hour + (minute + (second + ms2 / 1e3) / 60) / 60) / 24;
+    this.day = day2 + (hour + (minute + (second + ms2 / 1e3) / 60) / 60) / 24;
     return this;
   }
   /**
@@ -26136,14 +26136,14 @@ class Calendar {
    * @returns {Date} proleptic Gregorian date
    */
   toDate() {
-    const [day, fhour] = base$1.modf(this.day);
+    const [day2, fhour] = base$1.modf(this.day);
     const [hour, fminute] = base$1.modf(fhour * 24);
     const [minute, fsecond] = base$1.modf(fminute * 60);
     const [second, fms] = base$1.modf(fsecond * 60);
     const date = new Date(Date.UTC(
       this.year,
       this.month - 1,
-      day,
+      day2,
       hour,
       minute,
       second,
@@ -26192,10 +26192,10 @@ class Calendar {
   }
   fromJD(jd) {
     const isJulian = !isJDCalendarGregorian(jd);
-    const { year, month, day } = JDToCalendar(jd, isJulian);
+    const { year, month, day: day2 } = JDToCalendar(jd, isJulian);
     this.year = year;
     this.month = month;
-    this.day = day;
+    this.day = day2;
     return this;
   }
   fromJDE(jde) {
@@ -26253,10 +26253,10 @@ class CalendarJulian extends Calendar {
     return CalendarJulianToJD(this.year, this.month, this.day);
   }
   fromJD(jd) {
-    const { year, month, day } = JDToCalendarJulian(jd);
+    const { year, month, day: day2 } = JDToCalendarJulian(jd);
     this.year = year;
     this.month = month;
-    this.day = day;
+    this.day = day2;
     return this;
   }
   isLeapYear() {
@@ -26280,10 +26280,10 @@ class CalendarGregorian extends Calendar {
     return CalendarGregorianToJD(this.year, this.month, this.day);
   }
   fromJD(jd) {
-    const { year, month, day } = JDToCalendarGregorian(jd);
+    const { year, month, day: day2 } = JDToCalendarGregorian(jd);
     this.year = year;
     this.month = month;
-    this.day = day;
+    this.day = day2;
     return this;
   }
   isLeapYear() {
@@ -26340,7 +26340,7 @@ function JDToCalendar(jd, isJulian) {
   const e = int(base$1.floorDiv((b - d2) * 1e4, 306001));
   let year;
   let month;
-  const day = int(b - d2) - base$1.floorDiv(306001 * e, 1e4) + f;
+  const day2 = int(b - d2) - base$1.floorDiv(306001 * e, 1e4) + f;
   if (e === 14 || e === 15) {
     month = e - 13;
   } else {
@@ -26351,7 +26351,7 @@ function JDToCalendar(jd, isJulian) {
   } else {
     year = int(c) - 4716;
   }
-  return { year, month, day };
+  return { year, month, day: day2 };
 }
 function JDToCalendarGregorian(jd) {
   return JDToCalendar(jd, false);
@@ -26362,8 +26362,8 @@ function JDToCalendarJulian(jd) {
 function isJDCalendarGregorian(jd) {
   return jd >= GREGORIAN0JD;
 }
-function isCalendarGregorian(year, month = 1, day = 1) {
-  return year > 1582 || year === 1582 && month > 10 || year === 1582 && month === 10 && day >= 15;
+function isCalendarGregorian(year, month = 1, day2 = 1) {
+  return year > 1582 || year === 1582 && month > 10 || year === 1582 && month === 10 && day2 >= 15;
 }
 function DayOfWeek(jd) {
   return int(jd + 1.5) % 7;
@@ -29708,8 +29708,8 @@ class CalendarChinese {
    * @param {Number} leap - `true` if leap month
    * @param {Number} day - chinese day
    */
-  constructor(cycle, year, month, leap, day) {
-    this.set(cycle, year, month, leap, day);
+  constructor(cycle, year, month, leap, day2) {
+    this.set(cycle, year, month, leap, day2);
     this._epochY = epochY$1;
     this._epoch = epoch$1;
     this._cache = {
@@ -29728,7 +29728,7 @@ class CalendarChinese {
    * @param {Number} leap - `true` if leap month
    * @param {Number} day - chinese day
    */
-  set(cycle, year, month, leap, day) {
+  set(cycle, year, month, leap, day2) {
     if (cycle instanceof CalendarChinese) {
       this.cycle = cycle.cycle;
       this.year = cycle.year;
@@ -29746,7 +29746,7 @@ class CalendarChinese {
       this.year = year;
       this.month = month;
       this.leap = leap;
-      this.day = day;
+      this.day = day2;
     }
     return this;
   }
@@ -29772,9 +29772,9 @@ class CalendarChinese {
    * @param {Number} day - needs to be in correct (chinese) timezone
    * @return {Object} this
    */
-  fromGregorian(year, month, day) {
-    const j = this.midnight(new julian.CalendarGregorian(year, month, day).toJDE());
-    if (month === 1 && day <= 20) year--;
+  fromGregorian(year, month, day2) {
+    const j = this.midnight(new julian.CalendarGregorian(year, month, day2).toJDE());
+    if (month === 1 && day2 <= 20) year--;
     this._from(j, year);
     return this;
   }
@@ -30072,8 +30072,8 @@ const UTC_DATES = [
   }
 ];
 class CalendarKorean extends CalendarChinese {
-  constructor(cycle, year, month, leap, day) {
-    super(cycle, year, month, leap, day);
+  constructor(cycle, year, month, leap, day2) {
+    super(cycle, year, month, leap, day2);
     this._epochY = epochY;
     this._epoch = epoch;
   }
@@ -30170,7 +30170,7 @@ const banglaToDigit = (bangla) => {
   });
   return Number(str);
 };
-const weekDay = (day) => weekDays[day];
+const weekDay = (day2) => weekDays[day2];
 const monthName = (month) => monthNames[month - 1];
 const seasonName = (month) => seasonNames[Math.floor((month - 1) / 2)];
 /**
@@ -30192,11 +30192,11 @@ class CalendarBengaliRevised {
    * @param {Number|String} day - 1...31
    * @return {Object} this
    */
-  constructor(year, month, day) {
+  constructor(year, month, day2) {
     Object.assign(this, {
       year: banglaToDigit(year),
       month: banglaToDigit(month) || 1,
-      day: banglaToDigit(day) || 1
+      day: banglaToDigit(day2) || 1
     });
   }
   /**
@@ -30206,14 +30206,14 @@ class CalendarBengaliRevised {
    * @param {Number} day - (int)
    * @return {Object} this
    */
-  fromGregorian(year, month, day) {
+  fromGregorian(year, month, day2) {
     const monthDays = isLeapYear$1(year) ? monthDaysLeap : monthDaysNorm;
     let _year = year;
-    if (month < 4 || month === 4 && day < 14) {
+    if (month < 4 || month === 4 && day2 < 14) {
       _year -= 1;
     }
     this.year = _year - YEAR0;
-    const date = Date.UTC(year, month - 1, day, UTC6);
+    const date = Date.UTC(year, month - 1, day2, UTC6);
     let days2 = Math.floor((date - toEpoch(_year)) / MILLISECONDS_PER_DAY);
     for (let i = 0; i < monthDays.length; i++) {
       if (days2 <= monthDays[i]) {
@@ -67055,8 +67055,8 @@ var contains$1 = function(arr, val) {
 var defaultGetText = function(id) {
   return id.toString();
 };
-var defaultDateFormatter = function(year, month, day) {
-  return "".concat(month, " ").concat(day, ", ").concat(year);
+var defaultDateFormatter = function(year, month, day2) {
+  return "".concat(month, " ").concat(day2, ", ").concat(year);
 };
 var ToText = (
   /** @class */
@@ -67811,11 +67811,11 @@ var DateTime = (
   /** @class */
   function(_super) {
     __extends(DateTime2, _super);
-    function DateTime2(year, month, day, hour, minute, second, millisecond) {
+    function DateTime2(year, month, day2, hour, minute, second, millisecond) {
       var _this = _super.call(this, hour, minute, second, millisecond) || this;
       _this.year = year;
       _this.month = month;
-      _this.day = day;
+      _this.day = day2;
       return _this;
     }
     DateTime2.fromDate = function(date) {
@@ -68213,13 +68213,13 @@ function parseIndividualNumber(value) {
 }
 function parseWeekday(value) {
   var days2 = value.split(",");
-  return days2.map(function(day) {
-    if (day.length === 2) {
-      return Days[day];
+  return days2.map(function(day2) {
+    if (day2.length === 2) {
+      return Days[day2];
     }
-    var parts = day.match(/^([+-]?\d{1,2})([A-Z]{2})$/);
+    var parts = day2.match(/^([+-]?\d{1,2})([A-Z]{2})$/);
     if (!parts || parts.length < 3) {
-      throw new SyntaxError("Invalid weekday string: ".concat(day));
+      throw new SyntaxError("Invalid weekday string: ".concat(day2));
     }
     var n = Number(parts[1]);
     var wdaypart = parts[2];
@@ -68600,8 +68600,8 @@ function easter(y, offset2) {
   var l = Math.floor(32 + 2 * e + 2 * i - h - k) % 7;
   var m2 = Math.floor((a + 11 * h + 22 * l) / 451);
   var month = Math.floor((h + l - 7 * m2 + 114) / 31);
-  var day = (h + l - 7 * m2 + 114) % 31 + 1;
-  var date = Date.UTC(y, month - 1, day + offset2);
+  var day2 = (h + l - 7 * m2 + 114) % 31 + 1;
+  var date = Date.UTC(y, month - 1, day2 + offset2);
   var yearStart = Date.UTC(y, 0, 1);
   return [Math.ceil((date - yearStart) / (1e3 * 60 * 60 * 24))];
 }
@@ -68719,9 +68719,9 @@ var Iterinfo = (
         set2[i] = i;
       return [set2, start, end];
     };
-    Iterinfo2.prototype.wdayset = function(year, month, day) {
+    Iterinfo2.prototype.wdayset = function(year, month, day2) {
       var set2 = repeat(null, this.yearlen + 7);
-      var i = toOrdinal(datetime(year, month, day)) - this.yearordinal;
+      var i = toOrdinal(datetime(year, month, day2)) - this.yearordinal;
       var start = i;
       for (var j = 0; j < 7; j++) {
         set2[i] = i;
@@ -68731,9 +68731,9 @@ var Iterinfo = (
       }
       return [set2, start, i];
     };
-    Iterinfo2.prototype.ddayset = function(year, month, day) {
+    Iterinfo2.prototype.ddayset = function(year, month, day2) {
       var set2 = repeat(null, this.yearlen);
-      var i = toOrdinal(datetime(year, month, day)) - this.yearordinal;
+      var i = toOrdinal(datetime(year, month, day2)) - this.yearordinal;
       set2[i] = i;
       return [set2, i, i + 1];
     };
@@ -70455,11 +70455,11 @@ class Angsuran {
     return await db$1("angsuran").where("id_pinjaman", idPinjaman).orderBy("tanggal_pembayaran", "desc").first();
   }
   static async getAngsuranAktifByIdPeminjaman(idPeminjaman, ignoreId = null) {
-    const query = db$1("angsuran").where("id_pinjaman", idPeminjaman).where("status", "aktif").orderBy("tanggal_pembayaran", "asc");
+    const query2 = db$1("angsuran").where("id_pinjaman", idPeminjaman).where("status", "aktif").orderBy("tanggal_pembayaran", "asc");
     if (ignoreId) {
-      query.whereNot("id", ignoreId);
+      query2.whereNot("id", ignoreId);
     }
-    return await query.first();
+    return await query2.first();
   }
   static async updateSisaPembayaran(idPinjaman) {
     const pinjaman = await db$1("pinjaman").where("id", idPinjaman).first();
@@ -77173,11 +77173,11 @@ function requireIsDate() {
         if (dateObj.m.length === 1) {
           month = "0".concat(dateObj.m);
         }
-        var day = dateObj.d;
+        var day2 = dateObj.d;
         if (dateObj.d.length === 1) {
-          day = "0".concat(dateObj.d);
+          day2 = "0".concat(dateObj.d);
         }
-        return new Date("".concat(fullYear, "-").concat(month, "-").concat(day, "T00:00:00.000Z")).getUTCDate() === +dateObj.d;
+        return new Date("".concat(fullYear, "-").concat(month, "-").concat(day2, "T00:00:00.000Z")).getUTCDate() === +dateObj.d;
       }
       if (!options.strictMode) {
         return Object.prototype.toString.call(input) === "[object Date]" && isFinite(input);
@@ -80061,14 +80061,14 @@ function requireIsTaxID() {
         T: "12"
       };
       var month = month_replace[chars[8]];
-      var day = parseInt(chars[9] + chars[10], 10);
-      if (day > 40) {
-        day -= 40;
+      var day2 = parseInt(chars[9] + chars[10], 10);
+      if (day2 > 40) {
+        day2 -= 40;
       }
-      if (day < 10) {
-        day = "0".concat(day);
+      if (day2 < 10) {
+        day2 = "0".concat(day2);
       }
-      var date = "".concat(chars[6]).concat(chars[7], "/").concat(month, "/").concat(day);
+      var date = "".concat(chars[6]).concat(chars[7], "/").concat(month, "/").concat(day2);
       if (!(0, _isDate.default)(date, "YY/MM/DD")) {
         return false;
       }
@@ -80131,8 +80131,8 @@ function requireIsTaxID() {
     }
     function lvLvCheck(tin) {
       tin = tin.replace(/\W/, "");
-      var day = tin.slice(0, 2);
-      if (day !== "32") {
+      var day2 = tin.slice(0, 2);
+      if (day2 !== "32") {
         var month = tin.slice(2, 4);
         if (month !== "00") {
           var full_year = tin.slice(4, 6);
@@ -80147,7 +80147,7 @@ function requireIsTaxID() {
               full_year = "20".concat(full_year);
               break;
           }
-          var date = "".concat(full_year, "/").concat(tin.slice(2, 4), "/").concat(day);
+          var date = "".concat(full_year, "/").concat(tin.slice(2, 4), "/").concat(day2);
           if (!(0, _isDate.default)(date, "YYYY/MM/DD")) {
             return false;
           }
@@ -80397,12 +80397,12 @@ function requireIsTaxID() {
       }
       var full_year = "";
       var month = tin_copy.slice(2, 4);
-      var day = parseInt(tin_copy.slice(4, 6), 10);
+      var day2 = parseInt(tin_copy.slice(4, 6), 10);
       if (tin.length > 11) {
         full_year = tin.slice(0, 4);
       } else {
         full_year = tin.slice(0, 2);
-        if (tin.length === 11 && day < 60) {
+        if (tin.length === 11 && day2 < 60) {
           var current_year = (/* @__PURE__ */ new Date()).getFullYear().toString();
           var current_century = parseInt(current_year.slice(0, 2), 10);
           current_year = parseInt(current_year, 10);
@@ -80420,13 +80420,13 @@ function requireIsTaxID() {
           }
         }
       }
-      if (day > 60) {
-        day -= 60;
+      if (day2 > 60) {
+        day2 -= 60;
       }
-      if (day < 10) {
-        day = "0".concat(day);
+      if (day2 < 10) {
+        day2 = "0".concat(day2);
       }
-      var date = "".concat(full_year, "/").concat(month, "/").concat(day);
+      var date = "".concat(full_year, "/").concat(month, "/").concat(day2);
       if (date.length === 8) {
         if (!(0, _isDate.default)(date, "YY/MM/DD")) {
           return false;
@@ -80988,12 +80988,12 @@ function requireIsISO8601() {
       var match = str.match(/(\d{4})-?(\d{0,2})-?(\d*)/).map(Number);
       var year = match[1];
       var month = match[2];
-      var day = match[3];
+      var day2 = match[3];
       var monthString = month ? "0".concat(month).slice(-2) : month;
-      var dayString = day ? "0".concat(day).slice(-2) : day;
+      var dayString = day2 ? "0".concat(day2).slice(-2) : day2;
       var d2 = new Date("".concat(year, "-").concat(monthString || "01", "-").concat(dayString || "01"));
-      if (month && day) {
-        return d2.getUTCFullYear() === year && d2.getUTCMonth() + 1 === month && d2.getUTCDate() === day;
+      if (month && day2) {
+        return d2.getUTCFullYear() === year && d2.getUTCMonth() + 1 === month && d2.getUTCDate() === day2;
       }
       return true;
     };
@@ -81402,7 +81402,7 @@ function requireIsMailtoURI() {
       return arr2;
     }
     function parseMailtoQueryString(queryString) {
-      var allowedParams = /* @__PURE__ */ new Set(["subject", "body", "cc", "bcc"]), query = {
+      var allowedParams = /* @__PURE__ */ new Set(["subject", "body", "cc", "bcc"]), query2 = {
         cc: "",
         bcc: ""
       };
@@ -81421,7 +81421,7 @@ function requireIsMailtoURI() {
             break;
           }
           if (value && (key === "cc" || key === "bcc")) {
-            query[key] = value;
+            query2[key] = value;
           }
           if (key) {
             allowedParams.delete(key);
@@ -81432,7 +81432,7 @@ function requireIsMailtoURI() {
       } finally {
         _iterator.f();
       }
-      return isParseFailed ? false : query;
+      return isParseFailed ? false : query2;
     }
     function isMailtoURI2(url, options) {
       (0, _assertString.default)(url);
@@ -81443,11 +81443,11 @@ function requireIsMailtoURI() {
       if (!to2 && !queryString) {
         return true;
       }
-      var query = parseMailtoQueryString(queryString);
-      if (!query) {
+      var query2 = parseMailtoQueryString(queryString);
+      if (!query2) {
         return false;
       }
-      return "".concat(to2, ",").concat(query.cc, ",").concat(query.bcc).split(",").every(function(email) {
+      return "".concat(to2, ",").concat(query2.cc, ",").concat(query2.bcc).split(",").every(function(email) {
         email = (0, _trim.default)(email, " ");
         if (email) {
           return (0, _isEmail.default)(email, options);
@@ -84377,8 +84377,8 @@ class AngsuranController {
       const formatDate2 = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
+        const day2 = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day2}`;
       };
       const { idPinjaman } = req.params;
       const { status, penagih, asal_pembayaran, jumlah_bayar, tanggal_bayar, jumlah_katrol } = req.body;
@@ -84529,8 +84529,8 @@ class AngsuranController {
       const formatDate2 = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
+        const day2 = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day2}`;
       };
       const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
       const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
@@ -86691,8 +86691,8 @@ class EmployeController {
         db$1("users").join("group_details", "users.id", "group_details.staff_id").join("groups", "group_id", "groups.id").where("access_apps", "noAccess").andWhere("users.id", id).whereNull("groups.deleted_at"),
         db$1("users").join("pinjaman", "users.id", "pinjaman.penanggung_jawab").where("access_apps", "noAccess").andWhere("users.id", id).whereNull("pinjaman.deleted_at")
       ];
-      for (const query of sqlConstraintChecks) {
-        const dataConstraint = await query.select();
+      for (const query2 of sqlConstraintChecks) {
+        const dataConstraint = await query2.select();
         if (dataConstraint.length > 0) {
           return res.status(409).json({ error: "Karyawan gagal dihapus, Data sedang digunakan dibagian lain sistem" });
         }
@@ -86764,9 +86764,9 @@ class Group {
     return total;
   }
   static async existsByName(name, excludeId = null) {
-    const query = db$1("groups").where({ group_name: name }).whereNull("deleted_at");
-    if (excludeId) query.andWhereNot({ id: excludeId });
-    const result = await query.first();
+    const query2 = db$1("groups").where({ group_name: name }).whereNull("deleted_at");
+    if (excludeId) query2.andWhereNot({ id: excludeId });
+    const result = await query2.first();
     return !!result;
   }
 }
@@ -86935,9 +86935,9 @@ class PosModel {
     return total;
   }
   static async existsByName(name, excludeId = null) {
-    const query = db$1("pos").where({ nama_pos: name }).whereNull("deleted_at");
-    if (excludeId) query.andWhereNot({ id: excludeId });
-    const result = await query.first();
+    const query2 = db$1("pos").where({ nama_pos: name }).whereNull("deleted_at");
+    if (excludeId) query2.andWhereNot({ id: excludeId });
+    const result = await query2.first();
     return !!result;
   }
 }
@@ -87062,28 +87062,28 @@ class PosController {
   }
 }
 class Loan {
-  static async findAll({ limit, offset: offset2, startDate, endDate, status, day, group }) {
-    const query = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").leftJoin("pos", "members.pos_id", "pos.id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
+  static async findAll({ limit, offset: offset2, startDate, endDate, status, day: day2, group }) {
+    const query2 = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").leftJoin("pos", "members.pos_id", "pos.id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
     if (startDate && endDate && startDate !== "null" && endDate !== "null") {
-      query.andWhereRaw(
+      query2.andWhereRaw(
         `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
       );
     } else if (startDate && startDate !== "null") {
-      query.andWhereRaw(
+      query2.andWhereRaw(
         `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
       );
     } else if (endDate && endDate !== "null") {
-      query.andWhereRaw(
+      query2.andWhereRaw(
         `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
       );
     }
     if (status && status !== "null") {
-      query.andWhere("pinjaman.status", status);
+      query2.andWhere("pinjaman.status", status);
     }
-    if (day && day !== "all") {
-      query.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
+    if (day2 && day2 !== "all") {
+      query2.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day2 + '"');
     }
-    let loans = await query.orderBy("pinjaman.id", "desc").limit(limit).offset(offset2).select(
+    let loans = await query2.orderBy("pinjaman.id", "desc").limit(limit).offset(offset2).select(
       "pinjaman.*",
       db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
       db$1.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`),
@@ -87202,13 +87202,13 @@ class LoanController {
         startDate = null,
         endDate = /* @__PURE__ */ new Date(),
         status = null,
-        day = "all",
+        day: day2 = "all",
         group = "all"
       } = req.query;
       const pageInt = parseInt(page);
       const limitInt = parseInt(limit);
       const offset2 = (pageInt - 1) * limitInt;
-      const { loans, total } = await Loan.findAll({ limit, offset: offset2, startDate, endDate, status, day, group });
+      const { loans, total } = await Loan.findAll({ limit, offset: offset2, startDate, endDate, status, day: day2, group });
       res.status(200).json({
         loans,
         pagination: {
@@ -87362,8 +87362,8 @@ class LoanController {
       const formatDate2 = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
+        const day2 = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day2}`;
       };
       const loanId = await Loan.create({
         jumlah_pinjaman,
@@ -87590,36 +87590,36 @@ class Member {
     return total > 0;
   }
   static async nikExist(nik, notNull = false, ignoreId = null) {
-    const query = db$1("members").where("nik", nik);
+    const query2 = db$1("members").where("nik", nik);
     if (notNull) {
-      query.whereNotNull("deleted_at");
+      query2.whereNotNull("deleted_at");
     } else {
-      query.whereNull("deleted_at");
+      query2.whereNull("deleted_at");
     }
     if (ignoreId) {
-      query.whereNot("id", ignoreId);
+      query2.whereNot("id", ignoreId);
     }
     console.log(ignoreId);
-    const [{ total }] = await query.count("* as total");
+    const [{ total }] = await query2.count("* as total");
     return total > 0;
   }
   static async nokkExist(no_kk, notNull = false, ignoreId = null) {
-    const query = db$1("members").where("no_kk", no_kk);
+    const query2 = db$1("members").where("no_kk", no_kk);
     if (notNull) {
-      query.whereNotNull("deleted_at");
+      query2.whereNotNull("deleted_at");
     } else {
-      query.whereNull("deleted_at");
+      query2.whereNull("deleted_at");
     }
     if (ignoreId) {
-      query.whereNot("id", ignoreId);
+      query2.whereNot("id", ignoreId);
     }
     console.log(ignoreId);
-    const [{ total }] = await query.count("* as total");
+    const [{ total }] = await query2.count("* as total");
     return total > 0;
   }
   static async findByNik(nik) {
-    const query = await db$1("members").where("nik", nik).first();
-    return query;
+    const query2 = await db$1("members").where("nik", nik).first();
+    return query2;
   }
   static async updateMemberSequenceAndLoanKode(member) {
     const members = await db$1("members").where("area_id", member.area_id).whereRaw("sequence_number > " + member.sequence_number);
@@ -87859,8 +87859,8 @@ class MemberController {
   }
 }
 const ScheduleModel = {
-  async findAll({ limit, offset: offset2, day }) {
-    const query = db$1("schedule").select(
+  async findAll({ limit, offset: offset2, day: day2 }) {
+    const query2 = db$1("schedule").select(
       "schedule.id",
       "day",
       "schedule.status",
@@ -87870,22 +87870,23 @@ const ScheduleModel = {
       "areas.area_name",
       "nama_pos"
     ).select("schedule.*", "nama_pos").leftJoin("pos", "schedule.pos_id", "pos.id").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").whereNull("schedule.deleted_at").orderBy("schedule.id", "desc").where("schedule.status", "aktif").limit(limit).offset(offset2);
-    if (day) query.andWhere("day", day);
-    return await query;
+    if (day2) query2.andWhere("day", day2);
+    return await query2;
   },
   async getTotal() {
     const [{ total }] = await db$1("schedule").leftJoin("pos", "schedule.pos_id", "pos.id").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").whereNull("schedule.deleted_at").orderBy("schedule.id", "desc").where("schedule.status", "aktif").count({ total: "*" });
+    if (day) query.andWhere("day", day);
     return total;
   },
   async findById(id) {
     return await db$1("schedule").select("schedule.*", "nama_pos").leftJoin("pos", "schedule.pos_id", "pos.id").where("schedule.id", id).first();
   },
-  async checkContraint({ area_id, group_id, day, excludeId = null }) {
-    const query = db$1("schedule").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").where({ "schedule.area_id": area_id, "schedule.group_id": group_id, day }).whereNull("schedule.deleted_at");
+  async checkContraint({ area_id, group_id, day: day2, excludeId = null }) {
+    const query2 = db$1("schedule").join("areas", "schedule.area_id", "areas.id").join("groups", "schedule.group_id", "groups.id").where({ "schedule.area_id": area_id, "schedule.group_id": group_id, day: day2 }).whereNull("schedule.deleted_at");
     if (excludeId) {
-      query.andWhereNot("schedule.id", excludeId);
+      query2.andWhereNot("schedule.id", excludeId);
     }
-    return query.first();
+    return query2.first();
   },
   async create(data2) {
     return db$1("schedule").insert(data2);
@@ -87899,10 +87900,10 @@ const ScheduleModel = {
 };
 class ScheduleController {
   static async index(req, res) {
-    const { page = 1, limit = 10, day } = req.query;
+    const { page = 1, limit = 10, day: day2 } = req.query;
     try {
       const offset2 = (parseInt(page) - 1) * parseInt(limit);
-      const rows = await ScheduleModel.findAll({ limit: parseInt(limit), offset: offset2, day });
+      const rows = await ScheduleModel.findAll({ limit: parseInt(limit), offset: offset2, day: day2 });
       const total = await ScheduleModel.getTotal();
       const schedule = rows.map((row) => ({
         id: row.id,
@@ -87962,14 +87963,14 @@ class ScheduleController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { area_id, group_id, day, status, pos_id } = req.body;
-      const conflict = await ScheduleModel.checkContraint({ area_id, group_id, day });
+      const { area_id, group_id, day: day2, status, pos_id } = req.body;
+      const conflict = await ScheduleModel.checkContraint({ area_id, group_id, day: day2 });
       if (conflict) {
         return res.status(409).json({
-          error: `Jadwal konflik dengan kelompok ${conflict.group_name} di wilayah ${conflict.area_name} pada hari ${day}`
+          error: `Jadwal konflik dengan kelompok ${conflict.group_name} di wilayah ${conflict.area_name} pada hari ${day2}`
         });
       }
-      const [newId] = await ScheduleModel.create({ area_id, group_id, day, status, pos_id });
+      const [newId] = await ScheduleModel.create({ area_id, group_id, day: day2, status, pos_id });
       const newSchedule = await ScheduleModel.findById(newId);
       res.status(200).json({
         message: "Schedule berhasil dibuat",
@@ -87995,18 +87996,18 @@ class ScheduleController {
     }
     try {
       const { id } = req.params;
-      const { area_id, group_id, day, status, pos_id } = req.body;
+      const { area_id, group_id, day: day2, status, pos_id } = req.body;
       const existing = await ScheduleModel.findById(id);
       if (!existing) {
         return res.status(404).json({ error: "Schedule tidak ditemukan" });
       }
-      const conflict = await ScheduleModel.checkContraint({ area_id, group_id, day, excludeId: id });
+      const conflict = await ScheduleModel.checkContraint({ area_id, group_id, day: day2, excludeId: id });
       if (conflict) {
         return res.status(409).json({
-          error: `Jadwal konflik dengan kelompok ${conflict.group_name} di wilayah ${conflict.area_name} pada hari ${day}`
+          error: `Jadwal konflik dengan kelompok ${conflict.group_name} di wilayah ${conflict.area_name} pada hari ${day2}`
         });
       }
-      await ScheduleModel.update(id, { area_id, group_id, day, status, pos_id });
+      await ScheduleModel.update(id, { area_id, group_id, day: day2, status, pos_id });
       res.status(200).json({ message: "Schedule updated successfully" });
     } catch (error) {
       res.status(500).json({ error: error.message });
