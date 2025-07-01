@@ -56,6 +56,10 @@ class PosModel {
     static async checkContraint(id) {
         const checks = [
             db('schedule').where('pos_id', id).whereNull('deleted_at').first(),
+            db('members').where('pos_id', id).whereNull('deleted_at').first(),
+            db('users').where('pos_id', id).whereNull('deleted_at').first(),
+            db('areas').where('pos_id', id).whereNull('deleted_at').first(),
+            db('groups').where('pos_id', id).whereNull('deleted_at').first(),
         ];
 
         const [schedule] = await Promise.all(checks);

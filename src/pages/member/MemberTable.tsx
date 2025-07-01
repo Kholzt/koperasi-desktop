@@ -82,6 +82,12 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                Keterangan
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Aksi
                             </TableCell>
                         </TableRow>
@@ -128,6 +134,11 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
                                         {user.sequence_number}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.description ?? "-"}
                                     </span>
                                 </TableCell>
 

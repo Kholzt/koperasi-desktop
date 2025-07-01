@@ -102,6 +102,7 @@ export interface MemberProps{
     area:AreaProps,
     sequence_number:number,
     pos_id:string,
+    description:string,
     pos:PosProps,
     created_at:Date,
     updated_at:Date,

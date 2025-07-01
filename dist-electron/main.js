@@ -86921,7 +86921,11 @@ class PosModel {
   }
   static async checkContraint(id) {
     const checks = [
-      db$1("schedule").where("pos_id", id).whereNull("deleted_at").first()
+      db$1("schedule").where("pos_id", id).whereNull("deleted_at").first(),
+      db$1("members").where("pos_id", id).whereNull("deleted_at").first(),
+      db$1("users").where("pos_id", id).whereNull("deleted_at").first(),
+      db$1("areas").where("pos_id", id).whereNull("deleted_at").first(),
+      db$1("groups").where("pos_id", id).whereNull("deleted_at").first()
     ];
     const [schedule] = await Promise.all(checks);
     return schedule;
@@ -87524,6 +87528,7 @@ class Member {
   static async findAll({ offset: offset2, limit, search }) {
     const rows = await db$1("members as m").join("areas as a", "m.area_id", "a.id").select(
       "m.pos_id",
+      "m.description",
       "m.id as member_id",
       "m.complete_name",
       "m.nik",
@@ -87543,6 +87548,7 @@ class Member {
   static async findById(id) {
     return await db$1("members as m").join("areas as a", "m.area_id", "a.id").select(
       "m.pos_id",
+      "m.description",
       "m.id as member_id",
       "m.sequence_number",
       "m.complete_name",
@@ -87651,6 +87657,7 @@ class MemberController {
             address: row.address,
             sequence_number: row.sequence_number,
             area_id: row.area_id,
+            description: row.description,
             hasPinjaman,
             pos: { nama_pos: row.nama_pos },
             area: {
@@ -87700,6 +87707,7 @@ class MemberController {
         complete_name: row.complete_name,
         address: row.address,
         area_id: row.area_id,
+        description: row.description,
         hasPinjaman,
         pos: { nama_pos: row.nama_pos },
         area: {
@@ -87730,7 +87738,7 @@ class MemberController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { complete_name, area_id, address, nik, no_kk, pos_id } = req.body;
+      const { complete_name, area_id, address, nik, no_kk, pos_id, description } = req.body;
       const nikExist = await Member.nikExist(nik, false);
       if (nikExist) {
         return res.status(400).json({
@@ -87746,7 +87754,7 @@ class MemberController {
       const nikExistDelete = await Member.nikExist(nik, true);
       const member = await Member.getSequenceNumber(area_id);
       const sequence_number = member ? (member == null ? void 0 : member.sequence_number) + 1 : 1;
-      const data2 = { nik, no_kk, complete_name, area_id, address, sequence_number, created_at: /* @__PURE__ */ new Date(), deleted_at: null, pos_id };
+      const data2 = { nik, no_kk, complete_name, area_id, address, sequence_number, created_at: /* @__PURE__ */ new Date(), deleted_at: null, pos_id, description };
       let memberId;
       if (!nikExistDelete) {
         memberId = await Member.create(data2);
@@ -87780,7 +87788,7 @@ class MemberController {
     }
     try {
       const { id } = req.params;
-      const { nik, no_kk, complete_name, area_id, address, pos_id } = req.body;
+      const { nik, no_kk, complete_name, area_id, address, pos_id, description } = req.body;
       const nikExist = await Member.nikExist(nik, false, id);
       if (nikExist) {
         return res.status(400).json({
@@ -87793,7 +87801,7 @@ class MemberController {
           errors: { no_kk: "No KK sudah ada" }
         });
       }
-      const data2 = { complete_name, area_id, address, id, nik, no_kk, pos_id };
+      const data2 = { complete_name, area_id, address, id, nik, no_kk, pos_id, description };
       await Member.update(data2, id);
       res.status(200).json({ message: "Anggota updated successfully" });
     } catch (error) {

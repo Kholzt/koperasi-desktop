@@ -6,6 +6,7 @@ export default class Member {
             .join('areas as a', 'm.area_id', 'a.id')
             .select(
                 'm.pos_id',
+                'm.description',
                 'm.id as member_id',
                 'm.complete_name',
                 'm.nik',
@@ -40,6 +41,7 @@ export default class Member {
             .join('areas as a', 'm.area_id', 'a.id')
             .select(
                 'm.pos_id',
+                'm.description',
                 'm.id as member_id',
                 "m.sequence_number",
                 'm.complete_name',

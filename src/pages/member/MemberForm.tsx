@@ -25,7 +25,8 @@ interface MemberFormInput {
     no_kk: string;
     complete_name: string;
     area_id: number;
-    address: string
+    address: string,
+    description: string,
 }
 
 
@@ -266,6 +267,21 @@ const MemberForm: React.FC = () => {
                             />
                             {errors.address && (
                                 <p className="mt-1 text-sm text-red-500">{errors.address.message}</p>
+                            )}
+                        </div>
+                        <div>
+                            <Label>
+                                Keterangan
+                                {/* <span className="text-error-500">*</span> */}
+                            </Label>
+                            <Input
+                                disabled={nikExist}
+
+                                placeholder="Masukkan Keterangan"
+                                {...register("description")}
+                            />
+                            {errors.description && (
+                                <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
                             )}
                         </div>
                         <div>
