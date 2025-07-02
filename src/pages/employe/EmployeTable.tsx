@@ -124,7 +124,6 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 const start = new Date(user.tanggal_masuk);
                                 const end = new Date(user.tanggal_keluar);
                                 const diff = calculateDuration(start, end);
-                                console.log(end, start);
                                 if (end > start) {
                                     masa_kerja = `${diff.years} tahun ${diff.months} bulan ${diff.days} hari`;
                                 }

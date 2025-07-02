@@ -92,6 +92,7 @@ export default class EmployeController {
         await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
         await body('position').notEmpty().withMessage('Posisi wajib diisi').run(req);
         await body('pos_id').notEmpty().run(req);
+        await body('nip').notEmpty().run(req);
         await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif dan nonAktif').run(req);
         await body('status_ijazah').isIn(['belum diambil', 'sudah diambil']).withMessage('Status ijazah tidak valid').run(req);
         // await body('masa_kerja').notEmpty().withMessage('Masa kerja wajib diisi').run(req);
@@ -108,9 +109,9 @@ export default class EmployeController {
         }
 
         try {
-            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address } = req.body;
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address, nip } = req.body;
             ;
-            const nip = await generateNip();
+            // const nip = await generateNip();
             const [insertedId] = await db('users').insert({
                 complete_name,
                 role: "staff",
@@ -144,6 +145,7 @@ export default class EmployeController {
         await body('tanggal_masuk').notEmpty().withMessage('Tanggal Masuk wajib diisi').run(req);
         await body('position').notEmpty().withMessage('Posisi wajib diisi').run(req);
         await body('pos_id').notEmpty().run(req);
+        await body('nip').notEmpty().run(req);
         await body('status').isIn(['aktif', 'nonAktif']).withMessage('Status harus aktif dan nonAktif').run(req);
         await body('status_ijazah').isIn(['belum diambil', 'sudah diambil']).withMessage('Status ijazah tidak valid').run(req);
         const errors = validationResult(req);
@@ -158,7 +160,7 @@ export default class EmployeController {
 
         try {
             const { id } = req.params;
-            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address } = req.body;
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address, nip } = req.body;
 
             const existingUser = await db('users').where('id', id).first();
             if (!existingUser) {
@@ -177,7 +179,8 @@ export default class EmployeController {
                     jenis_ijazah,
                     status_ijazah,
                     pos_id,
-                    address
+                    address,
+                    nip
                 });
 
             res.status(200).json({ message: 'User updated successfully' });
@@ -219,35 +222,46 @@ export default class EmployeController {
             res.status(500).json({ error: 'An error occurred while retrieving the user.' });
         }
     }
+    static async generateNip(req, res) {
+        try {
+            const [{ total }] = await db("users")
+                .whereNull("users.deleted_at")
+                .andWhere("access_apps", "noAccess")
+                // .andWhere("status", "aktif")
+                .orderBy("id", "desc")
+                .count({ total: "*" });
 
+            // if (!lastEmployee || !lastEmployee.nip) return "000001";
 
-}
+            // const lastNipNumber = parseInt(lastEmployee.nip, 10);
+            const nextNipNumber = total + 1;
+            // Format ke 6 digit dengan leading zero
+            res.json({ nip: String(nextNipNumber).padStart(6, "0") });
+        } catch (error) {
+            console.log(error);
+            throw new Error(error.message);
 
-
-async function generateNip() {
-    try {
-        const lastEmployee = await db("users")
-            .whereNull("users.deleted_at")
-            .andWhere("access_apps", "noAccess")
-            .andWhere("status", "aktif")
-            .orderBy("id", "desc")
-            .first();
-
-        if (!lastEmployee || !lastEmployee.nip) return "000001";
-
-        const lastNipNumber = parseInt(lastEmployee.nip, 10);
-        const nextNipNumber = lastNipNumber + 1;
-        // Format ke 6 digit dengan leading zero
-        return String(nextNipNumber).padStart(6, "0");
-    } catch (error) {
-        console.log(error);
-        throw new Error(error.message);
-
+        }
     }
+    static async checkNip(req, res) {
+        try {
+            const { nip, ignoreId } = req.query;
+            const user = db("users").where("nip", nip).whereNull("deleted_at")
+            if (ignoreId) user.whereNot("id", ignoreId);
+            const exist = await user.first();
+            res.json({ isExist: !!exist })
+        } catch (error) {
+            res.json({ errors: error.message })
+        }
+    }
+
 }
+
+
+
 
 async function updateNip(id) {
-    const users = await db("users").whereRaw("id > " + id)
+    const users = await db("users").whereRaw("id > " + id).whereNull("users.deleted_at")
     await Promise.all(
         users.map(async (user) => {
             const nipNumber = parseInt(user.nip, 10);
