@@ -167,7 +167,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                             </TableRow>
                         ))}
                         {data.length === 0 && <TableRow >
-                            <TableCell colSpan={8} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                            <TableCell colSpan={10} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                                 Tidak ada data
                             </TableCell></TableRow>}
                     </TableBody>

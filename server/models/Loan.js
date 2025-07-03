@@ -1,7 +1,7 @@
 import db from "../config/db";
 
 export default class Loan {
-    static async findAll({ limit, offset, startDate, endDate, status, day, group }) {
+    static async findAll({ limit, offset, startDate, endDate, status, day, group, search }) {
         const query = db('pinjaman')
             .join('members', 'pinjaman.anggota_id', 'members.id')
             .leftJoin("pos", "members.pos_id", "pos.id")
@@ -27,6 +27,12 @@ export default class Loan {
         }
 
 
+        if (search && search !== "null") {
+            query.andWhere(function () {
+                this.where('complete_name', 'like', `%${search}%`)
+                    .orWhere('nik', 'like', `%${search}%`)
+            });
+        }
         if (status && status !== "null") {
             query.andWhere('pinjaman.status', status);
         }
@@ -39,7 +45,7 @@ export default class Loan {
             .limit(limit)
             .offset(offset)
             .select(
-                'pinjaman.*',
+                'pinjaman.*', "complete_name", "nik",
                 db.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
                 db.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`),
                 db.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
@@ -71,7 +77,9 @@ export default class Loan {
         // Buat query baru untuk count
 
         let countQuery = db('pinjaman')
-            .select('pinjaman.*')
+            .select('pinjaman.*', "complete_name", "nik   ")
+            .join('members', 'pinjaman.anggota_id', 'members.id')
+            .groupBy("pinjaman.id")
             .whereNull('pinjaman.deleted_at');
 
         if (startDate && endDate && startDate !== "null" && endDate !== "null") {
@@ -91,6 +99,12 @@ export default class Loan {
 
 
 
+        if (search && search !== "null") {
+            countQuery.andWhere(function () {
+                this.where('complete_name', 'like', `%${search}%`)
+                    .orWhere('nik', 'like', `%${search}%`)
+            });
+        }
         if (status && status !== "null") {
             countQuery.andWhere('pinjaman.status', status);
         }

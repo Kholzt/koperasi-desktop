@@ -13,6 +13,8 @@ import { GroupProps, LoanProps, PaginationProps, ScheduleProps } from "../../uti
 import Table from "./LoanTable";
 import SelectSearch from "../../components/form/SelectSearch";
 import { toLocalDate } from "../../utils/helpers";
+import { SearchIcon } from "../../icons";
+import Input from "../../components/form/input/InputField";
 
 const days = [
     'all', "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"
@@ -37,6 +39,7 @@ const Loan: React.FC = () => {
     const [dayFilter, setDayFilter] = useState("all");
     const [groupFilter, setGroupFilter] = useState("all");
     const [groups, setGroups] = useState<{ label: string, value: string }[]>([]);
+    const [search, setSearch] = useState<String | null>("");
     const [pagination, setPagination] = useState<PaginationProps>({
         page: 1,
         totalPages: 1,
@@ -47,7 +50,7 @@ const Loan: React.FC = () => {
 
     useEffect(() => {
         axios
-            .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}`)
+            .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}&search=${search}`)
             .then((res: any) => {
                 setLoans(res.data.loans);
                 setPagination(res.data.pagination);
@@ -60,8 +63,17 @@ const Loan: React.FC = () => {
                 setGroups(scheduleFilter.map((group: ScheduleProps) => ({ label: group.group.group_name + " | " + group.day, value: group.group.id })))
             });
         console.log(groupFilter, `/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}`);
-    }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter]);
+    }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search]);
 
+
+    const searchAction = (e: any) => {
+        const value = e.target.value;
+        setSearch(value)
+        setPagination((prev) => ({
+            ...prev,
+            page: 1,
+        }))
+    }
     return (
         <>
             <PageMeta title={`Peminjaman | ${import.meta.env.VITE_APP_NAME}`} description="" />
@@ -108,6 +120,17 @@ const Loan: React.FC = () => {
                     title="Peminjaman"
                     option={
                         <div className="flex gap-4">
+                            <div className="relative">
+                                <Input
+                                    onChange={searchAction}
+                                    placeholder="Pencarian"
+                                    type="text"
+                                    className="pl-[62px]"
+                                />
+                                <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                    <SearchIcon className="size-6 text-gray-600" fill="#787878" color="#fff" />
+                                </span>
+                            </div>
                             <Filter filter={filter} setFilter={setFilter} />
                             <Link to={"/loan/create"}>
                                 <Button size="sm">Tambah Peminjaman</Button>

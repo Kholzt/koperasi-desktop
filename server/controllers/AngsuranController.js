@@ -61,8 +61,8 @@ export default class AngsuranController {
             let sisaPembayaran = 0;
             let statusPinjaman = "aktif";
             const pinjaman = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
-
-            if ((parseInt(pinjaman.sisa_pembayaran) - (parseInt(jumlah_bayar) + parseInt(jumlah_katrol))) <= 0 && status != "menunggak") {
+            const jumlahBayarTotal = (parseInt(jumlah_bayar) + parseInt(jumlah_katrol));
+            if ((parseInt(pinjaman.sisa_pembayaran) - jumlahBayarTotal) <= 0 && status != "menunggak") {
                 statusPinjaman = "lunas";
             }
 
@@ -71,8 +71,9 @@ export default class AngsuranController {
             if (status != "menunggak") {
                 sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt((pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran));
                 sisaPembayaran = sisaPembayaran - parseInt(sisaPembayaran >= jumlah_katrol ? jumlah_katrol : sisaPembayaran)
-                totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(pinjaman.jumlah_angsuran) : parseInt(pinjaman.besar_tunggakan);
+                totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(jumlahBayarTotal) : parseInt(pinjaman.besar_tunggakan);
 
+                if (statusPinjaman == "lunas") totalTunggakan = 0;
                 //jika tidak ada tanggal bayar update data
                 if (!tanggal_bayar) {
                     await Angsuran.updateAngsuran(angsuran.id, {
