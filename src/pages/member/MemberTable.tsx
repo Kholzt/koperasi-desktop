@@ -118,7 +118,7 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user?.pos?.nama_pos ?? "-"}
+                                        {user?.pos?.nama_pos || "-"}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -138,7 +138,7 @@ const MemberTable: React.FC<MemberTableProps> = ({ data, pagination, setPaginate
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.description ?? "-"}
+                                        {user?.description?.trim() || "-"}
                                     </span>
                                 </TableCell>
 

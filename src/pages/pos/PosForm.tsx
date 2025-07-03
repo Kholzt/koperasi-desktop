@@ -71,8 +71,8 @@ const PosForm: React.FC = () => {
                 }, 1000);
             });
         }
-        axios.get("/api/employees?limit=2000").then(res => {
-            setStaffs(res.data.employees.map((employe: UserProps) => ({ label: employe.complete_name, value: employe.id })))
+        axios.get("/api/users?limit=2000").then(res => {
+            setStaffs(res.data.users.map((employe: UserProps) => ({ label: employe.complete_name, value: employe.id })))
         });
     }, []);
 
@@ -185,11 +185,10 @@ const PosForm: React.FC = () => {
                             </div>
                             <div>
                                 <Label>
-                                    Karyawan <span className="text-error-500">*</span>
+                                    Penanggung jawab <span className="text-error-500">*</span>
                                 </Label>
-                                <Select
-                                    placeholder="Pilih karyawan"
-                                    options={staffs}
+                                <Input
+                                    placeholder="Masukkan Penganggung Jawab"
                                     {...register("penanggung_jawab")}
                                 />
 

@@ -17,7 +17,7 @@ import { useModal } from "../../hooks/useModal";
 import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { PaginationProps, UserProps } from "../../utils/types";
-import { formatDate } from "../../utils/helpers";
+import { calculateDuration, formatDate } from "../../utils/helpers";
 // import { toast } from 'react-hot-toast';
 interface EmployeTableProps {
     data: UserProps[],
@@ -40,6 +40,12 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
                                 No
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                NIP
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -75,6 +81,12 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                Alamat
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Tanggal Masuk
                             </TableCell>
                             <TableCell
@@ -82,6 +94,12 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
                                 Tanggal Keluar
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                Masa Kerja
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -100,8 +118,17 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
 
                     {/* Table Body */}
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                        {data.map((user: UserProps, index: number) => (
-                            <TableRow key={user.id}>
+                        {data.map((user: UserProps, index: number) => {
+                            let masa_kerja = "-";
+                            if (user.tanggal_masuk && user.tanggal_keluar) {
+                                const start = new Date(user.tanggal_masuk);
+                                const end = new Date(user.tanggal_keluar);
+                                const diff = calculateDuration(start, end);
+                                if (end > start) {
+                                    masa_kerja = `${diff.years} tahun ${diff.months} bulan ${diff.days} hari`;
+                                }
+                            }
+                            return <TableRow key={user.id}>
                                 <TableCell className="px-5 py-4 sm:px-6 text-start">
                                     <div className="flex items-center gap-3">
                                         <div>
@@ -110,6 +137,11 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                             </span>
                                         </div>
                                     </div>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.nip ?? "-"}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
@@ -139,12 +171,22 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.address ? user.address : "-"}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
                                         {user.tanggal_masuk ? formatDate(user.tanggal_masuk) : "-"}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
                                         {user.tanggal_keluar ? formatDate(user.tanggal_keluar) : "-"}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {masa_kerja}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
@@ -159,7 +201,8 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                     <Action id={user.id} complete_name={user.complete_name} />
                                 </TableCell>
                             </TableRow>
-                        ))}
+
+                        })}
 
                         {data.length === 0 && <TableRow >
                             <TableCell colSpan={10} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">

@@ -20,7 +20,7 @@ const Schedule: React.FC = () => {
     });
     const { reload } = useTheme();
     useEffect(() => {
-        axios.get(`/api/schedule?page=${pagination?.page}&search=${search}`).then((res: any) => {
+        axios.get(`/api/schedule?page=${pagination?.page}&search=${search}&status=all`).then((res: any) => {
             setSchedules(res.data.schedule)
             setPagination(res.data.pagination)
         });

@@ -3,13 +3,13 @@ import ScheduleModel from '../models/Schedule.js';
 
 export default class ScheduleController {
     static async index(req, res) {
-        const { page = 1, limit = 10, day } = req.query;
+        const { page = 1, limit = 10, day, status = "aktif" } = req.query;
 
         try {
             const offset = (parseInt(page) - 1) * parseInt(limit);
-            const rows = await ScheduleModel.findAll({ limit: parseInt(limit), offset, day });
+            const rows = await ScheduleModel.findAll({ limit: parseInt(limit), offset, day, status });
 
-            const total = await ScheduleModel.getTotal(day);
+            const total = await ScheduleModel.getTotal(day, status);
 
             const schedule = rows.map(row => ({
                 id: row.id,

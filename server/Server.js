@@ -46,6 +46,8 @@ app.delete('/api/users/:id', UserController.delete);
 // karyawan
 app.get('/api/employees', EmployeController.index);
 app.get('/api/employees/count', EmployeController.count);
+app.get('/api/employees/getNip', EmployeController.generateNip);
+app.get('/api/employees/checkNip', EmployeController.checkNip);
 app.post('/api/employees', EmployeController.store);
 app.get('/api/employees/:id', EmployeController.show);
 app.put('/api/employees/:id', EmployeController.update);

@@ -26,6 +26,8 @@ interface EmployeFormInput {
     // role: 'staff' | 'controller' | 'pusat';
     // access_apps: 'access' | 'noAccess';
     jenis_ijazah: string,
+    nip: string,
+    address: string,
     masa_kerja: string,
     tanggal_masuk: string,
     tanggal_keluar: string,
@@ -37,8 +39,10 @@ interface EmployeFormInput {
 
 
 const schema: yup.SchemaOf<EmployeFormInput> = yup.object({
+    nip: yup.string().required('NIP wajib diisi'),
     complete_name: yup.string().required('Nama Lengkap wajib diisi'),
     tanggal_masuk: yup.string().required('Tanggal Masuk wajib diisi'),
+    address: yup.string().required('Alamat wajib diisi'),
     pos_id: yup.string().required('Pos wajib dipilih'),
     jenis_ijazah: yup.string().required('Jenis Ijazah wajib diisi'),
     position: yup.string().required('Posisi wajib diisi'),
@@ -55,7 +59,7 @@ const EmployeForm: React.FC = () => {
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
-
+    const [disabled, setDisabled] = useState(false);
     const isUpdate = !!id;
     const {
         register,
@@ -74,11 +78,14 @@ const EmployeForm: React.FC = () => {
             setLoading(true)
             axios.get("/api/employees/" + id).then((res: any) => {
                 const { user } = res.data;
-
                 reset({ ...user, tanggal_masuk: user.tanggal_masuk ? toLocalDate(new Date(user.tanggal_masuk)) : null, tanggal_keluar: user.tanggal_keluar ? toLocalDate(new Date(user.tanggal_keluar)) : null })
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
+            });
+        } else {
+            axios.get("/api/employees/getNip").then(res => {
+                reset({ nip: res.data.nip })
             });
         }
         axios.get("/api/pos?limit=20000").then(res => {
@@ -90,6 +97,7 @@ const EmployeForm: React.FC = () => {
 
     const tanggalKeluar = watch("tanggal_keluar");
     const tanggalMasuk = watch("tanggal_masuk");
+    const nip = watch("nip");
 
     useEffect(() => {
         if (tanggalKeluar && tanggalMasuk) {
@@ -104,7 +112,23 @@ const EmployeForm: React.FC = () => {
             const diff = calculateDuration(start, end);
             setValue("masa_kerja", `${diff.years} tahun ${diff.months} bulan ${diff.days} hari`);
         }
-    }, [tanggalKeluar, tanggalMasuk, setValue]);
+        if (nip) {
+            axios.get(`/api/employees/checkNip?nip=${nip}&ignoreId=${id ?? null}`).then((res: any) => {
+                const { isExist } = res.data;
+                if (isExist) {
+                    setError("nip", {
+                        type: 'manual',
+                        message: "Nip sudah ada", // Pesan error dari response
+                    });
+                } else {
+                    setError("nip", {
+                        type: 'manual',
+                        message: "", // Pesan error dari response
+                    });
+                }
+            });
+        }
+    }, [tanggalKeluar, tanggalMasuk, setValue, nip]);
 
 
     const onSubmit = async (data: EmployeFormInput) => {
@@ -167,6 +191,18 @@ const EmployeForm: React.FC = () => {
                 <ComponentCard title={!id ? "Tambah Pengguna" : "Ubah Pengguna"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
+                            <div className="col-span-2">
+                                <Label>
+                                    NIP <span className="text-error-500">*</span>
+                                </Label>
+                                <Input
+                                    placeholder="Masukkan NIP"
+                                    {...register("nip")}
+                                />
+                                {errors.nip && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.nip.message}</p>
+                                )}
+                            </div>
                             <div>
                                 <Label>
                                     Nama Lengkap <span className="text-error-500">*</span>
@@ -253,6 +289,18 @@ const EmployeForm: React.FC = () => {
                             </div>
                             <div>
                                 <Label>
+                                    Alamat <span className="text-error-500">*</span>
+                                </Label>
+                                <Input
+                                    placeholder="Masukkan alamat"
+                                    {...register("address")}
+                                />
+                                {errors.address && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.address.message}</p>
+                                )}
+                            </div>
+                            <div>
+                                <Label>
                                     Pos <span className="text-error-500">*</span>
                                 </Label>
                                 <Select options={pos} placeholder="Pilih pos" {...register("pos_id")} />
@@ -284,7 +332,7 @@ const EmployeForm: React.FC = () => {
                             </div>
                         </div>
                         <div>
-                            <Button size="sm">Simpan</Button>
+                            <Button disabled={disabled} size="sm">Simpan</Button>
                         </div>
                     </Form>
 
