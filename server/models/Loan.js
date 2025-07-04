@@ -182,6 +182,7 @@ export default class Loan {
         const loan = db("pinjaman").where("kode", kode)
             .join("members", "pinjaman.anggota_id", "members.id")
             .where("members.area_id", member.area_id)
+            .whereNull("pinjaman.deleted_at")
         if (excludeId) loan.andWhereNot("pinjaman.id", excludeId)
         return await loan.first();
     }
