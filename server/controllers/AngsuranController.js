@@ -61,18 +61,18 @@ export default class AngsuranController {
             let sisaPembayaran = 0;
             let statusPinjaman = "aktif";
             const pinjaman = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
-
-            if ((parseInt(pinjaman.sisa_pembayaran) - (parseInt(jumlah_bayar) + parseInt(jumlah_katrol))) <= 0 && status != "menunggak") {
+            const jumlahBayarTotal = (parseInt(jumlah_bayar) + parseInt(jumlah_katrol));
+            if ((parseInt(pinjaman.sisa_pembayaran) - jumlahBayarTotal) <= 0 && status != "menunggak") {
                 statusPinjaman = "lunas";
             }
-
             const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
             let angsuran_id = angsuran.id;
             if (status != "menunggak") {
                 sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt((pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran));
                 sisaPembayaran = sisaPembayaran - parseInt(sisaPembayaran >= jumlah_katrol ? jumlah_katrol : sisaPembayaran)
-                totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(pinjaman.jumlah_angsuran) : parseInt(pinjaman.besar_tunggakan);
+                totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(jumlahBayarTotal) : parseInt(pinjaman.besar_tunggakan);
 
+                if (statusPinjaman == "lunas") totalTunggakan = 0;
                 //jika tidak ada tanggal bayar update data
                 if (!tanggal_bayar) {
                     await Angsuran.updateAngsuran(angsuran.id, {
@@ -91,7 +91,11 @@ export default class AngsuranController {
                         status
                     });
                 }
-                await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
+                await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+                    sisa_pembayaran: sisaPembayaran,
+                    //  besar_tunggakan: totalTunggakan,
+                    status: statusPinjaman
+                });
 
             } else {
                 sisaPembayaran = parseInt(pinjaman.sisa_pembayaran);
@@ -138,8 +142,7 @@ export default class AngsuranController {
 
             //handle jika angsuran terakhir tapi belum lunas
             const angsuranTerakhir = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman, angsuran.id);
-            const pinjamanTerakhir = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
-            if (!angsuranTerakhir && (parseInt(pinjamanTerakhir.sisa_pembayaran) - (parseInt(jumlah_bayar) + parseInt(jumlah_katrol))) >= 0 && status != "menunggak") {
+            if (!angsuranTerakhir && statusPinjaman != "lunas") {
                 const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
                 let isAktifAdded = false;
                 while (!isAktifAdded) {
