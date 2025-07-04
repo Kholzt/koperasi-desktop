@@ -65,7 +65,6 @@ export default class AngsuranController {
             if ((parseInt(pinjaman.sisa_pembayaran) - jumlahBayarTotal) <= 0 && status != "menunggak") {
                 statusPinjaman = "lunas";
             }
-
             const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
             let angsuran_id = angsuran.id;
             if (status != "menunggak") {
@@ -92,7 +91,11 @@ export default class AngsuranController {
                         status
                     });
                 }
-                await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
+                await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+                    sisa_pembayaran: sisaPembayaran,
+                    //  besar_tunggakan: totalTunggakan,
+                    status: statusPinjaman
+                });
 
             } else {
                 sisaPembayaran = parseInt(pinjaman.sisa_pembayaran);
@@ -139,8 +142,7 @@ export default class AngsuranController {
 
             //handle jika angsuran terakhir tapi belum lunas
             const angsuranTerakhir = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman, angsuran.id);
-            const pinjamanTerakhir = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
-            if (!angsuranTerakhir && (parseInt(pinjamanTerakhir.sisa_pembayaran) - (parseInt(jumlah_bayar) + parseInt(jumlah_katrol))) >= 0 && status != "menunggak") {
+            if (!angsuranTerakhir && statusPinjaman != "lunas") {
                 const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
                 let isAktifAdded = false;
                 while (!isAktifAdded) {
