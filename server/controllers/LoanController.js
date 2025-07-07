@@ -348,7 +348,7 @@ export default class LoanController {
             };
             // Update data
             await Loan.update(data, id)
-
+            await Loan.updateSisaPembayaran(id);
 
             const updatedPinjaman = await Loan.findById(id);
             await trx.commit();
