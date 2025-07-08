@@ -218,4 +218,20 @@ export default class Loan {
         return total > 0;
     }
 
+
+    static async updateSisaPembayaran(idPinjaman) {
+        const pinjaman = await db("pinjaman").where("id", idPinjaman).first();
+        const [sumResult] = await db("angsuran")
+            .where("id_pinjaman", idPinjaman)
+            .sum({ total_katrol: "jumlah_katrol" })
+            .sum({ total_bayar: "jumlah_bayar" });
+
+        const totalAngsuran = (Number(sumResult.total_katrol) || 0) + (Number(sumResult.total_bayar) || 0);
+        const sisaPembayaran = Number(pinjaman.total_pinjaman) - totalAngsuran;
+        console.log(sisaPembayaran, totalAngsuran);
+        return await db("pinjaman").where("id", idPinjaman).update({
+            sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran,
+        });
+    }
+
 }

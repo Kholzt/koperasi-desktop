@@ -84,7 +84,5 @@ export default class Angsuran {
             sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran,
             status: sisaPembayaran <= 0 ? "lunas" : "aktif"
         });
-
-
     }
 }
