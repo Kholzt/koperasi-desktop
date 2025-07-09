@@ -62,12 +62,12 @@ export default class AngsuranController {
             let statusPinjaman = "aktif";
             const pinjaman = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
             const jumlahBayarTotal = (parseInt(jumlah_bayar) + parseInt(jumlah_katrol));
-            if ((parseInt(pinjaman.sisa_pembayaran) - jumlahBayarTotal) <= 0 && status != "menunggak") {
+            if ((parseInt(pinjaman.sisa_pembayaran) - jumlahBayarTotal) <= 0 && (status != "menunggak" && status != 'Libur Operasional')) {
                 statusPinjaman = "lunas";
             }
             const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
             let angsuran_id = angsuran.id;
-            if (status != "menunggak") {
+            if ((status != "menunggak" && status != 'Libur Operasional')) {
                 sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt((pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran));
                 sisaPembayaran = sisaPembayaran - parseInt(sisaPembayaran >= jumlah_katrol ? jumlah_katrol : sisaPembayaran)
                 totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(jumlahBayarTotal) : parseInt(pinjaman.besar_tunggakan);
@@ -102,7 +102,7 @@ export default class AngsuranController {
                 sisaPembayaran = sisaPembayaran - parseInt(sisaPembayaran >= jumlah_katrol ? jumlah_katrol : sisaPembayaran)
                 totalTunggakan = parseInt(pinjaman.besar_tunggakan) + parseInt(pinjaman.jumlah_angsuran)
                 if (!tanggal_bayar) {
-                    await Angsuran.updateAngsuran(angsuran.id, { status: "menunggak" });
+                    await Angsuran.updateAngsuran(angsuran.id, { status: status });
                 } else {
                     angsuran_id = await Angsuran.createAngsuran({
                         idPinjaman,
@@ -268,6 +268,19 @@ export default class AngsuranController {
         } catch (error) {
             await trx.rollback();
             res.status(500).json({ error: error.message });
+        }
+    }
+
+    static async lastAngsuran(req, res) {
+        try {
+            const { id } = req.params;
+            const angsuran = await Angsuran.getAngsuranAktifByIdPeminjaman(id);
+            res.json({
+                angsuran
+            })
+
+        } catch (error) {
+            res.json({ error })
         }
     }
 }

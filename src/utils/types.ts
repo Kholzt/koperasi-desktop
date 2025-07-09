@@ -63,7 +63,7 @@ export interface AngsuranProps{
     jumlah_angsuran?:number,
     jumlah_katrol:number,
     asal_pembayaran:"anggota"|"penagih"|"katrol",
-    status:"lunas"|"menunggak"|"aktif"|"libur",
+    status:"lunas"|"menunggak"|"aktif"|"libur"|"Libur Operasional",
 
     tanggal_pembayaran:Date,
     }

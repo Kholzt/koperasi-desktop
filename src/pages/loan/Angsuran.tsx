@@ -18,14 +18,14 @@ import { useTheme } from "../../context/ThemeContext";
 import axios from "../../utils/axios";
 import { formatCurrency, unformatCurrency } from "../../utils/helpers";
 import { AngsuranProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
-
+import { formatDate } from './../../utils/helpers';
 
 interface FormInputs {
     asal_pembayaran: string;
     jumlah_bayar: string;
     jumlah_katrol: string;
     penagih: string[]; // atau number[] tergantung data
-    status: "lunas" | "menunggak" | "kurang" | "lebih";
+    status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional';
 };
 
 const schema: yup.SchemaOf<FormInputs> = yup.object({
@@ -36,8 +36,8 @@ const schema: yup.SchemaOf<FormInputs> = yup.object({
         .required('Silahkan pilih penagih'))
         .min(1, "Minimal pilih satu penagih")
         .required('Penagih wajib dipilih'),
-    status: yup.mixed<"lunas" | "menunggak" | "kurang" | "lebih">()
-        .oneOf(["lunas", "menunggak", "kurang", "lebih"], "Status tidak valid")
+    status: yup.mixed<"lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional'>()
+        .oneOf(["lunas", "menunggak", "kurang", "lebih", 'Libur Operasional'], "Status tidak valid")
         .required("Status wajib diisi"),
 });
 
@@ -59,10 +59,10 @@ const Angsuran: React.FC = () => {
 
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
-            console.log(res.data.loan);
             setLoans(res.data.loan)
             if (!idAngsuran) reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) });
         });
+
         axios.get("/api/employees?limit=2000").then(res => {
             setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
         });
@@ -70,9 +70,14 @@ const Angsuran: React.FC = () => {
             setIsLoading(true)
             axios.get(`/api/angsuran/${idAngsuran}`).then((res: any) => {
                 const { data: { angsuran } } = res;
+                setAngsuran(angsuran)
                 reset({ jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) });
                 setIsLoading(false)
 
+            });
+        } else {
+            axios.get(`/api/angsuran/aktif/${id}`).then((res: any) => {
+                setAngsuran(res.data.angsuran)
             });
         }
     }, [pagination.page, reload]);
@@ -90,7 +95,7 @@ const Angsuran: React.FC = () => {
 
     useEffect(() => {
         if (lunasUpdate) {
-            setisLunas(lunasUpdate != "menunggak")
+            setisLunas((lunasUpdate != "menunggak" && lunasUpdate != 'Libur Operasional'))
         }
     }, [lunasUpdate]);
 
@@ -109,8 +114,9 @@ const Angsuran: React.FC = () => {
         }
     }, [jumlahBayar, jumlahKatrol]);
     const onSubmit = async (data: FormInputs) => {
+
         try {
-            if (!data.asal_pembayaran && data.status != "menunggak") return setError("asal_pembayaran", {
+            if (!data.asal_pembayaran && (data.status != "menunggak" && data.status != "Libur Operasional")) return setError("asal_pembayaran", {
                 type: "required",
                 message: "Asal pembayaran wajib diisi"
             })
@@ -138,11 +144,13 @@ const Angsuran: React.FC = () => {
             <PageMeta
                 title={`Angsuran | ${import.meta.env.VITE_APP_NAME}`}
                 description=""
+
             />
             <PageBreadcrumb pageTitle="Angsuran" />
 
             <div className="space-y-6">
                 <ComponentCard title="Angsuran" >
+                    <h2 className="text-white">Angsuran tanggal : {formatDate(angsuran?.tanggal_pembayaran ?? "")}</h2>
                     <form onSubmit={handleSubmit(onSubmit)} className={` py-4 px-4 rounded-sm`}>
                         <div className="grid grid-cols-2 gap-4 mb-4" >
                             <div className="col-span-2">
@@ -172,8 +180,9 @@ const Angsuran: React.FC = () => {
                                     options={[
                                         { label: "Lunas", value: "lunas" },
                                         { label: "Menunggak", value: "menunggak" },
+                                        { label: "Lebih", value: "lebih" },
                                         { label: "Kurang", value: "kurang" },
-                                        { label: "Lebih", value: "lebih" }
+                                        { label: 'Libur Operasional', value: 'Libur Operasional' },
                                     ]} placeholder="Pilih status angsuran" {...register("status")} />
                                 {errors.status && (
                                     <p className="mt-1 text-sm text-red-500">{errors.status.message}</p>

@@ -114,8 +114,10 @@ const LoanDetail: React.FC = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {(loan?.angsuran?.length ?? 0) > 0 ? (
-                                loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => (
-                                    <tr
+                                loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => {
+                                    console.log(angsuran.status);
+                                    const canEdit = (angsuran.status != "menunggak" && angsuran.status != "Libur Operasional" && angsuran.status != "libur" && angsuran.status != "aktif") && user?.role != "staff";
+                                    return <tr
                                         key={index}
                                         className={angsuran.asal_pembayaran === "anggota" ? "bg-blue-500 text-white" : (angsuran.asal_pembayaran == "penagih" || angsuran.asal_pembayaran == "katrol" ? "bg-red-500" : (angsuran.status == "libur" ? "bg-yellow-500" : " "))}
                                     >
@@ -129,10 +131,10 @@ const LoanDetail: React.FC = () => {
                                             {angsuran.tanggal_pembayaran ? formatLongDate(angsuran.tanggal_pembayaran) : "-"}
                                         </td>
                                         <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">
-                                            {angsuran.status != "menunggak" && angsuran.status != "libur" && angsuran.status != "aktif" && user?.role != "staff" && <Link to={`/loan/${loan.id}/angsuran/${angsuran.id}`}><PencilIcon fontSize={20} /></Link>}
+                                            {canEdit && <Link to={`/loan/${loan.id}/angsuran/${angsuran.id}`}><PencilIcon fontSize={20} /></Link>}
                                         </td>
                                     </tr>
-                                ))
+                                })
                             ) : (
                                 <tr>
                                     <td colSpan={4} className="p-3 divide-y divide-gray-100 dark:divide-white/[0.05] text-center">
