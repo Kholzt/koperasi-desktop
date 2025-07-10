@@ -114,7 +114,8 @@ export default class AngsuranController {
                     });
                 }
 
-                await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
+                if (status == "menunggak")
+                    await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
 
 
                 const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
