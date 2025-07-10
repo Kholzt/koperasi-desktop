@@ -12,6 +12,7 @@ import Button from "../../components/ui/button/Button";
 import { Modal } from "../../components/ui/modal";
 import AngsuranModal from './AngsuranModal';
 import { useUser } from "../../hooks/useUser";
+import Badge from "../../components/ui/badge/Badge";
 const LoanDetail: React.FC = () => {
     const { id } = useParams();
     const [loan, setLoan] = useState<LoanProps | null>(null);
@@ -100,7 +101,9 @@ const LoanDetail: React.FC = () => {
                     </div>
 
                 </ComponentCard>
-                <ComponentCard title="Detail Angsuran" option={loan?.status != "lunas" && user?.role != "staff" && <Button type="button" onClick={() => setShowModal(true)}>Tambah angsuran</Button>}>
+                <ComponentCard title="Detail Angsuran" option={
+                    loan?.status != "lunas" && user?.role != "staff" && <Button type="button" onClick={() => setShowModal(true)}>Tambah angsuran</Button>
+                }>
                     <table className="min-w-full text-sm border rounded-md overflow-hidden bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
                         <thead className=" text-gray-700">
                             <tr>
@@ -115,12 +118,9 @@ const LoanDetail: React.FC = () => {
                         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {(loan?.angsuran?.length ?? 0) > 0 ? (
                                 loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => {
-                                    console.log(angsuran.status);
                                     const canEdit = (angsuran.status != "menunggak" && angsuran.status != "Libur Operasional" && angsuran.status != "libur" && angsuran.status != "aktif") && user?.role != "staff";
-                                    return <tr
-                                        key={index}
-                                        className={angsuran.asal_pembayaran === "anggota" ? "bg-blue-500 text-white" : (angsuran.asal_pembayaran == "penagih" || angsuran.asal_pembayaran == "katrol" ? "bg-red-500" : (angsuran.status == "libur" ? "bg-yellow-500" : " "))}
-                                    >
+                                    return <tr key={index} className={getRowClass(angsuran)}>
+
                                         <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{formatCurrency(angsuran.jumlah_bayar)}</td>
                                         <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{formatCurrency(angsuran.jumlah_katrol)}</td>
                                         <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">{angsuran?.penagih.length > 0 ? angsuran?.penagih?.map((p: any) => {
@@ -158,3 +158,22 @@ const LoanDetail: React.FC = () => {
 }
 
 export default LoanDetail;
+
+
+function getRowClass(angsuran) {
+    if (angsuran.asal_pembayaran === "anggota") {
+        return "bg-blue-500 text-white";
+    } else if (angsuran.asal_pembayaran === "penagih" || angsuran.asal_pembayaran === "katrol") {
+        return "bg-red-500";
+    } else if (angsuran.status === "libur") {
+        return "bg-yellow-500";
+        // } else if (angsuran.status === "Libur Operasional") {
+        //     return "bg-gray-500";
+    } else {
+        return "";
+    }
+}
+
+function CustomBadge({ children }: { children: React.ReactNode }) {
+    return <span className="inline-flex items-center px-2.5 py-0.5 justify-center gap-1 rounded-full font-medium">{children}</span>
+}
