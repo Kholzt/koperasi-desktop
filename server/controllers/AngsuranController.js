@@ -230,6 +230,7 @@ export default class AngsuranController {
                 await Angsuran.createPenagihAngsuran({ id_karyawan: p, id_angsuran: id });
             }
             await Angsuran.updateSisaPembayaran(angsuran.id_pinjaman);
+            await Angsuran.updateTunggakan(angsuran.id_pinjaman);
 
 
             const formatDate = (date) => {

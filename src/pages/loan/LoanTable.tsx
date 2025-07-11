@@ -44,6 +44,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                             >
                                 No
                             </TableCell>
+
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -56,7 +57,12 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                             >
                                 NIK
                             </TableCell>
-
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                Kode Pinjaman
+                            </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -115,6 +121,7 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                                         </div>
                                     </div>
                                 </TableCell>
+
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
 
@@ -126,7 +133,12 @@ const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) 
                                         {user.anggota.nik}
                                     </span>
                                 </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
 
+                                        {user.kode ?? "-"}
+                                    </span>
+                                </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
                                         {user.anggota.complete_name}
