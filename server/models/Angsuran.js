@@ -85,4 +85,20 @@ export default class Angsuran {
             status: sisaPembayaran <= 0 ? "lunas" : "aktif"
         });
     }
+    static async updateTunggakan(idPinjaman) {
+        const pinjaman = await db("pinjaman").where("id", idPinjaman).first();
+
+        const [{ total }] = await db("angsuran")
+            .where("id_pinjaman", idPinjaman)
+            .where("status", "menunggak")
+            .count({ total: "*" });
+
+        const jumlahMenunggak = parseInt(total, 10); // atau: Number(total)
+        const totalTunggakan = pinjaman.jumlah_angsuran * jumlahMenunggak;
+
+        return await db("pinjaman").where("id", idPinjaman).update({
+            besar_tunggakan: totalTunggakan
+        });
+    }
+
 }
