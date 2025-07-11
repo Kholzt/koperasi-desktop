@@ -166,7 +166,7 @@ export default class AngsuranController {
                     }
                 }
             }
-
+            await Angsuran.updateTunggakan(idPinjaman);
             for (const p of penagih) {
                 await Angsuran.createPenagihAngsuran({ id_karyawan: p, id_angsuran: angsuran_id });
             }
