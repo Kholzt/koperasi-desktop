@@ -70472,6 +70472,15 @@ class Angsuran {
       status: sisaPembayaran <= 0 ? "lunas" : "aktif"
     });
   }
+  static async updateTunggakan(idPinjaman) {
+    const pinjaman = await db$1("pinjaman").where("id", idPinjaman).first();
+    const [{ total }] = await db$1("angsuran").where("id_pinjaman", idPinjaman).where("status", "menunggak").count({ total: "*" });
+    const jumlahMenunggak = parseInt(total, 10);
+    const totalTunggakan = pinjaman.jumlah_angsuran * jumlahMenunggak;
+    return await db$1("pinjaman").where("id", idPinjaman).update({
+      besar_tunggakan: totalTunggakan
+    });
+  }
 }
 var lib = {};
 var exact = {};
@@ -84391,12 +84400,12 @@ class AngsuranController {
       let statusPinjaman = "aktif";
       const pinjaman = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
       const jumlahBayarTotal = parseInt(jumlah_bayar) + parseInt(jumlah_katrol);
-      if (parseInt(pinjaman.sisa_pembayaran) - jumlahBayarTotal <= 0 && status != "menunggak") {
+      if (parseInt(pinjaman.sisa_pembayaran) - jumlahBayarTotal <= 0 && (status != "menunggak" && status != "Libur Operasional")) {
         statusPinjaman = "lunas";
       }
       const lastAngsuran = await Angsuran.getLastAngsuran(angsuran.id_pinjaman);
       let angsuran_id = angsuran.id;
-      if (status != "menunggak") {
+      if (status != "menunggak" && status != "Libur Operasional") {
         sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt(pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran);
         sisaPembayaran = sisaPembayaran - parseInt(sisaPembayaran >= jumlah_katrol ? jumlah_katrol : sisaPembayaran);
         totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(jumlahBayarTotal) : parseInt(pinjaman.besar_tunggakan);
@@ -84418,13 +84427,17 @@ class AngsuranController {
             status
           });
         }
-        await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
+        await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+          sisa_pembayaran: sisaPembayaran,
+          //  besar_tunggakan: totalTunggakan,
+          status: statusPinjaman
+        });
       } else {
         sisaPembayaran = parseInt(pinjaman.sisa_pembayaran);
         sisaPembayaran = sisaPembayaran - parseInt(sisaPembayaran >= jumlah_katrol ? jumlah_katrol : sisaPembayaran);
         totalTunggakan = parseInt(pinjaman.besar_tunggakan) + parseInt(pinjaman.jumlah_angsuran);
         if (!tanggal_bayar) {
-          await Angsuran.updateAngsuran(angsuran.id, { status: "menunggak" });
+          await Angsuran.updateAngsuran(angsuran.id, { status });
         } else {
           angsuran_id = await Angsuran.createAngsuran({
             idPinjaman,
@@ -84435,7 +84448,8 @@ class AngsuranController {
             status
           });
         }
-        await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
+        if (status == "menunggak")
+          await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
         const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
         let isAktifAdded = false;
         while (!isAktifAdded) {
@@ -84458,8 +84472,7 @@ class AngsuranController {
         }
       }
       const angsuranTerakhir = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman, angsuran.id);
-      const pinjamanTerakhir = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
-      if (!angsuranTerakhir && parseInt(pinjamanTerakhir.sisa_pembayaran) - (parseInt(jumlah_bayar) + parseInt(jumlah_katrol)) >= 0 && status != "menunggak") {
+      if (!angsuranTerakhir && statusPinjaman != "lunas") {
         const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
         let isAktifAdded = false;
         while (!isAktifAdded) {
@@ -84481,6 +84494,7 @@ class AngsuranController {
           }
         }
       }
+      await Angsuran.updateTunggakan(idPinjaman);
       for (const p2 of penagih) {
         await Angsuran.createPenagihAngsuran({ id_karyawan: p2, id_angsuran: angsuran_id });
       }
@@ -84528,6 +84542,7 @@ class AngsuranController {
         await Angsuran.createPenagihAngsuran({ id_karyawan: p2, id_angsuran: id });
       }
       await Angsuran.updateSisaPembayaran(angsuran.id_pinjaman);
+      await Angsuran.updateTunggakan(angsuran.id_pinjaman);
       const formatDate2 = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -84562,6 +84577,17 @@ class AngsuranController {
     } catch (error) {
       await trx.rollback();
       res.status(500).json({ error: error.message });
+    }
+  }
+  static async lastAngsuran(req, res) {
+    try {
+      const { id } = req.params;
+      const angsuran = await Angsuran.getAngsuranAktifByIdPeminjaman(id);
+      res.json({
+        angsuran
+      });
+    } catch (error) {
+      res.json({ error });
     }
   }
 }
@@ -87231,7 +87257,7 @@ class Loan {
   }
   static async existLoan(anggota_id, kode, excludeId) {
     const member = await db$1("members").where("id", anggota_id).first();
-    const loan = db$1("pinjaman").where("kode", kode).join("members", "pinjaman.anggota_id", "members.id").where("members.area_id", member.area_id);
+    const loan = db$1("pinjaman").where("kode", kode).join("members", "pinjaman.anggota_id", "members.id").where("members.area_id", member.area_id).whereNull("pinjaman.deleted_at");
     if (excludeId) loan.andWhereNot("pinjaman.id", excludeId);
     return await loan.first();
   }
@@ -87257,6 +87283,16 @@ class Loan {
   static async findByTanggal(id, tanggal) {
     const [{ total }] = await db$1("angsuran").where("id_pinjaman", id).where("tanggal_pembayaran", tanggal).count({ total: "*" });
     return total > 0;
+  }
+  static async updateSisaPembayaran(idPinjaman) {
+    const pinjaman = await db$1("pinjaman").where("id", idPinjaman).first();
+    const [sumResult] = await db$1("angsuran").where("id_pinjaman", idPinjaman).sum({ total_katrol: "jumlah_katrol" }).sum({ total_bayar: "jumlah_bayar" });
+    const totalAngsuran = (Number(sumResult.total_katrol) || 0) + (Number(sumResult.total_bayar) || 0);
+    const sisaPembayaran = Number(pinjaman.total_pinjaman) - totalAngsuran;
+    console.log(sisaPembayaran, totalAngsuran);
+    return await db$1("pinjaman").where("id", idPinjaman).update({
+      sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran
+    });
   }
 }
 class LoanController {
@@ -87343,8 +87379,9 @@ class LoanController {
   static async getCode(req, res) {
     try {
       const { id } = req.params;
-      const rows = await db$1("pinjaman").where("anggota_id", id);
+      const rows = await db$1("pinjaman").where("anggota_id", id).whereNull("deleted_at");
       const member = await db$1("members").select("sequence_number").where("id", id).first();
+      console.log(rows);
       let num = rows.length + 1;
       const roman = [
         ["M", 1e3],
@@ -87543,10 +87580,11 @@ class LoanController {
         persen_bunga,
         status,
         petugas_input,
-        total_bunga,
-        sisa_pembayaran: total_pinjaman
+        total_bunga
+        // sisa_pembayaran: total_pinjaman
       };
       await Loan.update(data2, id);
+      await Loan.updateSisaPembayaran(id);
       const updatedPinjaman = await Loan.findById(id);
       await trx.commit();
       res.status(200).json({
@@ -87630,7 +87668,7 @@ class Member {
     ).leftJoin("pos", "m.pos_id", "pos.id").whereNull("m.deleted_at").andWhere("m.id", id).first();
   }
   static async getSequenceNumber(area_id) {
-    return await db$1("members").where("area_id", area_id).whereNull("deleted_at").orderBy("created_at", "desc").first();
+    return await db$1("members").where("area_id", area_id).whereNull("deleted_at").orderBy("sequence_number", "desc").first();
   }
   static async create(data2) {
     const [id] = await db$1("members").insert(data2);
@@ -88299,6 +88337,7 @@ app.delete("/api/loans/:id", LoanController.delete);
 app.get("/api/angsuran/:id", AngsuranController.index);
 app.post("/api/angsuran/:idPinjaman", AngsuranController.store);
 app.put("/api/angsuran/:id", AngsuranController.update);
+app.get("/api/angsuran/aktif/:id", AngsuranController.lastAngsuran);
 app.get("/api/configLoan", (req, res) => {
   const totalBulan = process.env.VITE_APP_BULAN || 10;
   const modalDo = process.env.VITE_APP_MODAL_DO || 13;
