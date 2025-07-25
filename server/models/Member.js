@@ -59,7 +59,7 @@ export default class Member {
             .first();
     }
     static async getSequenceNumber(area_id) {
-        return await db("members").where("area_id", area_id).whereNull('deleted_at').orderBy("created_at", "desc").first();
+        return await db("members").where("area_id", area_id).whereNull('deleted_at').orderBy("sequence_number", "desc").first();
     }
     static async create(data) {
         const [id] = await db("members").insert(data);
