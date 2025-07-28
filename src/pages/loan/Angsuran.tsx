@@ -63,7 +63,7 @@ const Angsuran: React.FC = () => {
             if (!idAngsuran) reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) });
         });
 
-        axios.get("/api/employees?limit=2000").then(res => {
+        axios.get("/api/employees?limit=20000000").then(res => {
             setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
         });
         if (idAngsuran) {

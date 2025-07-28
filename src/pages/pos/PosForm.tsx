@@ -71,7 +71,7 @@ const PosForm: React.FC = () => {
                 }, 1000);
             });
         }
-        axios.get("/api/users?limit=2000").then(res => {
+        axios.get("/api/users?limit=20000000").then(res => {
             setStaffs(res.data.users.map((employe: UserProps) => ({ label: employe.complete_name, value: employe.id })))
         });
     }, []);

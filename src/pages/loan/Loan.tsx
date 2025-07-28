@@ -56,7 +56,7 @@ const Loan: React.FC = () => {
                 setPagination(res.data.pagination);
             });
         axios
-            .get(`/api/schedule?limit=2000`)
+            .get(`/api/schedule?limit=20000000`)
             .then((res: any) => {
                 const { schedule } = res.data
                 let scheduleFilter = schedule.filter((s: any) => dayFilter == "all" || s.day == dayFilter);
