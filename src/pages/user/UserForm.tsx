@@ -70,7 +70,7 @@ const UserForm: React.FC = () => {
                 }, 1000);
             });
         }
-        axios.get("/api/pos?limit=20000").then(res => {
+        axios.get("/api/pos?limit=200000000").then(res => {
             setPos(res.data.pos.map((p: any) => ({ label: p.nama_pos, value: p.id })))
         });
     }, []);

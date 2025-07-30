@@ -91,11 +91,11 @@ const MemberForm: React.FC = () => {
                 }, 1000);
             });
         }
-        axios.get("/api/areas?limit=2000").then(res => {
+        axios.get("/api/areas?limit=20000000").then(res => {
             setAreas(res.data.areas.map((area: AreaProps) => ({ label: area.area_name, value: area.id })))
         });
 
-        axios.get("/api/pos?limit=20000").then(res => {
+        axios.get("/api/pos?limit=200000000").then(res => {
             setPos(res.data.pos.map((p: any) => ({ label: p.nama_pos, value: p.id })))
         });
     }, []);

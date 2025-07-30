@@ -199,10 +199,10 @@ const LoanForm: React.FC = () => {
         axios.get("/api/configLoan").then(res => {
             setConfigLoan(res.data.config);
         });
-        axios.get("/api/members?limit=2000").then(res => {
+        axios.get("/api/members?limit=20000000").then(res => {
             setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id })));
         });
-        axios.get("/api/employees?limit=2000").then(res => {
+        axios.get("/api/employees?limit=20000000").then(res => {
             setUsers(res.data.employees.map((user: UserProps) => ({ text: user.complete_name, value: user.id })));
         });
     }, []);
