@@ -25,7 +25,7 @@ interface FormInputs {
     jumlah_bayar: string;
     jumlah_katrol: string;
     penagih: string[]; // atau number[] tergantung data
-    status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional';
+    status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional';
 };
 
 const schema: yup.SchemaOf<FormInputs> = yup.object({
@@ -36,8 +36,8 @@ const schema: yup.SchemaOf<FormInputs> = yup.object({
         .required('Silahkan pilih penagih'))
         .min(1, "Minimal pilih satu penagih")
         .required('Penagih wajib dipilih'),
-    status: yup.mixed<"lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional'>()
-        .oneOf(["lunas", "menunggak", "kurang", "lebih", 'Libur Operasional'], "Status tidak valid")
+    status: yup.mixed<"lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional'>()
+        .oneOf(["lunas", "menunggak", "kurang", "lebih", 'Libur Operasional'], "Status tidak valid")
         .required("Status wajib diisi"),
 });
 
@@ -95,7 +95,7 @@ const Angsuran: React.FC = () => {
 
     useEffect(() => {
         if (lunasUpdate) {
-            setisLunas((lunasUpdate != "menunggak" && lunasUpdate != 'Libur Operasional'))
+            setisLunas((lunasUpdate != "menunggak" && lunasUpdate != 'Libur Operasional'))
         }
     }, [lunasUpdate]);
 
@@ -116,7 +116,7 @@ const Angsuran: React.FC = () => {
     const onSubmit = async (data: FormInputs) => {
 
         try {
-            if (!data.asal_pembayaran && (data.status != "menunggak" && data.status != "Libur Operasional")) return setError("asal_pembayaran", {
+            if (!data.asal_pembayaran && (data.status != "menunggak" && data.status != "Libur Operasional")) return setError("asal_pembayaran", {
                 type: "required",
                 message: "Asal pembayaran wajib diisi"
             })
@@ -182,7 +182,7 @@ const Angsuran: React.FC = () => {
                                         { label: "Menunggak", value: "menunggak" },
                                         { label: "Lebih", value: "lebih" },
                                         { label: "Kurang", value: "kurang" },
-                                        { label: 'Libur Operasional', value: 'Libur Operasional' },
+                                        { label: 'Libur Operasional', value: 'Libur Operasional' },
                                     ]} placeholder="Pilih status angsuran" {...register("status")} />
                                 {errors.status && (
                                     <p className="mt-1 text-sm text-red-500">{errors.status.message}</p>
