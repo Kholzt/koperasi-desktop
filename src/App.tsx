@@ -5,18 +5,18 @@ import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import Blank from "./pages/Blank";
 import Calendar from "./pages/Calendar";
-import BarChart from "./pages/Charts/BarChart";
-import LineChart from "./pages/Charts/LineChart";
+// import BarChart from "./pages/Charts/BarChart";
+// import LineChart from "./pages/Charts/LineChart";
 import Home from "./pages/Dashboard/Home";
 import FormElements from "./pages/Forms/FormElements";
 import NotFound from "./pages/OtherPage/NotFound";
-import BasicTables from "./pages/Tables/BasicTables";
-import Alerts from "./pages/UiElements/Alerts";
-import Avatars from "./pages/UiElements/Avatars";
-import Badges from "./pages/UiElements/Badges";
-import Buttons from "./pages/UiElements/Buttons";
-import Images from "./pages/UiElements/Images";
-import Videos from "./pages/UiElements/Videos";
+// import BasicTables from "./pages/Tables/BasicTables";
+// import Alerts from "./pages/UiElements/Alerts";
+// import Avatars from "./pages/UiElements/Avatars";
+// import Badges from "./pages/UiElements/Badges";
+// import Buttons from "./pages/UiElements/Buttons";
+// import Images from "./pages/UiElements/Images";
+// import Videos from "./pages/UiElements/Videos";
 import Area from './pages/area/Area';
 import AreaForm from './pages/area/AreaForm';
 import Employe from "./pages/employe/Employe";
@@ -95,19 +95,19 @@ export default function App() {
                         <Route path="/form-elements" element={<FormElements />} />
 
                         {/* Tables */}
-                        <Route path="/basic-tables" element={<BasicTables />} />
+                        {/* <Route path="/basic-tables" element={<BasicTables />} /> */}
 
                         {/* Ui Elements */}
-                        <Route path="/alerts" element={<Alerts />} />
+                        {/* <Route path="/alerts" element={<Alerts />} />
                         <Route path="/avatars" element={<Avatars />} />
                         <Route path="/badge" element={<Badges />} />
                         <Route path="/buttons" element={<Buttons />} />
                         <Route path="/images" element={<Images />} />
-                        <Route path="/videos" element={<Videos />} />
+                        <Route path="/videos" element={<Videos />} /> */}
 
                         {/* Charts */}
-                        <Route path="/line-chart" element={<LineChart />} />
-                        <Route path="/bar-chart" element={<BarChart />} />
+                        {/* <Route path="/line-chart" element={<LineChart />} /> */}
+                        {/* <Route path="/bar-chart" element={<BarChart />} /> */}
                         <Route path="/profile" element={<UserProfiles />} />
                     </Route>
 
