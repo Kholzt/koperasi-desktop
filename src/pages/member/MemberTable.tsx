@@ -172,7 +172,7 @@ function Action({ id, member_name, hasPinjaman }: { id: number, member_name: str
     const deleteAction = async () => {
         try {
             let res = await axios.delete("/api/members/" + id);
-            toast.success("Member berhasil dihapus")
+            toast.success("Anggota berhasil dihapus")
             setReload(!reload);
             closeModal();
         } catch (error: any) {

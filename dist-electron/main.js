@@ -87008,8 +87008,8 @@ class PosModel {
       db$1("areas").where("pos_id", id).whereNull("deleted_at").first(),
       db$1("groups").where("pos_id", id).whereNull("deleted_at").first()
     ];
-    const [schedule] = await Promise.all(checks);
-    return schedule;
+    const [schedule, members, users, areas, groups] = await Promise.all(checks);
+    return schedule || members || users || areas || groups;
   }
   static async count() {
     const [{ total }] = await db$1("pos").count("* as total").whereNull("deleted_at");
@@ -88267,6 +88267,177 @@ class UserController {
     }
   }
 }
+class CategoryModel {
+  static async findAll({ page = 1, limit = 10, search = "" }) {
+    const offset2 = (page - 1) * limit;
+    const rows = await db$1("categories as c").select(
+      "c.*"
+      // 'u.complete_name'
+    ).whereNull("c.deleted_at").andWhere("c.name", "like", `%${search}%`).orderBy("c.id", "desc").limit(limit).offset(offset2);
+    const [{ total }] = await db$1("categories").count("* as total").whereNull("deleted_at").andWhere("name", "like", `%${search}%`);
+    return { rows, total };
+  }
+  static async findById(id) {
+    return await db$1("categories as c").select(
+      "c.*"
+      // 'u.complete_name'
+    ).where("c.id", id).whereNull("c.deleted_at");
+  }
+  static async create(data2) {
+    const [id] = await db$1("categories").insert(data2);
+    return id;
+  }
+  static async update(id, data2) {
+    return db$1("categories").where({ id }).update(data2);
+  }
+  static async softDelete(id) {
+    return db$1("categories").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
+  }
+  static async generateCode() {
+    const last2 = await db$1("categories").whereNull("deleted_at").orderBy("id", "desc").first();
+    let newNumber = 1;
+    if (last2 == null ? void 0 : last2.code) {
+      const match = last2.code.match(/KTG-(\d+)/);
+      if (match) {
+        newNumber = parseInt(match[1], 10) + 1;
+      }
+    }
+    const newCode = "KTG-" + String(newNumber).padStart(4, "0");
+    return newCode;
+  }
+  static async checkContraint(id) {
+    const checks = [
+      db$1("transactions").where("pos_id", id).whereNull("deleted_at").first()
+    ];
+    const [transactions] = await Promise.all(checks);
+    return transactions;
+  }
+  static async count() {
+    const [{ total }] = await db$1("categories").count("* as total").whereNull("deleted_at");
+    return total;
+  }
+  static async existsByName(name, excludeId = null) {
+    const query = db$1("categories").where({ name }).whereNull("deleted_at");
+    if (excludeId) query.andWhereNot({ id: excludeId });
+    const result = await query.first();
+    return !!result;
+  }
+}
+class CategoryController {
+  static async index(req, res) {
+    try {
+      const { page = 1, limit = 10, search = "" } = req.query;
+      const { rows, total } = await CategoryModel.findAll({ page, limit, search });
+      const map2 = /* @__PURE__ */ new Map();
+      for (const row of rows) {
+        if (!map2.has(row.id)) {
+          map2.set(row.id, {
+            ...row
+            // penanggungJawab: {
+            //     complete_name: row.complete_name
+            // },
+          });
+        }
+      }
+      res.status(200).json({
+        categories: Array.from(map2.values()),
+        pagination: {
+          total,
+          page: +page,
+          limit: +limit,
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async show(req, res) {
+    try {
+      const { id } = req.params;
+      const rows = await CategoryModel.findById(id);
+      if (!rows.length) return res.status(404).json({ error: "Kategori tidak ditemukan" });
+      const category = {
+        ...rows[0]
+        // penanggungJawab: {
+        //     complete_name: rows[0].complete_name
+        // },
+      };
+      res.status(200).json({ category });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async store(req, res) {
+    await libExports.body("name").notEmpty().run(req);
+    const errors = libExports.validationResult(req);
+    if (!errors.isEmpty()) {
+      const formatted = errors.array().reduce((acc, err) => {
+        acc[err.path] = err.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formatted });
+    }
+    try {
+      const { name } = req.body;
+      const exists = await CategoryModel.existsByName(name);
+      if (exists) {
+        return res.status(400).json({ errors: { nama_pos: "Nama kategori sudah ada" } });
+      }
+      const code = await CategoryModel.generateCode();
+      const id = await CategoryModel.create({ name, code });
+      res.status(200).json({ message: "Kategori berhasil dibuat", kategori: { id, name } });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async update(req, res) {
+    await libExports.body("name").notEmpty().run(req);
+    const errors = libExports.validationResult(req);
+    if (!errors.isEmpty()) {
+      const formatted = errors.array().reduce((acc, err) => {
+        acc[err.path] = err.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formatted });
+    }
+    try {
+      const { id } = req.params;
+      const { name } = req.body;
+      const exists = await CategoryModel.existsByName(name, id);
+      if (exists) {
+        return res.status(400).json({ errors: { nama_pos: "Nama kategori sudah ada" } });
+      }
+      await CategoryModel.update(id, { name });
+      res.status(200).json({ message: "Kategori updated successfully" });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const isUsed = await CategoryModel.checkContraint(id);
+      if (isUsed) {
+        return res.status(409).json({
+          error: "Kategori gagal dihapus, Data sedang digunakan dibagian lain sistem"
+        });
+      }
+      await CategoryModel.softDelete(id);
+      res.status(200).json({ message: "Kategori berhasil dihapus" });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async count(req, res) {
+    try {
+      const total = await CategoryModel.count();
+      res.status(200).json({ total });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+}
 dotenv.config();
 const app = express();
 const port = 5e3;
@@ -88314,6 +88485,12 @@ app.post("/api/pos", PosController.store);
 app.get("/api/pos/:id", PosController.show);
 app.put("/api/pos/:id", PosController.update);
 app.delete("/api/pos/:id", PosController.delete);
+app.get("/api/categories", CategoryController.index);
+app.get("/api/categories/count", CategoryController.count);
+app.post("/api/categories", CategoryController.store);
+app.get("/api/categories/:id", CategoryController.show);
+app.put("/api/categories/:id", CategoryController.update);
+app.delete("/api/categories/:id", CategoryController.delete);
 app.get("/api/members", MemberController.index);
 app.get("/api/members/:nik/nik-check", MemberController.nixExist);
 app.get("/api/members/:no_kk/nokk-check", MemberController.nokkExist);

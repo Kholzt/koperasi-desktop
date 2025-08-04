@@ -13,6 +13,7 @@ import ScheduleController from './controllers/ScheduleController';
 import UserController from './controllers/UserController';
 import { exportDB, listBackup } from "./config/db";
 import { getAllHoliday, getHolidayJson, isHoliday, saveHolidayJson } from "./config/holidays";
+import CategoryController from "./controllers/CategoryController";
 
 
 dotenv.config();
@@ -76,6 +77,13 @@ app.post('/api/pos', PosController.store);
 app.get('/api/pos/:id', PosController.show);
 app.put('/api/pos/:id', PosController.update);
 app.delete('/api/pos/:id', PosController.delete);
+
+app.get('/api/categories', CategoryController.index);
+app.get('/api/categories/count', CategoryController.count);
+app.post('/api/categories', CategoryController.store);
+app.get('/api/categories/:id', CategoryController.show);
+app.put('/api/categories/:id', CategoryController.update);
+app.delete('/api/categories/:id', CategoryController.delete);
 
 // Group
 app.get('/api/members', MemberController.index);

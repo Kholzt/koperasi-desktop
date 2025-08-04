@@ -138,3 +138,8 @@ export interface PosProps{
     penanggungJawab:UserProps,
     no_telepon: string,
 }
+export interface CategoryProps{
+    id:number,
+    name: string,
+    code: string,
+}

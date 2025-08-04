@@ -37,6 +37,12 @@ const navItems: NavItem[] = [
         access: ["staff", "controller", "pusat", "super admin"]
     },
     {
+        icon: <DollarLineIcon />,
+        name: "Transactions",
+        path: "/transactions",
+        access: ["staff", "controller", "pusat", "super admin"]
+    },
+    {
         icon: <FolderIcon />,
         name: "Backup",
         path: "/backup",
@@ -83,6 +89,12 @@ const masterDataItems: NavItem[] = [
         name: "POS",
         path: "/pos",
         access: ["pusat", "super admin"]
+    },
+    {
+        icon: <LocationIcon />,
+        name: "Kategori",
+        path: "/category",
+        access: ["staff", "controller", "pusat", "super admin"]
     },
 ];
 

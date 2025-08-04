@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { toast } from 'react-toastify';
 import Pagination from '../../components/tables/BasicTables/Pagination';
-import Badge from "../../components/ui/badge/Badge";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../components/ui/dropdown/DropdownItem";
 import { Modal } from "../../components/ui/modal";
@@ -16,15 +15,15 @@ import { useTheme } from "../../context/ThemeContext";
 import { useModal } from "../../hooks/useModal";
 import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { AreaProps, PaginationProps } from "../../utils/types";
+import { CategoryProps, PaginationProps } from "../../utils/types";
 // import { toast } from 'react-hot-toast';
-interface AreaTableProps {
-    data: AreaProps[],
+interface CategoryTableProps {
+    data: CategoryProps[],
     pagination: PaginationProps,
     setPaginate: (page: number) => void
 }
 
-const AreaTable: React.FC<AreaTableProps> = ({ data, pagination, setPaginate }) => {
+const CategoryTable: React.FC<CategoryTableProps> = ({ data, pagination, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -44,43 +43,13 @@ const AreaTable: React.FC<AreaTableProps> = ({ data, pagination, setPaginate }) 
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Nama Area
+                                Nama
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Pos
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Kota
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Kecamatan
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Desa
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Alamat
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Status
+                                Kode
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -93,7 +62,7 @@ const AreaTable: React.FC<AreaTableProps> = ({ data, pagination, setPaginate }) 
 
                     {/* Table Body */}
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                        {data.map((user: AreaProps, index: number) => (
+                        {data.map((user: CategoryProps, index: number) => (
                             <TableRow key={user.id}>
                                 <TableCell className="px-5 py-4 sm:px-6 text-start">
                                     <div className="flex items-center gap-3">
@@ -105,50 +74,21 @@ const AreaTable: React.FC<AreaTableProps> = ({ data, pagination, setPaginate }) 
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.area_name}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.pos.nama_pos ?? "-"}
-                                    </span>
+                                    {user.name}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.city}
+                                        {user.code}
                                     </span>
                                 </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.subdistrict}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.village}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
-                                        {user.address}
-                                    </span>
-                                </TableCell>
+
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Badge
-                                        size="sm"
-                                        color={user.status === "aktif" ? "success" : "error"}
-                                    >
-                                        {user.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
-                                    <Action id={user.id} area_name={user.area_name} />
+                                    <Action id={user.id} name={user.name} />
                                 </TableCell>
                             </TableRow>
                         ))}
                         {data.length === 0 && <TableRow >
-                            <TableCell colSpan={9} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                            <TableCell colSpan={6} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                                 Tidak ada data
                             </TableCell></TableRow>}
                     </TableBody>
@@ -162,7 +102,7 @@ const AreaTable: React.FC<AreaTableProps> = ({ data, pagination, setPaginate }) 
 
 
 
-function Action({ id, area_name }: { id: number, area_name: string }) {
+function Action({ id, name }: { id: number, name: string }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const openDropdown = () => setIsOpenDropdown(true);
     const closeDropdown = () => setIsOpenDropdown(false);
@@ -170,13 +110,13 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
     const { setReload, reload } = useTheme();
     const deleteAction = async () => {
         try {
-            let res = await axios.delete("/api/areas/" + id);
-            toast.success("Wilayah berhasil dihapus")
+            let res = await axios.delete("/api/categories/" + id);
+            toast.success("Kategori berhasil dihapus")
             setReload(!reload);
             closeModal();
         } catch (error: any) {
             if (error.status == 409) {
-                toast.error("Wilayah gagal dihapus, Data  digunakan di bagian lain sistem");
+                toast.error("Kategori gagal dihapus, Data  digunakan di bagian lain sistem");
                 setReload(!reload);
                 closeModal();
             }
@@ -199,7 +139,7 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
                     <DropdownItem
                         onItemClick={closeDropdown}
                         tag="a"
-                        to={`/area/${id}/edit`}
+                        to={`/category/${id}/edit`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                         <PencilIcon fontSize={20} />
@@ -210,7 +150,7 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
                     <DropdownItem
                         onItemClick={openModal}
                         tag="button"
-                        to={`/area/${id}/edit`}
+                        to={`/pos/${id}/edit`}
                         className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                     >
                         <TrashBinIcon fontSize={20} />
@@ -232,7 +172,7 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
                         Pemberitahuan
                     </h5>
                     <p className="text-base text-gray-800 dark:text-gray-400 ">
-                        Apakah Anda yakin untuk menghapus area {area_name}?
+                        Apakah Anda yakin untuk menghapus kategori {name}?
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                         Data yang dihapus dapat dikembalikan nanti
@@ -258,4 +198,4 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
         </Modal>
     </div>
 }
-export default AreaTable;
+export default CategoryTable;
