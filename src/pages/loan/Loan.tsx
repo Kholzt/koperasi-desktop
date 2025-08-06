@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
@@ -40,6 +40,9 @@ const Loan: React.FC = () => {
     const [groupFilter, setGroupFilter] = useState("all");
     const [groups, setGroups] = useState<{ label: string, value: string }[]>([]);
     const [search, setSearch] = useState<String | null>("");
+    const [isFiltersLoaded, setIsFiltersLoaded] = useState(false);
+    const [searchParams] = useSearchParams();
+
     const [pagination, setPagination] = useState<PaginationProps>({
         page: 1,
         totalPages: 1,
@@ -49,6 +52,7 @@ const Loan: React.FC = () => {
     const { reload } = useTheme();
 
     useEffect(() => {
+        const stored = localStorage.getItem('filters');
         axios
             .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}&search=${search}`)
             .then((res: any) => {
@@ -62,9 +66,48 @@ const Loan: React.FC = () => {
                 let scheduleFilter = schedule.filter((s: any) => dayFilter == "all" || s.day == dayFilter);
                 setGroups(scheduleFilter.map((group: ScheduleProps) => ({ label: group.group.group_name + " | " + group.day, value: group.group.id })))
             });
-        console.log(groupFilter, `/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}`);
     }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search]);
 
+
+    useEffect(() => {
+        const stored = localStorage.getItem('filters');
+        const isFromTransaction = searchParams.get("isFromTransaction");
+        // perlu perbaikan
+        console.log(isFromTransaction);
+
+        if (stored && isFromTransaction) {
+            const savedFilters = JSON.parse(stored);
+            setFilter((prev: any) => ({
+                ...prev,
+                endDate: savedFilters.endDate || '',
+                startDate: savedFilters.startDate || '',
+                status: savedFilters.status || '',
+            }));
+
+            setDayFilter(savedFilters.dayFilter || 'all');
+            setGroupFilter(savedFilters.groupFilter || '');
+
+            setSearch(savedFilters.search || '');
+
+            setIsFiltersLoaded(true);
+        }
+    }, []);
+
+
+    useEffect(() => {
+
+        if (!isFiltersLoaded) return;
+
+        const savedFilters = {
+            endDate: filter.endDate,
+            startDate: filter.startDate,
+            status: filter.status,
+            dayFilter,
+            groupFilter,
+            search,
+        };
+        localStorage.setItem('filters', JSON.stringify(savedFilters));
+    }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search, isFiltersLoaded]);
 
     const searchAction = (e: any) => {
         const value = e.target.value;

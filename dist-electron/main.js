@@ -87212,6 +87212,9 @@ class Loan {
     if (status && status !== "null") {
       countQuery.andWhere("pinjaman.status", status);
     }
+    if (day && day !== "all") {
+      countQuery.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
+    }
     let countResults = await countQuery;
     if (group && group !== "all") {
       countResults = await Promise.all(countResults.map(async (loan) => {
