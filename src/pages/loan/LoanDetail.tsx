@@ -21,7 +21,6 @@ const LoanDetail: React.FC = () => {
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
             setLoan(res.data.loan)
-            console.log(res);
 
         });
     }, [showModal]);
@@ -119,6 +118,7 @@ const LoanDetail: React.FC = () => {
                             {(loan?.angsuran?.length ?? 0) > 0 ? (
                                 loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => {
                                     const canEdit = (angsuran.status != "menunggak" && angsuran.status != "Libur Operasional" && angsuran.status != "libur" && angsuran.status != "aktif") && user?.role != "staff";
+
                                     return <tr key={index} className={getRowClass(angsuran)}>
 
                                         <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{formatCurrency(angsuran.jumlah_bayar)}</td>
@@ -167,8 +167,8 @@ function getRowClass(angsuran) {
         return "bg-red-500";
     } else if (angsuran.status === "libur") {
         return "bg-yellow-500";
-        // } else if (angsuran.status === "Libur Operasional") {
-        //     return "bg-gray-500";
+    } else if (angsuran.status == "Libur Operasional" || angsuran.status == "Libur Operasional") {
+        return "bg-blue-500 text-white";
     } else {
         return "";
     }
