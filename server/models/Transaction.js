@@ -1,17 +1,44 @@
 import db from "../config/db";
 
 export default class Transaction {
-    static async findAll({ startDate, endDate, status, }) {
+    static async findAll({ startDate, endDate = null, transaction_type = null, category = null, group = null }) {
         const query = db('transactions')
             .join('categories', 'transactions.category_id', 'categories.id')
-            .join('users', 'transactions.created_by', 'users.id')
-            .leftJoin('users', 'transactions.updated_by', 'users.id')
+            .join('users as ucb', 'transactions.created_by', 'ucb.id')
+            .leftJoin('users as uub', 'transactions.updated_by', 'uub.id')
             .join("pos", "transactions.pos_id", "pos.id")
             .whereNull('transactions.deleted_at');
 
+        if (transaction_type) query.andWhere('transaction_type', transaction_type);
+        if (category) query.andWhere('category_id', category);
+        if (group) query.andWhere('category_id', group);
+        if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+            query.andWhereRaw(
+                `transactions.created_at BETWEEN  '${startDate}' AND '${endDate}'`
+            );
+        } else if (startDate && startDate !== "null") {
+            query.andWhereRaw(
+                `transactions.created_at >= '${startDate}'`
 
-        const total = countResults.length;
-        return { loans, total };
+            );
+        } else if (endDate && endDate !== "null") {
+            query.andWhereRaw(
+                `transactions.created_at <= ${endDate}`
+            );
+        }
+
+
+        let transactions = await query
+            .orderBy('transactions.id', 'desc')
+            .select(
+                'transactions.*',
+                db.raw(`JSON_OBJECT('complete_name', ucb.complete_name, 'nik', ucb.nik) as created_by`),
+                db.raw(`JSON_OBJECT('complete_name', uub.complete_name, 'nik', uub.nik) as created_by`),
+                db.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
+            );
+
+
+        return { transactions };
     }
 
 
