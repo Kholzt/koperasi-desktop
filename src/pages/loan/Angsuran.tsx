@@ -150,7 +150,7 @@ const Angsuran: React.FC = () => {
 
             <div className="space-y-6">
                 <ComponentCard title="Angsuran" >
-                    <h2 className="text-white">Angsuran tanggal : {formatDate(angsuran?.tanggal_pembayaran ?? "")}</h2>
+                    <h2 className="dark:text-white">Angsuran tanggal : {formatDate(angsuran?.tanggal_pembayaran ?? "")}</h2>
                     <form onSubmit={handleSubmit(onSubmit)} className={` py-4 px-4 rounded-sm`}>
                         <div className="grid grid-cols-2 gap-4 mb-4" >
                             <div className="col-span-2">
