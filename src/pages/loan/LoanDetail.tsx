@@ -35,7 +35,7 @@ const LoanDetail: React.FC = () => {
             <PageBreadcrumb pageTitle="Detail Peminjaman" />
             <div className="w-full   mx-auto mb-2">
                 <Link
-                    to="/loan"
+                    to="/loan?isFromTransaction=true"
                     className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
                     <ChevronLeftIcon className="size-5" />
