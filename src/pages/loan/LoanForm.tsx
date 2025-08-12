@@ -226,7 +226,7 @@ const LoanForm: React.FC = () => {
 
             if (res.status === 201 || res.status === 200) {
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
-                navigate("/loan");
+                navigate("/loan?isFromTransaction=true");
             }
         } catch (error: any) {
             console.error(error);
@@ -250,7 +250,7 @@ const LoanForm: React.FC = () => {
             <PageMeta title={`${!id ? "Tambah Peminjaman" : "Ubah Peminjaman"} | ${import.meta.env.VITE_APP_NAME}`} description="" />
             <PageBreadcrumb pageTitle={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"} />
             <div className="w-full mx-auto mb-2">
-                <Link to="/loan" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+                <Link to="/loan?isFromTransaction=true" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                     <ChevronLeftIcon className="size-5" />
                     Kembali ke Peminjaman
                 </Link>

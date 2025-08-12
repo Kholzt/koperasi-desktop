@@ -31,6 +31,7 @@ export default class Loan {
             query.andWhere(function () {
                 this.where('complete_name', 'like', `%${search}%`)
                     .orWhere('nik', 'like', `%${search}%`)
+                    .orWhere('no_kk', 'like', `%${search}%`)
             });
         }
         if (status && status !== "null") {
@@ -107,6 +108,9 @@ export default class Loan {
         }
         if (status && status !== "null") {
             countQuery.andWhere('pinjaman.status', status);
+        }
+        if (day && day !== "all") {
+            countQuery.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
         }
 
         // Ambil semua pinjaman untuk dihitung (tanpa limit & offset)
