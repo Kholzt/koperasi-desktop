@@ -88,8 +88,8 @@ const Loan: React.FC = () => {
             setGroupFilter(savedFilters.groupFilter || '');
             setSearch(savedFilters.search || '');
 
-            setIsFiltersLoaded(true);
         }
+        setIsFiltersLoaded(true);
     }, []);
 
 
@@ -106,6 +106,7 @@ const Loan: React.FC = () => {
             search,
         };
         localStorage.setItem('filters', JSON.stringify(savedFilters));
+
     }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search, isFiltersLoaded]);
 
     const searchAction = (e: any) => {
