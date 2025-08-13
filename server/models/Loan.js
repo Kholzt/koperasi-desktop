@@ -31,6 +31,7 @@ export default class Loan {
             query.andWhere(function () {
                 this.where('complete_name', 'like', `%${search}%`)
                     .orWhere('nik', 'like', `%${search}%`)
+                    .orWhere('no_kk', 'like', `%${search}%`)
             });
         }
         if (status && status !== "null") {

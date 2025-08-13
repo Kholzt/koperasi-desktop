@@ -15,9 +15,10 @@ const filePath = path.join(process.cwd(), 'extras', 'holiday.json');
 export async function isHoliday(date) {
     const d = new Date(date);
     const isSunday = d.getDay() === 0; // 0 = Sunday
-    const holidays = await getHolidayJson();
+    // const holidays = await getHolidayJson();
     const formatted = formatDate(new Date(date));
-    return holidays.some(holiday => holiday.date === formatted) || isSunday;
+    return isSunday;
+    // return holidays.some(holiday => holiday.date === formatted) || isSunday;
 }
 
 export function getAllHoliday(year) {
@@ -46,7 +47,8 @@ export async function getHolidayApi() {
         const data = await ical.async.fromURL(url);
 
         cachedHolidays = Object.values(data)
-            .filter(item => item.type === 'VEVENT')
+            .filter(item => item.type === 'VEVENT' &&
+                !(item.summary || '').toLowerCase().includes('cuti bersama'))
             .map(event => ({
                 title: event.summary,
                 date: formatDate(event.start)
@@ -69,7 +71,9 @@ export async function saveHolidayJson() {
 
     try {
 
-        await fs.mkdir(folderPath, { recursive: true });
+        await fs.mkdir(folderPath, {
+            recursive: true
+        });
 
 
         try {
