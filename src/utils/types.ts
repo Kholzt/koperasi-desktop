@@ -3,7 +3,7 @@ export interface UserProps{
     username:string,
     password:string,
     complete_name:string,
-    role:"staff"|"controller"|"pusat",
+    role:"staff"|"controller"|"pusat"|"super admin",
     access_apps:"access"|"noAccess",
     position:string,
     status:"aktif"|"nonAktif",
@@ -142,4 +142,22 @@ export interface CategoryProps{
     id:number,
     name: string,
     code: string,
+}
+
+export interface TransactionProps{
+    id:number,
+    code:string,
+    pos_id:string,
+    pos:PosProps,
+    category_id:string,
+    category:CategoryProps,
+    created_by:string,
+    created_user:UserProps,
+    updated_by:string,
+    amount:number,
+    transaction_type:"debit"|"credit",
+    updated_user:UserProps,
+    date:string,
+    description:string,
+
 }

@@ -16,9 +16,8 @@ electron.contextBridge.exposeInMainWorld("ipcRenderer", {
   invoke(...args) {
     const [channel, ...omit] = args;
     return electron.ipcRenderer.invoke(channel, ...omit);
-  }
-  // You can expose other APTs you need here.
-  // ...
+  },
+  savePDF: (judul, htmlString) => electron.ipcRenderer.invoke("save-pdf", judul, htmlString)
 });
 electron.contextBridge.exposeInMainWorld("electron", {
   openFile: (path) => electron.ipcRenderer.invoke("open-file", path)

@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain, shell  } from 'electron'
+import { app, BrowserWindow, ipcMain, shell ,dialog  } from 'electron'
 import { spawn } from 'child_process';
+import fs from 'fs';
 
 // import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -31,12 +32,6 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST
 
 let win: BrowserWindow | null
-// const size = {
-//     width: 1024,
-//     height: 700,
-//     minWidth: 1024,
-//     minHeight: 700,
-// }
 const size = {
     width: 700,
     height: 500,
@@ -109,6 +104,33 @@ function startExpressServer() {
     log.info('Express server started');
   }
   app.whenReady().then(() => {
-    startExpressServer(); // <-- Panggil sebelum buka window
+    startExpressServer();
+
+ipcMain.handle('save-pdf', async (_,judul, htmlString) => {
+    console.log(htmlString);
+  const { filePath } = await dialog.showSaveDialog({
+    title: 'Simpan Laporan Kas',
+    defaultPath: judul,
+    filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+  });
+
+  if (!filePath) return { success: false };
+
+  const win = new BrowserWindow({ show: false });
+
+  // Load HTML string
+  await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlString)}`);
+
+  const pdfBuffer = await win.webContents.printToPDF({
+    printBackground: true,
+    pageSize: 'A4',
+  });
+
+  fs.writeFileSync(filePath, pdfBuffer);
+  win.close();
+
+  return { success: true, path: filePath };
+});
+
     createWindow();
   });

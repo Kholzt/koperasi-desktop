@@ -1,117 +1,157 @@
-import React, { useEffect, useState } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
+import Label from "../../components/form/Label";
+import MultiSelect from "../../components/form/MultiSelect";
 import Select from "../../components/form/Select";
 import DatePicker from "../../components/form/date-picker";
 import Button from "../../components/ui/button/Button";
 import { Dropdown } from "../../components/ui/dropdown/Dropdown";
 import { useTheme } from "../../context/ThemeContext";
 import axios from "../../utils/axios";
-import { GroupProps, LoanProps, PaginationProps, ScheduleProps } from "../../utils/types";
-import Table from "./TransactionTable";
-import SelectSearch from "../../components/form/SelectSearch";
 import { toLocalDate } from "../../utils/helpers";
-import { SearchIcon } from "../../icons";
-import Input from "../../components/form/input/InputField";
+import { CategoryProps, GroupProps, PosProps, TransactionProps } from "../../utils/types";
+import ExportPDF from "./ExportPDF";
+import Table from "./TransactionTable";
+import ReactDOMServer from 'react-dom/server';
+import SelectSearch from "../../components/form/SelectSearch";
 
-const days = [
-    'all', "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"
-]
-const dayMap: any = {
-    all: 'all',
-    senin: 'monday',
-    selasa: 'tuesday',
-    rabu: 'wednesday',
-    kamis: 'thursday',
-    jumat: 'friday',
-    sabtu: 'saturday'
-};
 
 const Transaction: React.FC = () => {
-    const [filter, setFilter] = useState<{ startDate: String | null; endDate: String | null; status: string | null }>({
-        startDate: null,
-        endDate: null,
-        status: null
+    const [filter, setFilter] = useState<{ categories: string[], transaction_type: string[], groups: string[], pos: string | null, date: { startDate: string | null, endDate: string | null } }>({
+        categories: [],
+        pos: null,
+        transaction_type: [],
+        groups: [],
+        date: { startDate: toLocalDate(new Date()), endDate: null },
     });
-    const [loans, setLoans] = useState<LoanProps[]>([]);
-    const [dayFilter, setDayFilter] = useState("all");
-    const [groupFilter, setGroupFilter] = useState("all");
-    const [groups, setGroups] = useState<{ label: string, value: string }[]>([]);
-    const [search, setSearch] = useState<String | null>("");
-    const [pagination, setPagination] = useState<PaginationProps>({
-        page: 1,
-        totalPages: 1,
-        limit: 10,
-        total: 0
-    });
+    const [transactions, setTransactions] = useState<TransactionProps[]>([]);
+    const [categories, setCategories] = useState<{ text: string, value: string }[]>([]);
+    const [groups, setGroups] = useState<{ text: string, value: string }[]>([]);
+    const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
+    const [isAngsuran, setIsAngsuran] = useState(false);
     const { reload } = useTheme();
 
     useEffect(() => {
-        axios
-            .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}&search=${search}`)
-            .then((res: any) => {
-                setLoans(res.data.loans);
-                setPagination(res.data.pagination);
-            });
-        axios
-            .get(`/api/schedule?limit=20000000`)
-            .then((res: any) => {
-                const { schedule } = res.data
-                let scheduleFilter = schedule.filter((s: any) => dayFilter == "all" || s.day == dayFilter);
-                setGroups(scheduleFilter.map((group: ScheduleProps) => ({ label: group.group.group_name + " | " + group.day, value: group.group.id })))
-            });
-        console.log(groupFilter, `/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}`);
-    }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search]);
+        const params = {
+            startDate: filter.date.startDate ?? toLocalDate(new Date()),
+            endDate: filter.date.endDate,
+            categories: filter.categories, // array
+            transaction_type: filter.transaction_type, // array
+            groups: filter.groups,
+            pos: filter.pos
+        };
 
+        axios
+            .get('/api/transactions', { params })
+            .then((res: any) => {
+                setTransactions(res.data.transactions);
+            });
+
+        axios
+            .get(`/api/groups?limit=20000000`)
+            .then((res: any) => {
+                setGroups(res.data.groups.map((group: GroupProps) => ({ text: group.group_name, value: group.id })))
+            });
+
+        axios
+            .get(`/api/categories?limit=20000000`)
+            .then((res: any) => {
+                setCategories(res.data.categories.map((category: CategoryProps) => ({ text: category.name, value: category.id })))
+            });
+        axios
+            .get(`/api/pos?limit=20000000`)
+            .then((res: any) => {
+                setPos(res.data.pos.map((p: PosProps) => ({ label: p.nama_pos, value: p.id })))
+            });
+    }, [reload, filter]);
 
     const searchAction = (e: any) => {
         const value = e.target.value;
-        setSearch(value)
-        setPagination((prev) => ({
-            ...prev,
-            page: 1,
-        }))
     }
+
+    const tableRef = useRef<HTMLDivElement>(null);
+
+    const handleExportPDF = async () => {
+        const formatDate = filter.date.endDate ? filter.date.startDate + " - " + filter.date.endDate : filter.date.startDate;
+        const htmlString = ReactDOMServer.renderToStaticMarkup(<ExportPDF date={formatDate ?? toLocalDate(new Date())} data={transactions} />);
+        await window.ipcRenderer.savePDF("Laporan Keuangan - " + formatDate, htmlString);
+    };
+
+
+    const angsuranId = categories.find(c => c.text.includes("angsuran"))?.value;
     return (
         <>
             <PageMeta title={`Transaksi | ${import.meta.env.VITE_APP_NAME}`} description="" />
             <PageBreadcrumb pageTitle="Transaksi" />
 
             <div className="">
-                <div className="flex gap-2 mb-2 items-center">
-                    <ul className="flex mt-1.5">
-                        {days.map((day, i) => {
-                            const isActive = dayFilter === day;
-                            return (
-                                <li
-                                    key={i}
-                                    className={`
-                                    border-y
-                                    ${isActive ? "bg-brand-600 text-white dark:text-white" : "hover:bg-white/[0.03] dark:hover:bg-white/[0.03] bg-white dark:bg-gray-900 dark:text-gray-200"}
-                                    ${i === 0 ? "rounded-l-lg border-l" : ""}
-                                    ${i === days.length - 1 ? "rounded-r-lg border-r" : ""}
-                                    dark:border-gray-700
-                                     `}
-                                >
-                                    <button
-                                        className="px-4 py-2 capitalize"
-                                        onClick={() => setDayFilter(day)}
-                                    >
-                                        {day}
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                    <div className="max-w-[300px] w-full">
+                <div className="grid grid-cols-4 gap-2  items-center mb-6">
+                    <div className=" w-full">
+                        <Label>Tanggal</Label>
+                        <DatePicker
+                            id={"startDate"}
+                            mode="range"
+                            placeholder="Tanggal transaksi"
+                            defaultDate={
+                                filter.date.startDate && filter.date.endDate
+                                    ? [new Date(filter.date.startDate as string), new Date(filter.date.endDate as string)]
+                                    : (filter.date.startDate ? [new Date(filter.date.startDate as string)] : undefined)
+                            }
+                            onChange={(date) => {
+                                setFilter({ ...filter, date: { startDate: toLocalDate(date[0]), endDate: filter.date.endDate } });
+                                date[1]
+                                    ? setFilter({ ...filter, date: { startDate: toLocalDate(date[0]), endDate: toLocalDate(date[1]) } })
+                                    : setFilter({ ...filter, date: { startDate: toLocalDate(date[0]), endDate: null } });
+                            }}
+                        />
+                    </div>
+                    <div className=" w-full">
+                        <Label>Pos</Label>
                         <SelectSearch
                             label=""
+                            placeholder="Pilih pos"
+                            options={pos}
+                            defaultValue={filter.pos ?? undefined}
+                            onChange={(val: any) => setFilter({ ...filter, pos: val })}
+                        />
+
+                    </div>
+                    <div className=" w-full">
+                        <Label>Kategori</Label>
+                        <MultiSelect
+                            label=""
+                            placeholder="Pilih kategori"
+                            options={categories}
+                            defaultSelected={filter.categories}
+                            onChange={(val) => {
+                                setFilter({ ...filter, categories: val })
+                                setIsAngsuran(val.includes(angsuranId ?? ""))
+                            }}
+                        />
+                    </div>
+                    {isAngsuran && <div className=" w-full">
+                        <Label>Kelompok</Label>
+                        <MultiSelect
+                            label=""
                             placeholder="Pilih kelompok"
-                            options={[{ label: "All", value: "all" }, ...groups]}
-                            defaultValue={groupFilter}
-                            onChange={(val: any) => setGroupFilter(val)}
+                            options={groups}
+                            defaultSelected={filter.groups}
+                            onChange={(val) => setFilter({ ...filter, groups: val })}
+                        />
+                    </div>}
+                    <div className=" w-full">
+                        <Label>Jenis Transaksi</Label>
+                        <MultiSelect
+                            label=""
+                            placeholder="Pilih jenis transaksi"
+                            options={[{ text: "Debit", value: "debit" }, { text: "Kredit", value: "credit" }]}
+                            defaultSelected={filter.transaction_type}
+                            onChange={(val) => setFilter({ ...filter, transaction_type: val })}
                         />
                     </div>
                 </div>
@@ -119,8 +159,8 @@ const Transaction: React.FC = () => {
                 <ComponentCard
                     title="Transaksi"
                     option={
-                        <div className="flex gap-4">
-                            <div className="relative">
+                        <div className="flex gap-4 ">
+                            {/* <div className="relative">
                                 <Input
                                     onChange={searchAction}
                                     placeholder="Pencarian"
@@ -130,8 +170,8 @@ const Transaction: React.FC = () => {
                                 <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
                                     <SearchIcon className="size-6 text-gray-600" fill="#787878" color="#fff" />
                                 </span>
-                            </div>
-                            <Filter filter={filter} setFilter={setFilter} />
+                            </div> */}
+                            <Button size="sm" onClick={handleExportPDF}>Export PDF</Button>
                             <Link to={"/transactions/create"}>
                                 <Button size="sm">Tambah Transaksi</Button>
                             </Link>
@@ -139,15 +179,10 @@ const Transaction: React.FC = () => {
                     }
                 >
                     <Table
-                        data={loans}
-                        pagination={pagination}
-                        setPaginate={(page) =>
-                            setPagination((prev) => ({
-                                ...prev,
-                                page
-                            }))
-                        }
+                        tableRef={tableRef}
+                        data={transactions}
                     />
+
                 </ComponentCard>
             </div>
         </>

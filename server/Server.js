@@ -14,6 +14,7 @@ import UserController from './controllers/UserController';
 import { exportDB, listBackup } from "./config/db";
 import { getAllHoliday, getHolidayJson, isHoliday, saveHolidayJson } from "./config/holidays";
 import CategoryController from "./controllers/CategoryController";
+import TransactionController from "./controllers/TransactionController";
 
 
 dotenv.config();
@@ -27,7 +28,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
     const secret = req.headers['x-app-secret'];
     if ("123412321123" == (import.meta.env.VITE_APP_SECRET || secret)) {
-        return next();
+        return next();;
+
     }
     return res.status(403).send("Forbidden");
 });
@@ -116,6 +118,12 @@ app.get('/api/angsuran/:id', AngsuranController.index);
 app.post('/api/angsuran/:idPinjaman', AngsuranController.store);
 app.put('/api/angsuran/:id', AngsuranController.update);
 app.get('/api/angsuran/aktif/:id', AngsuranController.lastAngsuran);
+
+app.get('/api/transactions', TransactionController.index);
+app.post('/api/transactions', TransactionController.store);
+app.get('/api/transactions/:id', TransactionController.show);
+app.put('/api/transactions/:id', TransactionController.update);
+app.delete('/api/transactions/:id', TransactionController.delete);
 
 app.get('/api/configLoan', (req, res) => {
     const totalBulan = process.env.VITE_APP_BULAN || 10;

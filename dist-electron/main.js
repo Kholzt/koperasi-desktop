@@ -1,11 +1,11 @@
 var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-import require$$0$b, { app as app$1, BrowserWindow, ipcMain, shell } from "electron";
+import require$$0$b, { app as app$1, BrowserWindow, ipcMain, shell, dialog } from "electron";
 import require$$0$a, { exec, spawn } from "child_process";
+import fs from "fs";
 import { fileURLToPath as fileURLToPath$1 } from "node:url";
 import path$1 from "node:path";
-import fs from "fs";
 import path, { dirname } from "path";
 import require$$1$2 from "os";
 import require$$0$5 from "crypto";
@@ -88302,7 +88302,7 @@ class CategoryModel {
         newNumber = parseInt(match[1], 10) + 1;
       }
     }
-    const newCode = "KTG-" + String(newNumber).padStart(4, "0");
+    const newCode = "KTG" + newNumber;
     return newCode;
   }
   static async checkContraint(id) {
@@ -88438,6 +88438,255 @@ class CategoryController {
     }
   }
 }
+class Transaction {
+  static async findAll({ startDate, endDate = null, transaction_type = null, categories = null, groups = null, pos }) {
+    const saldoQuery = await db$1("transactions").whereNull("deleted_at").andWhere("date", "<", `${startDate}`).select(
+      db$1.raw(`SUM(CASE WHEN transaction_type = 'debit' THEN amount ELSE 0 END) as total_debit`),
+      db$1.raw(`SUM(CASE WHEN transaction_type = 'kredit' THEN amount ELSE 0 END) as total_kredit`)
+    ).first();
+    const saldoAwal = (saldoQuery.total_debit || 0) - (saldoQuery.total_kredit || 0);
+    const query = db$1("transactions").join("categories", "transactions.category_id", "categories.id").join("users as ucb", "transactions.created_by", "ucb.id").leftJoin("users as uub", "transactions.updated_by", "uub.id").join("pos", "transactions.pos_id", "pos.id").whereNull("transactions.deleted_at");
+    if (transaction_type && transaction_type.length > 0) query.whereIn("transaction_type", transaction_type);
+    if (categories && categories.length > 0) query.whereIn("category_id", categories);
+    if (groups && groups.length > 0) query.whereIn("description", groups);
+    if (pos) query.where("transactions.pos_id", pos);
+    if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+      query.andWhereRaw(
+        `transactions.date BETWEEN  '${startDate}' AND '${endDate}'`
+      );
+    } else if (startDate && startDate !== "null") {
+      query.andWhereRaw(`transactions.date >= '${startDate}'`);
+    } else if (endDate && endDate !== "null") {
+      query.andWhereRaw(`transactions.date <= '${endDate}'`);
+    }
+    let transactions = await query.orderBy("transactions.id", "asc").select(
+      "transactions.*",
+      db$1.raw(`JSON_OBJECT('complete_name', ucb.complete_name ) as created_user`),
+      db$1.raw(`JSON_OBJECT('complete_name', uub.complete_name) as updated_user`),
+      db$1.raw(`JSON_OBJECT('name', categories.name) as category`),
+      db$1.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
+    );
+    transactions.unshift({
+      description: "Saldo Awal",
+      amount: saldoAwal,
+      transaction_type: "debit",
+      // atau sesuai logika Anda
+      category: { name: "Kas" },
+      created_user: null,
+      update_user: null,
+      pos: null,
+      date: startDate
+      // opsional: bisa juga null
+    });
+    return { transactions };
+  }
+  static async findById(id) {
+    return await db$1("transactions").join("categories", "transactions.category_id", "categories.id").join("users as ucb", "transactions.created_by", "ucb.id").leftJoin("users as uub", "transactions.updated_by", "uub.id").join("pos", "transactions.pos_id", "pos.id").whereNull("transactions.deleted_at").select(
+      "transactions.*",
+      db$1.raw(`JSON_OBJECT('complete_name', ucb.complete_name ) as created_user`),
+      db$1.raw(`JSON_OBJECT('complete_name', uub.complete_name) as update_user`),
+      db$1.raw(`JSON_OBJECT('name', categories.name) as category`),
+      db$1.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
+    ).where("transactions.id", id).first();
+  }
+  static async create(data2) {
+    const [id] = await db$1("transactions").insert(data2);
+    return id;
+  }
+  static async update(data2, id) {
+    const result = await db$1("transactions").where({ id }).update(data2);
+    return result;
+  }
+  static async softDelete(id) {
+    return db$1("transactions").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
+  }
+}
+class TransactionController {
+  // Menampilkan daftar area dengan pagination
+  static async index(req, res) {
+    try {
+      const {
+        startDate = /* @__PURE__ */ new Date(),
+        endDate = null,
+        "transaction_type[]": rawTransaction_type = null,
+        "categories[]": rawCategories = null,
+        "groups[]": rawGroups = null,
+        pos = null
+      } = req.query;
+      console.log(req.query);
+      const categories = rawCategories ? Array.isArray(rawCategories) ? rawCategories : [rawCategories] : [];
+      const transaction_type = rawTransaction_type ? Array.isArray(rawTransaction_type) ? rawTransaction_type : [rawTransaction_type] : [];
+      const groups = rawGroups ? Array.isArray(rawGroups) ? rawGroups : [rawGroups] : [];
+      const { transactions } = await Transaction.findAll({ startDate, endDate, transaction_type, categories, groups, pos });
+      res.status(200).json({
+        transactions
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  // Menampilkan detail area berdasarkan ID
+  static async show(req, res) {
+    try {
+      const { id } = req.params;
+      const transaction = await Transaction.findById(id);
+      res.status(200).json({ transaction });
+    } catch (error) {
+      res.status(500).json({
+        error: "An error occurred while retrieving the transaction.",
+        errors: error
+      });
+    }
+  }
+  static async getCode(req, res) {
+    try {
+      const { id } = req.params;
+      const rows = await db$1("pinjaman").where("anggota_id", id).whereNull("deleted_at");
+      const member = await db$1("members").select("sequence_number").where("id", id).first();
+      console.log(rows);
+      let num = rows.length + 1;
+      const roman = [
+        ["M", 1e3],
+        ["CM", 900],
+        ["D", 500],
+        ["CD", 400],
+        ["C", 100],
+        ["XC", 90],
+        ["L", 50],
+        ["XL", 40],
+        ["X", 10],
+        ["IX", 9],
+        ["V", 5],
+        ["IV", 4],
+        ["I", 1]
+      ];
+      let result = "";
+      for (const [letter, value] of roman) {
+        while (num >= value) {
+          result += letter;
+          num -= value;
+        }
+      }
+      const romanLength = result;
+      const code = `${romanLength}/${member.sequence_number}`;
+      res.status(200).json({
+        code,
+        rows,
+        member,
+        num,
+        result
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while retrieving the area." + error.message });
+    }
+  }
+  static async store(req, res) {
+    await libExports.body("pos_id").notEmpty().withMessage("Pos wajib diisi").run(req);
+    await libExports.body("category_id").notEmpty().withMessage("Kategori wajib diisi").run(req);
+    await libExports.body("description").notEmpty().withMessage("Keterangan wajib diisi").run(req);
+    await libExports.body("transaction_type").notEmpty().withMessage("Jenis transaksi wajib diisi").run(req);
+    await libExports.body("nominal").notEmpty().withMessage("Nominal wajib diisi").run(req);
+    await libExports.body("user").notEmpty().withMessage("User wajib diisi").run(req);
+    const errors = libExports.validationResult(req);
+    if (!errors.isEmpty()) {
+      const formattedErrors = errors.array().reduce((acc, error) => {
+        acc[error.path] = error.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formattedErrors });
+    }
+    try {
+      const { category_id, pos_id, description, transaction_type, nominal, date, user } = req.body;
+      const code = "test";
+      const now2 = /* @__PURE__ */ new Date();
+      const loanId = await Transaction.create({
+        category_id,
+        pos_id,
+        description,
+        transaction_type,
+        amount: nominal,
+        code,
+        created_by: user,
+        created_at: now2,
+        date: date ?? now2
+      });
+      res.status(200).json({
+        message: "Transaksi berhasil dibuat"
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Terjadi kesalahan saat menyimpan transaksi: " + error.message });
+    }
+  }
+  // Mengupdate data area dengan pengecekan dan enkripsi password jika ada perubahan
+  static async update(req, res) {
+    await libExports.body("pos_id").notEmpty().withMessage("Pos wajib diisi").run(req);
+    await libExports.body("category_id").notEmpty().withMessage("Kategori wajib diisi").run(req);
+    await libExports.body("description").notEmpty().withMessage("Keterangan wajib diisi").run(req);
+    await libExports.body("transaction_type").notEmpty().withMessage("Jenis transaksi wajib diisi").run(req);
+    await libExports.body("nominal").notEmpty().withMessage("Nominal wajib diisi").run(req);
+    await libExports.body("user").notEmpty().withMessage("User wajib diisi").run(req);
+    const errors = libExports.validationResult(req);
+    if (!errors.isEmpty()) {
+      const formattedErrors = errors.array().reduce((acc, error) => {
+        acc[error.path] = error.msg;
+        return acc;
+      }, {});
+      return res.status(400).json({ errors: formattedErrors });
+    }
+    try {
+      const { pos_id, category_id, description, transaction_type, nominal, date, user } = req.body;
+      const { id } = req.params;
+      const now2 = /* @__PURE__ */ new Date();
+      await Transaction.update({
+        pos_id,
+        category_id,
+        description,
+        transaction_type,
+        updated_by: user,
+        amount: nominal
+        // date: date ?? now
+      }, id);
+      res.status(200).json({
+        message: "Transaksi berhasil diubah"
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Terjadi kesalahan saat menyimpan transaksi: " + error.message });
+    }
+  }
+  // Menampilkan detail area berdasarkan ID
+  static async delete(req, res) {
+    try {
+      const { id } = req.params;
+      const pinjaman = await Transaction.findByIdOnlyOne(id);
+      if (!pinjaman) {
+        return res.status(404).json({ error: "Pinjaman tidak ditemukan" });
+      }
+      const isUsed = pinjaman.total_pinjaman > pinjaman.sisa_pembayaran || pinjaman.besar_tunggakan > 0;
+      if (isUsed) {
+        return res.status(409).json({
+          error: "Pinjaman gagal dihapus, Data sedang digunakan dibagian lain sistem"
+        });
+      }
+      await Transaction.softDelete(id);
+      res.status(200).json({
+        pinjaman
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while retrieving the pinjaman.", errorss: error });
+    }
+  }
+  static async pinjamanAnggotaStatus(req, res) {
+    try {
+      const { id } = req.params;
+      const pinjaman = await Transaction.checkStatusPinjamanAnggota(id);
+      res.status(200).json({
+        punyaTunggakan: pinjaman > 0
+      });
+    } catch (error) {
+      res.status(500).json({ error: "An error occurred while retrieving the pinjaman.", errorss: error });
+    }
+  }
+}
 dotenv.config();
 const app = express();
 const port = 5e3;
@@ -88515,6 +88764,11 @@ app.get("/api/angsuran/:id", AngsuranController.index);
 app.post("/api/angsuran/:idPinjaman", AngsuranController.store);
 app.put("/api/angsuran/:id", AngsuranController.update);
 app.get("/api/angsuran/aktif/:id", AngsuranController.lastAngsuran);
+app.get("/api/transactions", TransactionController.index);
+app.post("/api/transactions", TransactionController.store);
+app.get("/api/transactions/:id", TransactionController.show);
+app.put("/api/transactions/:id", TransactionController.update);
+app.delete("/api/transactions/:id", TransactionController.delete);
 app.get("/api/configLoan", (req, res) => {
   const totalBulan = process.env.VITE_APP_BULAN || 10;
   const modalDo = process.env.VITE_APP_MODAL_DO || 13;
@@ -90742,6 +90996,24 @@ function startExpressServer() {
 }
 app$1.whenReady().then(() => {
   startExpressServer();
+  ipcMain.handle("save-pdf", async (_2, judul, htmlString) => {
+    console.log(htmlString);
+    const { filePath: filePath2 } = await dialog.showSaveDialog({
+      title: "Simpan Laporan Kas",
+      defaultPath: judul,
+      filters: [{ name: "PDF Files", extensions: ["pdf"] }]
+    });
+    if (!filePath2) return { success: false };
+    const win2 = new BrowserWindow({ show: false });
+    await win2.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlString)}`);
+    const pdfBuffer = await win2.webContents.printToPDF({
+      printBackground: true,
+      pageSize: "A4"
+    });
+    fs.writeFileSync(filePath2, pdfBuffer);
+    win2.close();
+    return { success: true, path: filePath2 };
+  });
   createWindow();
 });
 export {

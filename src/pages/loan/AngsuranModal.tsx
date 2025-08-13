@@ -133,7 +133,6 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
         }
     };
 
-
     if (isLoading && !!idAngsuran) return <Loading />
     return (
         <>

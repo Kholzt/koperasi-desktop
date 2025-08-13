@@ -1,7 +1,19 @@
 import db from "../config/db";
 
 export default class Transaction {
-    static async findAll({ startDate, endDate = null, transaction_type = null, category = null, group = null }) {
+    static async findAll({ startDate, endDate = null, transaction_type = null, categories = null, groups = null, pos }) {
+        // 1. Hitung saldo awal
+        const saldoQuery = await db('transactions')
+            .whereNull('deleted_at')
+            .andWhere('date', '<', `${startDate}`)
+            .select(
+                db.raw(`SUM(CASE WHEN transaction_type = 'debit' THEN amount ELSE 0 END) as total_debit`),
+                db.raw(`SUM(CASE WHEN transaction_type = 'kredit' THEN amount ELSE 0 END) as total_kredit`)
+            )
+            .first();
+        const saldoAwal = (saldoQuery.total_debit || 0) - (saldoQuery.total_kredit || 0);
+
+        // 2. Lanjutkan query utama Anda
         const query = db('transactions')
             .join('categories', 'transactions.category_id', 'categories.id')
             .join('users as ucb', 'transactions.created_by', 'ucb.id')
@@ -9,133 +21,80 @@ export default class Transaction {
             .join("pos", "transactions.pos_id", "pos.id")
             .whereNull('transactions.deleted_at');
 
-        if (transaction_type) query.andWhere('transaction_type', transaction_type);
-        if (category) query.andWhere('category_id', category);
-        if (group) query.andWhere('category_id', group);
+        if (transaction_type && transaction_type.length > 0) query.whereIn('transaction_type', transaction_type);
+        if (categories && categories.length > 0) query.whereIn('category_id', categories);
+        if (groups && groups.length > 0) query.whereIn('description', groups);
+        if (pos) query.where('transactions.pos_id', pos);
         if (startDate && endDate && startDate !== "null" && endDate !== "null") {
             query.andWhereRaw(
-                `transactions.created_at BETWEEN  '${startDate}' AND '${endDate}'`
+                `transactions.date BETWEEN  '${startDate}' AND '${endDate}'`
             );
         } else if (startDate && startDate !== "null") {
-            query.andWhereRaw(
-                `transactions.created_at >= '${startDate}'`
-
-            );
+            query.andWhereRaw(`transactions.date >= '${startDate}'`);
         } else if (endDate && endDate !== "null") {
-            query.andWhereRaw(
-                `transactions.created_at <= ${endDate}`
-            );
+            query.andWhereRaw(`transactions.date <= '${endDate}'`);
         }
 
-
         let transactions = await query
-            .orderBy('transactions.id', 'desc')
+            .orderBy('transactions.id', 'asc')
             .select(
                 'transactions.*',
-                db.raw(`JSON_OBJECT('complete_name', ucb.complete_name, 'nik', ucb.nik) as created_by`),
-                db.raw(`JSON_OBJECT('complete_name', uub.complete_name, 'nik', uub.nik) as created_by`),
+                db.raw(`JSON_OBJECT('complete_name', ucb.complete_name ) as created_user`),
+                db.raw(`JSON_OBJECT('complete_name', uub.complete_name) as updated_user`),
+                db.raw(`JSON_OBJECT('name', categories.name) as category`),
                 db.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
             );
 
+        // 3. Tambahkan row saldo awal manual ke awal array
+        transactions.unshift({
+            description: 'Saldo Awal',
+            amount: saldoAwal,
+            transaction_type: 'debit', // atau sesuai logika Anda
+            category: { name: "Kas" },
+            created_user: null,
+            update_user: null,
+            pos: null,
+            date: startDate, // opsional: bisa juga null
+        });
 
         return { transactions };
     }
 
-
-
     static async findById(id) {
-        return await db('pinjaman')
-            .join('members', 'pinjaman.anggota_id', 'members.id')
-            // .join('users as pj', 'pinjaman.penanggung_jawab', 'pj.id')
-            .join('users as pit', 'pinjaman.petugas_input', 'pit.id')
-            .leftJoin('angsuran', 'pinjaman.id', 'angsuran.id_pinjaman')
-            .leftJoin('penagih_angsuran ', 'penagih_angsuran.id_angsuran', 'angsuran.id')
-            .leftJoin('users', 'penagih_angsuran.id_karyawan', 'users.id')
-            .leftJoin("pos", "members.pos_id", "pos.id")
-            .whereNull('pinjaman.deleted_at')
-            .andWhere('pinjaman.id', id)
-            .orderBy('angsuran.tanggal_pembayaran', "asc")
+        return await db('transactions')
+            .join('categories', 'transactions.category_id', 'categories.id')
+            .join('users as ucb', 'transactions.created_by', 'ucb.id')
+            .leftJoin('users as uub', 'transactions.updated_by', 'uub.id')
+            .join("pos", "transactions.pos_id", "pos.id")
+            .whereNull('transactions.deleted_at')
             .select(
-                'pinjaman.*',
-                db.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
-                'members.complete_name as anggota_nama',
-                // 'pj.complete_name as pj_nama',
-                'pit.complete_name as pit_nama',
-                'angsuran.id as id_angsuran',
-                'angsuran.jumlah_bayar',
-                'angsuran.jumlah_katrol',
-                'angsuran.tanggal_pembayaran',
-                'angsuran.status as status_angsuran',
-                'angsuran.asal_pembayaran',
-                "users.complete_name as penagih_nama",
-                "nama_pos"
-            )
+                'transactions.*',
+                db.raw(`JSON_OBJECT('complete_name', ucb.complete_name ) as created_user`),
+                db.raw(`JSON_OBJECT('complete_name', uub.complete_name) as update_user`),
+                db.raw(`JSON_OBJECT('name', categories.name) as category`),
+                db.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
+            ).where("transactions.id", id).first();
     }
 
-    static async findByIdOnlyOne(id) {
-        return await db('pinjaman').where("id", id).first();
-    }
-    static async findPenanggungJawab(penanggung_jawab) {
-        return await db('users').whereIn("id", JSON.parse(penanggung_jawab));
-    }
-    static async createAngsuran({ idPinjaman, tanggalPembayaran, status }) {
-        return await db("angsuran").insert({ jumlah_bayar: 0, id_pinjaman: idPinjaman, asal_pembayaran: null, status, tanggal_pembayaran: tanggalPembayaran });
-    }
-    static async existLoan(anggota_id, kode, excludeId) {
-        const member = await db("members").where("id", anggota_id).first();
-        const loan = db("pinjaman").where("kode", kode)
-            .join("members", "pinjaman.anggota_id", "members.id")
-            .where("members.area_id", member.area_id)
-            .whereNull("pinjaman.deleted_at")
-        if (excludeId) loan.andWhereNot("pinjaman.id", excludeId)
-        return await loan.first();
-    }
 
 
     static async create(data) {
-        const [id] = await db('pinjaman').insert(data)
+        const [id] = await db('transactions').insert(data)
 
         return id;
     }
     static async update(data, id) {
-        const result = await db('pinjaman')
+        const result = await db('transactions')
             .where({ id })
             .update(data);
         return result;
     }
 
     static async softDelete(id) {
-        return db('pinjaman').where({ id }).update({ deleted_at: new Date() });
-    }
-
-    static async checkStatusPinjamanAnggota(id) {
-        const [{ total }] = await db("pinjaman").where("anggota_id", id).whereNot("status", "lunas").whereNull('pinjaman.deleted_at').count({ total: '*' })
-        return total;
-    }
-
-    static async checkStatusAngsuran(id) {
-        const [{ total }] = await db("angsuran").where("id_pinjaman", id).whereNot("jumlah_bayar", 0).count({ total: '*' })
-        return total;
-    }
-    static async findByTanggal(id, tanggal) {
-        const [{ total }] = await db("angsuran").where("id_pinjaman", id).where("tanggal_pembayaran", tanggal).count({ total: '*' })
-        return total > 0;
+        return db('transactions').where({ id }).update({ deleted_at: new Date() });
     }
 
 
-    static async updateSisaPembayaran(idPinjaman) {
-        const pinjaman = await db("pinjaman").where("id", idPinjaman).first();
-        const [sumResult] = await db("angsuran")
-            .where("id_pinjaman", idPinjaman)
-            .sum({ total_katrol: "jumlah_katrol" })
-            .sum({ total_bayar: "jumlah_bayar" });
 
-        const totalAngsuran = (Number(sumResult.total_katrol) || 0) + (Number(sumResult.total_bayar) || 0);
-        const sisaPembayaran = Number(pinjaman.total_pinjaman) - totalAngsuran;
-        console.log(sisaPembayaran, totalAngsuran);
-        return await db("pinjaman").where("id", idPinjaman).update({
-            sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran,
-        });
-    }
 
 }

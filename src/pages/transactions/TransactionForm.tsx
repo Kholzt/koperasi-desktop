@@ -29,6 +29,7 @@ interface TransactionFormInput {
     description: string;
     nominal: string;
     pos_id: string;
+    user?: number;
 }
 
 const schema: yup.SchemaOf<TransactionFormInput> = yup.object({
@@ -95,10 +96,9 @@ const TransactionForm: React.FC = () => {
     useEffect(() => {
         if (id) {
             setLoading(true);
-            axios.get("/api/loans/" + id).then((res: any) => {
-                const loan = res.data.loan
-                reset({ ...loan, penanggung_jawab: JSON.parse(loan.penanggung_jawab), tanggal_pinjam: new Date(loan.tanggal_peminjaman as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
-                setHasAngsuran(loan.hasAngsuran);
+            axios.get("/api/transactions/" + id).then((res: any) => {
+                const loan = res.data.transaction
+                reset({ ...loan, nominal: loan.amount });
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
@@ -118,16 +118,17 @@ const TransactionForm: React.FC = () => {
     const onSubmit = async (data: TransactionFormInput) => {
         try {
             data.nominal = unformatCurrency(data.nominal).toString();
+            data.user = user?.id;
             let res;
             if (!id) {
-                res = await axios.post("/api/loans", data);
+                res = await axios.post("/api/transactions", data);
             } else {
-                res = await axios.put("/api/loans/" + id, data);
+                res = await axios.put("/api/transactions/" + id, data);
             }
 
             if (res.status === 201 || res.status === 200) {
-                toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
-                navigate("/loan");
+                toast.success(`Transaksi berhasil ${!id ? "ditambah" : "diubah"}`);
+                navigate("/transactions");
             }
         } catch (error: any) {
             console.error(error);

@@ -16,6 +16,7 @@ import { useModal } from "../../hooks/useModal";
 import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { CategoryProps, PaginationProps } from "../../utils/types";
+import { useUser } from "../../hooks/useUser";
 // import { toast } from 'react-hot-toast';
 interface CategoryTableProps {
     data: CategoryProps[],
@@ -82,7 +83,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({ data, pagination, setPagi
                                     </span>
                                 </TableCell>
 
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
+                                <TableCell className="px-4 py-3 w-30 text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
                                     <Action id={user.id} name={user.name} />
                                 </TableCell>
                             </TableRow>

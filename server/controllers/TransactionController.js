@@ -7,13 +7,28 @@ export default class TransactionController {
     // Menampilkan daftar area dengan pagination
     static async index(req, res) {
         try {
-            const { startDate, endDate = null, transaction_type = null, category = null, group = null } = req.query;
-            const pageInt = parseInt(page);
-            const limitInt = parseInt(limit);
-            const offset = (pageInt - 1) * limitInt;
+            const {
+                startDate = new Date(),
+                endDate = null,
+                'transaction_type[]': rawTransaction_type = null,
+                'categories[]': rawCategories = null,
+                'groups[]': rawGroups = null,
+                pos = null
+            } = req.query;
+            console.log(req.query);
+            // pastikan jadi array
+            const categories = rawCategories
+                ? Array.isArray(rawCategories) ? rawCategories : [rawCategories]
+                : [];
+            const transaction_type = rawTransaction_type
+                ? Array.isArray(rawTransaction_type) ? rawTransaction_type : [rawTransaction_type]
+                : [];
 
+            const groups = rawGroups
+                ? Array.isArray(rawGroups) ? rawGroups : [rawGroups]
+                : [];
             // Query transactions with join to members
-            const { transactions } = await Transaction.findAll({ startDate, endDate, transaction_type, category, group })
+            const { transactions } = await Transaction.findAll({ startDate, endDate, transaction_type, categories, groups, pos })
 
 
             res.status(200).json({
@@ -29,12 +44,12 @@ export default class TransactionController {
     static async show(req, res) {
         try {
             const { id } = req.params;
-            const rows = await Transaction.findById(id);
+            const transaction = await Transaction.findById(id);
 
-            res.status(200).json({ loan });
+            res.status(200).json({ transaction });
         } catch (error) {
             res.status(500).json({
-                error: 'An error occurred while retrieving the loan.',
+                error: 'An error occurred while retrieving the transaction.',
                 errors: error,
             });
         }
@@ -97,20 +112,12 @@ export default class TransactionController {
 
 
     static async store(req, res) {
-        // Validasi input menggunakan express-validator
-        await body('kode').notEmpty().withMessage('Kode wajib diisi').run(req);
-        await body('jumlah_pinjaman').notEmpty().withMessage('Jumlah pinjaman wajib diisi').isFloat({ min: 0 }).run(req);
-        await body('total_pinjaman_diterima').notEmpty().withMessage('Total pinjaman diterima wajib diisi').isFloat({ min: 0 }).run(req);
-        await body('persen_bunga').notEmpty().withMessage('Persen bunga wajib diisi').isFloat({ min: 0, max: 100 }).run(req);
-        await body('total_bunga').notEmpty().withMessage('Total bunga wajib diisi').run(req);
-        await body('anggota_id').notEmpty().withMessage('Anggota wajib dipilih').run(req);
-        await body('total_pinjaman').notEmpty().withMessage('Total pinjaman wajib diisi').run(req);
-        await body('jumlah_angsuran').notEmpty().withMessage('Jumlah angsuran wajib diisi').isNumeric().run(req);
-        await body('modal_do').notEmpty().withMessage('Modal DO wajib diisi').isFloat({ min: 0 }).run(req);
-        await body('penanggung_jawab').notEmpty().withMessage('Penanggung jawab wajib dipilih').run(req);
-        await body('petugas_input').notEmpty().withMessage('Petugas input wajib dipilih').run(req);
-        await body('status').notEmpty().withMessage('Status wajib dipilih').isIn(['aktif', 'lunas', 'menunggak']).run(req);
-        await body('tanggal_pinjam').notEmpty().withMessage('Tanggal input wajib dipilih').run(req)
+        await body('pos_id').notEmpty().withMessage('Pos wajib diisi').run(req);
+        await body('category_id').notEmpty().withMessage('Kategori wajib diisi').run(req);
+        await body('description').notEmpty().withMessage('Keterangan wajib diisi').run(req);
+        await body('transaction_type').notEmpty().withMessage('Jenis transaksi wajib diisi').run(req);
+        await body('nominal').notEmpty().withMessage('Nominal wajib diisi').run(req);
+        await body('user').notEmpty().withMessage('User wajib diisi').run(req);
 
 
         const errors = validationResult(req);
@@ -121,129 +128,48 @@ export default class TransactionController {
             }, {});
             return res.status(400).json({ errors: formattedErrors });
         }
-        const trx = await db.transaction();
 
         try {
-            const {
-                jumlah_pinjaman,
-                total_pinjaman_diterima,
-                anggota_id,
-                kode,
-                penanggung_jawab,
-                modal_do,
-                jumlah_angsuran,
-                total_pinjaman,
-                persen_bunga,
-                status,
-                petugas_input,
-                total_bunga,
-                tanggal_pinjam
-            } = req.body;
+            const { category_id, pos_id, description, transaction_type, nominal, date, user } = req.body;
 
-            const loanExist = await Transaction.existTransaction(anggota_id, kode);
-            if (loanExist) {
-                return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
-            }
+            // const loanExist = await Transaction.existTransaction(anggota_id, kode);
+            // if (loanExist) {
+            //     return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
+            // }
+            const code = "test";
 
-            // Hitung tanggal angsuran pertama (7 hari dari sekarang)
             const now = new Date();
-            const tanggalAngsuranPertama = new Date(tanggal_pinjam);
-            tanggalAngsuranPertama.setDate(tanggalAngsuranPertama.getDate() + 7);
 
-            // Fungsi format tanggal YYYY-MM-DD
-            const formatDate = (date) => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            };
-
-            // Simpan data pinjaman
             const loanId = await Transaction.create({
-                jumlah_pinjaman,
-                total_pinjaman_diterima,
-                anggota_id,
-                kode,
-                penanggung_jawab: JSON.stringify(penanggung_jawab),
-                modal_do,
-                jumlah_angsuran,
-                total_pinjaman,
-                persen_bunga,
-                status,
-                petugas_input,
-                sisa_pembayaran: total_pinjaman,
-                besar_tunggakan: 0,
-                total_bunga,
-                tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama),
-                created_at: now,
+                category_id,
+                pos_id,
+                description,
+                transaction_type,
+                amount: nominal,
+                code,
+                created_by: user,
+                created_at: now, date: date ?? now
             });
 
-            // Loop angsuran per bulan
-            let totalMinggu = parseInt(process.env.VITE_APP_BULAN || '10');
-            for (let i = 0; i < totalMinggu; i++) {
-                const tanggalPembayaran = new Date(tanggalAngsuranPertama);
-                tanggalPembayaran.setDate(tanggalPembayaran.getDate() + (i * 7));
-
-                let sudahAktif = false;
-
-                while (!sudahAktif) {
-                    const isDay = await isHoliday(tanggalPembayaran);
-                    if (isDay) {
-                        // Buat angsuran status "libur"
-                        await Transaction.createAngsuran({
-                            idPinjaman: loanId,
-                            tanggalPembayaran: formatDate(tanggalPembayaran),
-                            status: "libur"
-                        });
-
-                        // Geser ke minggu berikutnya
-                        tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
-                        i++;
-                        totalMinggu++;
-                    } else {
-                        sudahAktif = true;
-                        await Transaction.createAngsuran({
-                            idPinjaman: loanId,
-                            tanggalPembayaran: formatDate(tanggalPembayaran),
-                            status: "aktif"
-                        });
-                    }
-                }
-            }
-
-
-
-            const newPeminjaman = await Transaction.findById(loanId);
-            await trx.commit();
-
             res.status(200).json({
-                message: 'Pinjaman berhasil dibuat',
-                pinjaman: newPeminjaman
+                message: 'Transaksi berhasil dibuat',
             });
 
         } catch (error) {
-            await trx.rollback();
-
-            res.status(500).json({ error: 'Terjadi kesalahan saat menyimpan pinjaman: ' + error.message });
+            res.status(500).json({ error: 'Terjadi kesalahan saat menyimpan transaksi: ' + error.message });
         }
     }
 
 
     // Mengupdate data area dengan pengecekan dan enkripsi password jika ada perubahan
     static async update(req, res) {
-        // Validasi input menggunakan express-validator
-        await body('jumlah_pinjaman').notEmpty().withMessage('Jumlah pinjaman wajib diisi').isFloat({ min: 0 }).withMessage('Jumlah pinjaman harus berupa angka dan minimal 0').run(req)
-        await body('total_pinjaman_diterima').notEmpty().withMessage('Total pinjaman diterima wajib diisi').isFloat({ min: 0 }).withMessage('Total pinjaman diterima harus berupa angka dan minimal 0').run(req)
-        await body('persen_bunga').notEmpty().withMessage('Persen bunga wajib diisi').isFloat({ min: 0, max: 100 }).withMessage('Persen bunga harus berupa angka antara 0 hingga 100').run(req)
-        await body('total_bunga').notEmpty().withMessage('Total bunga wajib diisi').run(req)
-        await body('total_pinjaman').notEmpty().withMessage('Total pinjaman wajib diisi').run(req)
-        await body('jumlah_angsuran').notEmpty().withMessage('Jumlah angsuran wajib diisi').isNumeric().withMessage('Jumlah angsuran harus berupa angka').run(req)
-        await body('modal_do').notEmpty().withMessage('Modal DO wajib diisi').isFloat({ min: 0 }).withMessage('Modal DO harus berupa angka dan minimal 0').run(req)
-        await body('penanggung_jawab').notEmpty().withMessage('Penanggung jawab wajib dipilih').run(req)
-        await body('petugas_input').notEmpty().withMessage('Petugas input wajib dipilih').run(req)
-        await body('status')
-            .notEmpty().withMessage('Status wajib dipilih')
-            .isIn(['aktif', 'lunas', 'menunggak']).withMessage('Status harus salah satu dari: aktif, lunas, atau menunggak').run(req)
+        await body('pos_id').notEmpty().withMessage('Pos wajib diisi').run(req);
+        await body('category_id').notEmpty().withMessage('Kategori wajib diisi').run(req);
+        await body('description').notEmpty().withMessage('Keterangan wajib diisi').run(req);
+        await body('transaction_type').notEmpty().withMessage('Jenis transaksi wajib diisi').run(req);
+        await body('nominal').notEmpty().withMessage('Nominal wajib diisi').run(req);
+        await body('user').notEmpty().withMessage('User wajib diisi').run(req);
+
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -254,56 +180,32 @@ export default class TransactionController {
             return res.status(400).json({ errors: formattedErrors });
         }
 
-        const trx = await db.transaction();
         try {
-            const id = req.params.id; // pastikan id dikirim di URL: /pinjaman/:id
-            const {
-                jumlah_pinjaman, total_pinjaman_diterima, anggota_id, kode,
-                penanggung_jawab, modal_do, jumlah_angsuran, total_pinjaman,
-                persen_bunga, status, petugas_input, total_bunga
-            } = req.body;
+            const { pos_id, category_id, description, transaction_type, nominal, date, user } = req.body;
+            const { id } = req.params;
 
-            // Cek apakah pinjaman dengan ID tersebut ada
-            const existing = await Transaction.findById(id);
-            if (!existing) {
-                return res.status(404).json({ error: 'Data pinjaman tidak ditemukan.' });
-            }
+            // const loanExist = await Transaction.existTransaction(anggota_id, kode);
+            // if (loanExist) {
+            //     return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
+            // }
+            const now = new Date();
 
-            // Cek kode unik (kode tidak boleh sama dengan entri lain)
-            const kodeCek = await Transaction.existTransaction(anggota_id, kode, id);
-            if (kodeCek) {
-                return res.status(400).json({ errors: { kode: 'Kode sudah digunakan oleh pinjaman lain.' } });
-            }
-
-            const data = {
-                jumlah_pinjaman,
-                total_pinjaman_diterima,
-                penanggung_jawab: JSON.stringify(penanggung_jawab),
-                modal_do,
-                jumlah_angsuran,
-                total_pinjaman,
-                persen_bunga,
-                status,
-                petugas_input,
-                total_bunga,
-                // sisa_pembayaran: total_pinjaman
-            };
-            // Update data
-            await Transaction.update(data, id)
-            await Transaction.updateSisaPembayaran(id);
-
-            const updatedPinjaman = await Transaction.findById(id);
-            await trx.commit();
+            await Transaction.update({
+                pos_id,
+                category_id,
+                description,
+                transaction_type,
+                updated_by: user,
+                amount: nominal,
+                // date: date ?? now
+            }, id);
 
             res.status(200).json({
-                message: 'Data pinjaman berhasil diperbarui',
-                pinjaman: updatedPinjaman,
+                message: 'Transaksi berhasil diubah',
             });
 
         } catch (error) {
-            await trx.rollback();
-
-            res.status(500).json({ error: 'Terjadi kesalahan saat memperbarui data: ' + error.message });
+            res.status(500).json({ error: 'Terjadi kesalahan saat menyimpan transaksi: ' + error.message });
         }
     }
 

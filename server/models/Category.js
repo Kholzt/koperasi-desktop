@@ -62,7 +62,7 @@ class CategoryModel {
                 newNumber = parseInt(match[1], 10) + 1;
             }
         }
-        const newCode = "KTG-" + String(newNumber).padStart(4, '0');
+        const newCode = "KTG" + newNumber;
         return newCode;
     }
 
