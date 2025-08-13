@@ -57,7 +57,7 @@ const Loan: React.FC = () => {
             .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}&search=${search}`)
             .then((res: any) => {
                 setLoans(res.data.loans);
-                setPagination(res.data.pagination);
+                setPagination((prev)=>({...prev,totalPages:res.data.pagination.totalPages}));
             });
         axios
             .get(`/api/schedule?limit=20000000`)
@@ -87,6 +87,7 @@ const Loan: React.FC = () => {
             setDayFilter(savedFilters.dayFilter || 'all');
             setGroupFilter(savedFilters.groupFilter || '');
             setSearch(savedFilters.search || '');
+            setPagination((prev)=>({...prev,page:savedFilters.page }));
 
         }
         setIsFiltersLoaded(true);
@@ -104,10 +105,11 @@ const Loan: React.FC = () => {
             dayFilter,
             groupFilter,
             search,
+            page:pagination?.page
         };
         localStorage.setItem('filters', JSON.stringify(savedFilters));
 
-    }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search, isFiltersLoaded]);
+    }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search, isFiltersLoaded,pagination?.page]);
 
     const searchAction = (e: any) => {
         const value = e.target.value;
