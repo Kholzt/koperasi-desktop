@@ -140,10 +140,6 @@
     "date": "2024-02-10"
   },
   {
-    "title": "Ramadan Start",
-    "date": "2024-03-12"
-  },
-  {
     "title": "Hari Paskah",
     "date": "2024-03-31"
   },
@@ -352,10 +348,6 @@
     "date": "2023-02-18"
   },
   {
-    "title": "Ramadan Start",
-    "date": "2023-03-23"
-  },
-  {
     "title": "Hari Paskah",
     "date": "2023-04-09"
   },
@@ -496,10 +488,6 @@
     "date": "2025-01-27"
   },
   {
-    "title": "Ramadan Start",
-    "date": "2025-03-01"
-  },
-  {
     "title": "Hari Idul Fitri",
     "date": "2025-03-31"
   },
@@ -518,5 +506,17 @@
   {
     "title": "Hari Proklamasi Kemerdekaan R.I. observed",
     "date": "2025-08-18"
+  },
+  {
+    "title": "1 Ramadan",
+    "date": "2023-03-23"
+  },
+  {
+    "title": "1 Ramadan",
+    "date": "2024-03-12"
+  },
+  {
+    "title": "1 Ramadan",
+    "date": "2025-03-01"
   }
 ]

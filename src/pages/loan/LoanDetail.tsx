@@ -161,14 +161,12 @@ export default LoanDetail;
 
 
 function getRowClass(angsuran) {
-    if (angsuran.asal_pembayaran === "anggota") {
+    if (angsuran.status === "lunas" || angsuran.status === "lebih") {
         return "bg-blue-500 text-white";
-    } else if (angsuran.asal_pembayaran === "penagih" || angsuran.asal_pembayaran === "katrol") {
+    } else if (angsuran.status === "menunggak" || (angsuran.asal_pembayaran === "katrol" && angsuran.status === "kurang")) {
         return "bg-red-500";
-    } else if (angsuran.status === "libur") {
+    } else if (angsuran.status === "libur" || angsuran.status == "Libur Operasional" || angsuran.status == "Libur Operasional") {
         return "bg-yellow-500";
-    } else if (angsuran.status == "Libur Operasional" || angsuran.status == "Libur Operasional") {
-        return "bg-blue-500 text-white";
     } else {
         return "";
     }
