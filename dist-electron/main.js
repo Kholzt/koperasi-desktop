@@ -88264,16 +88264,15 @@ class UserController {
 }
 dotenv.config();
 const app = express();
-const port = 5e3;
+const port = "5000";
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
-  const secret = req.headers["x-app-secret"];
-  if ("123412321123" == secret) {
+  req.headers["x-app-secret"];
+  {
     return next();
   }
-  return res.status(403).send("Forbidden");
 });
 app.post("/api/login", AuthController.login);
 app.get("/api/user", AuthController.getUser);

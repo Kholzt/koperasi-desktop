@@ -121,12 +121,11 @@ const Angsuran: React.FC = () => {
                 message: "Asal pembayaran wajib diisi"
             })
 
-
             if (!idAngsuran) {
-                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
+                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             } else {
-                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
+                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             }
             navigate("/loan?isFromTransaction=true");

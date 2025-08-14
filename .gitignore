@@ -25,6 +25,8 @@ release/*
 *.sln
 *.sw?
 "release/"
+dist-electron/
 
 
 Koperasi Seferine Jaya Mandiri/
+dist-electron/main.js
