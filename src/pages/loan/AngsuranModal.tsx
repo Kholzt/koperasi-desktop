@@ -169,6 +169,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                                 { label: "Lebih", value: "lebih" },
                                 { label: "Kurang", value: "kurang" },
                                 { label: 'Libur Operasional', value: 'Libur Operasional' },
+                                { label: 'Libur', value: 'libur' },
                             ]} placeholder="Pilih status angsuran" {...register("status")} />
                         {errors.status && (
                             <p className="mt-1 text-sm text-red-500">{errors.status.message}</p>
