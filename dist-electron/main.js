@@ -88699,15 +88699,16 @@ class TransactionController {
 }
 dotenv.config();
 const app = express();
-const port = "5000";
+const port = 5e3;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
-  req.headers["x-app-secret"];
-  {
+  const secret = req.headers["x-app-secret"];
+  if ("123412321123" == secret) {
     return next();
   }
+  return res.status(403).send("Forbidden");
 });
 app.post("/api/login", AuthController.login);
 app.get("/api/user", AuthController.getUser);
@@ -91008,21 +91009,21 @@ app$1.whenReady().then(() => {
   startExpressServer();
   ipcMain.handle("save-pdf", async (_2, judul, htmlString) => {
     console.log(htmlString);
-    const { filePath: filePath2 } = await dialog.showSaveDialog({
+    const { filePath } = await dialog.showSaveDialog({
       title: "Simpan Laporan Kas",
       defaultPath: judul,
       filters: [{ name: "PDF Files", extensions: ["pdf"] }]
     });
-    if (!filePath2) return { success: false };
+    if (!filePath) return { success: false };
     const win2 = new BrowserWindow({ show: false });
     await win2.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlString)}`);
     const pdfBuffer = await win2.webContents.printToPDF({
       printBackground: true,
       pageSize: "A4"
     });
-    fs.writeFileSync(filePath2, pdfBuffer);
+    fs.writeFileSync(filePath, pdfBuffer);
     win2.close();
-    return { success: true, path: filePath2 };
+    return { success: true, path: filePath };
   });
   createWindow();
 });
