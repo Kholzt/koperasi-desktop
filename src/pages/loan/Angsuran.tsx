@@ -121,15 +121,14 @@ const Angsuran: React.FC = () => {
                 message: "Asal pembayaran wajib diisi"
             })
 
-
             if (!idAngsuran) {
-                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
+                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             } else {
-                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
+                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             }
-            navigate("/loan");
+            navigate("/loan?isFromTransaction=true");
         } catch (error) {
             toast.error("Angsuran gagal diubah")
             console.log(error);
@@ -150,7 +149,7 @@ const Angsuran: React.FC = () => {
 
             <div className="space-y-6">
                 <ComponentCard title="Angsuran" >
-                    <h2 className="text-white">Angsuran tanggal : {formatDate(angsuran?.tanggal_pembayaran ?? "")}</h2>
+                    <h2 className="dark:text-white">Angsuran tanggal : {formatDate(angsuran?.tanggal_pembayaran ?? "")}</h2>
                     <form onSubmit={handleSubmit(onSubmit)} className={` py-4 px-4 rounded-sm`}>
                         <div className="grid grid-cols-2 gap-4 mb-4" >
                             <div className="col-span-2">
@@ -183,6 +182,7 @@ const Angsuran: React.FC = () => {
                                         { label: "Lebih", value: "lebih" },
                                         { label: "Kurang", value: "kurang" },
                                         { label: 'Libur Operasional', value: 'Libur Operasional' },
+                                        { label: 'Libur', value: 'libur' },
                                     ]} placeholder="Pilih status angsuran" {...register("status")} />
                                 {errors.status && (
                                     <p className="mt-1 text-sm text-red-500">{errors.status.message}</p>
@@ -209,7 +209,7 @@ const Angsuran: React.FC = () => {
                         </div>
                         <div className="flex gap-2 place-content-end">
                             <Link
-                                to={"/loan"}
+                                to={"/loan?isFromTransaction=true"}
                             >
                                 <Button variant="outline">Batal</Button>
                             </Link>

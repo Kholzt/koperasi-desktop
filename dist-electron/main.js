@@ -70349,22 +70349,12 @@ new Holidays2("ID");
 let cachedHolidays = null;
 let lastFetched = null;
 const CACHE_DURATION_MS = 1e3 * 60 * 60 * 24;
-const filePath = path.join(process.cwd(), "extras", "holiday.json");
+path.join(process.cwd(), "extras", "holiday.json");
 async function isHoliday(date) {
   const d2 = new Date(date);
   const isSunday = d2.getDay() === 0;
-  const holidays = await getHolidayJson();
-  const formatted = formatDate(new Date(date));
-  return holidays.some((holiday) => holiday.date === formatted) || isSunday;
-}
-async function getHolidayJson() {
-  try {
-    const content = await fs$1.readFile(filePath, "utf-8");
-    return JSON.parse(content);
-  } catch (err) {
-    console.error("❌ Gagal membaca holiday.json:", err.message);
-    return [];
-  }
+  formatDate(new Date(date));
+  return isSunday;
 }
 async function getHolidayApi() {
   const now2 = Date.now();
@@ -70374,7 +70364,7 @@ async function getHolidayApi() {
   const url = "https://calendar.google.com/calendar/ical/id.indonesian%23holiday%40group.v.calendar.google.com/public/basic.ics";
   try {
     const data2 = await ical.async.fromURL(url);
-    cachedHolidays = Object.values(data2).filter((item) => item.type === "VEVENT").map((event) => ({
+    cachedHolidays = Object.values(data2).filter((item) => item.type === "VEVENT" && !(item.summary || "").toLowerCase().includes("cuti bersama")).map((event) => ({
       title: event.summary,
       date: formatDate(event.start)
     }));
@@ -70387,11 +70377,13 @@ async function getHolidayApi() {
 }
 async function saveHolidayJson() {
   const folderPath = path.join(process.cwd(), "extras");
-  const filePath2 = path.join(folderPath, "holiday.json");
+  const filePath = path.join(folderPath, "holiday.json");
   const fileInfo = path.join(folderPath, "update-info.txt");
   const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
   try {
-    await fs$1.mkdir(folderPath, { recursive: true });
+    await fs$1.mkdir(folderPath, {
+      recursive: true
+    });
     try {
       const lastSavedDate = await fs$1.readFile(fileInfo, "utf-8");
       if (lastSavedDate.trim() === today) {
@@ -70401,7 +70393,7 @@ async function saveHolidayJson() {
     } catch (_2) {
     }
     const holidays = await getHolidayApi();
-    await fs$1.writeFile(filePath2, JSON.stringify(holidays, null, 2), "utf-8");
+    await fs$1.writeFile(filePath, JSON.stringify(holidays, null, 2), "utf-8");
     await fs$1.writeFile(fileInfo, today, "utf-8");
   } catch (err) {
     console.error("❌ Gagal menyimpan holiday.json:", err.message);
@@ -87160,7 +87152,7 @@ class Loan {
     }
     if (search && search !== "null") {
       query.andWhere(function() {
-        this.where("complete_name", "like", `%${search}%`).orWhere("nik", "like", `%${search}%`);
+        this.where("complete_name", "like", `%${search}%`).orWhere("nik", "like", `%${search}%`).orWhere("no_kk", "like", `%${search}%`);
       });
     }
     if (status && status !== "null") {
@@ -87211,6 +87203,9 @@ class Loan {
     }
     if (status && status !== "null") {
       countQuery.andWhere("pinjaman.status", status);
+    }
+    if (day && day !== "all") {
+      countQuery.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
     }
     let countResults = await countQuery;
     if (group && group !== "all") {
@@ -88704,16 +88699,15 @@ class TransactionController {
 }
 dotenv.config();
 const app = express();
-const port = 5e3;
+const port = "5000";
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
-  const secret = req.headers["x-app-secret"];
-  if ("123412321123" == secret) {
+  req.headers["x-app-secret"];
+  {
     return next();
   }
-  return res.status(403).send("Forbidden");
 });
 app.post("/api/login", AuthController.login);
 app.get("/api/user", AuthController.getUser);
@@ -89035,7 +89029,7 @@ function requireNodeExternalApi() {
       this.platform = platform;
     }
     setPreloadFileForSessions({
-      filePath: filePath2,
+      filePath,
       // eslint-disable-line no-unused-vars
       includeFutureSession = true,
       // eslint-disable-line no-unused-vars
@@ -89191,7 +89185,7 @@ function requireElectronExternalApi() {
       (_a = this.electron.shell) == null ? void 0 : _a.openExternal(url).catch(logFunction);
     }
     setPreloadFileForSessions({
-      filePath: filePath2,
+      filePath,
       includeFutureSession = true,
       getSessions = () => {
         var _a;
@@ -89209,12 +89203,12 @@ function requireElectronExternalApi() {
       function setPreload(session) {
         if (typeof session.registerPreloadScript === "function") {
           session.registerPreloadScript({
-            filePath: filePath2,
+            filePath,
             id: "electron-log-preload",
             type: "frame"
           });
         } else {
-          session.setPreloads([...session.getPreloads(), filePath2]);
+          session.setPreloads([...session.getPreloads(), filePath]);
         }
       }
     }
@@ -90495,12 +90489,12 @@ function requireFile$1() {
     }
   }
   File_1 = File;
-  function readFileSyncFromEnd(filePath2, bytesCount) {
+  function readFileSyncFromEnd(filePath, bytesCount) {
     const buffer = Buffer.alloc(bytesCount);
-    const stats = fs$12.statSync(filePath2);
+    const stats = fs$12.statSync(filePath);
     const readLength = Math.min(stats.size, bytesCount);
     const offset2 = Math.max(0, stats.size - bytesCount);
-    const fd = fs$12.openSync(filePath2, "r");
+    const fd = fs$12.openSync(filePath, "r");
     const totalBytes = fs$12.readSync(fd, buffer, 0, readLength, offset2);
     fs$12.closeSync(fd);
     return buffer.toString("utf8", 0, totalBytes);
@@ -90553,20 +90547,20 @@ function requireFileRegistry() {
      * @param {boolean} [writeAsync]
      * @return {File}
      */
-    provide({ filePath: filePath2, writeOptions = {}, writeAsync = false }) {
+    provide({ filePath, writeOptions = {}, writeAsync = false }) {
       let file2;
       try {
-        filePath2 = path$12.resolve(filePath2);
-        if (this.store[filePath2]) {
-          return this.store[filePath2];
+        filePath = path$12.resolve(filePath);
+        if (this.store[filePath]) {
+          return this.store[filePath];
         }
-        file2 = this.createFile({ filePath: filePath2, writeOptions, writeAsync });
+        file2 = this.createFile({ filePath, writeOptions, writeAsync });
       } catch (e) {
-        file2 = new NullFile({ path: filePath2 });
+        file2 = new NullFile({ path: filePath });
         this.emitError(e, file2);
       }
       file2.on("error", this.emitError);
-      this.store[filePath2] = file2;
+      this.store[filePath] = file2;
       return file2;
     }
     /**
@@ -90576,9 +90570,9 @@ function requireFileRegistry() {
      * @return {File}
      * @private
      */
-    createFile({ filePath: filePath2, writeOptions, writeAsync }) {
-      this.testFileWriting({ filePath: filePath2, writeOptions });
-      return new File({ path: filePath2, writeOptions, writeAsync });
+    createFile({ filePath, writeOptions, writeAsync }) {
+      this.testFileWriting({ filePath, writeOptions });
+      return new File({ path: filePath, writeOptions, writeAsync });
     }
     /**
      * @param {Error} error
@@ -90593,9 +90587,9 @@ function requireFileRegistry() {
      * @param {WriteOptions} writeOptions
      * @private
      */
-    testFileWriting({ filePath: filePath2, writeOptions }) {
-      fs$12.mkdirSync(path$12.dirname(filePath2), { recursive: true });
-      fs$12.writeFileSync(filePath2, "", { flag: "a", mode: writeOptions.mode });
+    testFileWriting({ filePath, writeOptions }) {
+      fs$12.mkdirSync(path$12.dirname(filePath), { recursive: true });
+      fs$12.writeFileSync(filePath, "", { flag: "a", mode: writeOptions.mode });
     }
   }
   FileRegistry_1 = FileRegistry;
@@ -90701,9 +90695,9 @@ function requireFile() {
     }
     function getFile(msg) {
       initializeOnFirstAccess();
-      const filePath2 = transport.resolvePathFn(pathVariables, msg);
+      const filePath = transport.resolvePathFn(pathVariables, msg);
       return registry.provide({
-        filePath: filePath2,
+        filePath,
         writeAsync: !transport.sync,
         writeOptions: transport.writeOptions
       });
@@ -90993,8 +90987,8 @@ app$1.on("activate", () => {
     createWindow();
   }
 });
-ipcMain.handle("open-file", async (event, filePath2) => {
-  shell.showItemInFolder(filePath2);
+ipcMain.handle("open-file", async (event, filePath) => {
+  shell.showItemInFolder(filePath);
 });
 function startExpressServer() {
   const serverPath = path$1.join(process.env.APP_ROOT, "server", "Server.js");
