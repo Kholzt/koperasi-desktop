@@ -39,6 +39,8 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
 
 
     const { user: userLogin } = useUser();
+    const isAdminAndPusat = (userLogin?.role == "pusat" || userLogin?.role == "super admin");
+    const isAdminPusatController = (userLogin?.role == "pusat" || userLogin?.role == "super admin" || userLogin?.role == "controller");
 
     return (
         <div className=" rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -77,7 +79,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                             >
                                 Jenis Transaksi
                             </TableCell>
-                            {(userLogin?.role == "pusat" || userLogin?.role == "super admin" || userLogin?.role == "controller") && <><TableCell
+                            {isAdminPusatController && <><TableCell
                                 rowSpan={2}
                                 isHeader
                                 className="px-5 py-3 border-gray-100  dark:border-white/[0.05] border-e border-b text-center  font-medium text-gray-500  text-theme-xs dark:text-gray-400"
@@ -92,7 +94,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                     Diubah oleh
                                 </TableCell></>}
 
-                            {(userLogin?.role == "pusat" || userLogin?.role == "super admin") && <TableCell
+                            {isAdminAndPusat && <TableCell
                                 rowSpan={2}
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -118,8 +120,8 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
 
                     {/* Table Body */}
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                        {data.map((user: TransactionProps, index: number) => (
-                            <TableRow key={index}>
+                        {data.map((user: TransactionProps, index: number) => {
+                            return <TableRow key={index}>
 
                                 <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
@@ -151,7 +153,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                         {user.transaction_type == "credit" ? formatCurrency(user.amount) : "Rp. 0"}
                                     </span>
                                 </TableCell>
-                                {(userLogin?.role == "pusat" || userLogin?.role == "super admin" || userLogin?.role == "controller") && <><TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                {isAdminPusatController && <><TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm  capitalize">
 
                                         {user.created_user?.complete_name ?? "-"}
@@ -164,20 +166,23 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                     </TableCell></>}
 
 
-                                {(userLogin?.role == "pusat" || userLogin?.role == "super admin") && index != 0 && <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
+                                {isAdminAndPusat && index != 0 && <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
                                     <Action id={user.id} code={user.code} />
                                 </TableCell>}
 
                             </TableRow>
-                        ))}
+                        })}
                         {data.length === 0 && <TableRow >
                             <TableCell colSpan={6} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                                 Tidak ada data
                             </TableCell></TableRow>}
                     </TableBody>
+
+
+
                     <tfoot className="dark:bg-[#1e2636] bg-white sticky bottom-0">
                         <TableRow >
-                            <TableCell colSpan={6} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
+                            <TableCell colSpan={isAdminAndPusat ? 8 : (isAdminPusatController ? 7 : 6)} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
                             </TableCell>
                         </TableRow>
 
@@ -191,9 +196,15 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                             <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-start border-gray-100 border-t border-e dark:border-white/[0.05]">
                                 {formatCurrency(credit)}
                             </TableCell>
-                            <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                            {isAdminPusatController && <><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
                                 {" "}
-                            </TableCell>
+                            </TableCell><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                                    {" "}
+                                </TableCell></>}
+                            {isAdminAndPusat && <><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                                {" "}
+                            </TableCell></>}
+
                         </TableRow>
 
                         <TableRow className="divide-y divide-gray-100 dark:divide-white/[0.05]">
@@ -204,9 +215,15 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                             <TableCell colSpan={2} className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
                                 {formatCurrency(total)}
                             </TableCell>
-                            <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                            {isAdminPusatController && <><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
                                 {" "}
-                            </TableCell>
+                            </TableCell><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                                    {" "}
+                                </TableCell></>}
+                            {isAdminAndPusat && <><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                                {" "}
+                            </TableCell></>}
+
 
                         </TableRow>
                     </tfoot>
@@ -240,6 +257,8 @@ function Action({ id, code }: { id: number, code: string }) {
                 // if (error.response.data.errors) {
                 // }
             }
+            toast.error("Gagal menghapus transaksi, terjadi kesalahan dengan sistem");
+
         }
     }
     return <div className="">

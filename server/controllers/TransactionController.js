@@ -15,7 +15,6 @@ export default class TransactionController {
                 'groups[]': rawGroups = null,
                 pos = null
             } = req.query;
-            console.log(req.query);
             // pastikan jadi array
             const categories = rawCategories
                 ? Array.isArray(rawCategories) ? rawCategories : [rawCategories]
@@ -40,6 +39,18 @@ export default class TransactionController {
     }
 
 
+    static async getGroupTransaction(req, res) {
+        try {
+            const groups = await Transaction.getGroupTransaction();
+
+            res.status(200).json({ groups });
+        } catch (error) {
+            res.status(500).json({
+                error: 'An error occurred while retrieving the transaction.',
+                errors: error,
+            });
+        }
+    }
     // Menampilkan detail area berdasarkan ID
     static async show(req, res) {
         try {
@@ -136,7 +147,7 @@ export default class TransactionController {
             // if (loanExist) {
             //     return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
             // }
-            const code = "test";
+            const code = await Transaction.generateCode({ category_id, transaction_type });
 
             const now = new Date();
 
@@ -197,6 +208,7 @@ export default class TransactionController {
                 transaction_type,
                 updated_by: user,
                 amount: nominal,
+                date
                 // date: date ?? now
             }, id);
 
@@ -215,17 +227,11 @@ export default class TransactionController {
     static async delete(req, res) {
         try {
             const { id } = req.params;
-            const pinjaman = await Transaction.findByIdOnlyOne(id);
+            const pinjaman = await Transaction.findById(id);
             if (!pinjaman) {
-                return res.status(404).json({ error: 'Pinjaman tidak ditemukan' });
+                return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
             }
 
-            const isUsed = pinjaman.total_pinjaman > pinjaman.sisa_pembayaran || pinjaman.besar_tunggakan > 0;
-            if (isUsed) {
-                return res.status(409).json({
-                    error: 'Pinjaman gagal dihapus, Data sedang digunakan dibagian lain sistem',
-                });
-            }
             await Transaction.softDelete(id);
             res.status(200).json({
                 pinjaman: pinjaman,
@@ -236,16 +242,4 @@ export default class TransactionController {
     }
 
 
-    static async pinjamanAnggotaStatus(req, res) {
-        try {
-            const { id } = req.params;
-            const pinjaman = await Transaction.checkStatusPinjamanAnggota(id);
-
-            res.status(200).json({
-                punyaTunggakan: pinjaman > 0,
-            });
-        } catch (error) {
-            res.status(500).json({ error: 'An error occurred while retrieving the pinjaman.', errorss: error });
-        }
-    }
 }

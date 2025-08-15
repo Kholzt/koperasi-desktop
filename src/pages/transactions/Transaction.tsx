@@ -52,11 +52,7 @@ const Transaction: React.FC = () => {
                 setTransactions(res.data.transactions);
             });
 
-        axios
-            .get(`/api/groups?limit=20000000`)
-            .then((res: any) => {
-                setGroups(res.data.groups.map((group: GroupProps) => ({ text: group.group_name, value: group.id })))
-            });
+
 
         axios
             .get(`/api/categories?limit=20000000`)
@@ -67,6 +63,12 @@ const Transaction: React.FC = () => {
             .get(`/api/pos?limit=20000000`)
             .then((res: any) => {
                 setPos(res.data.pos.map((p: PosProps) => ({ label: p.nama_pos, value: p.id })))
+            });
+        axios
+            .get(`/api/getGroupsTransaction`)
+            .then((res: any) => {
+                console.log(res);
+                setGroups(res.data.groups.map((group: any) => ({ text: group.description, value: group.description })))
             });
     }, [reload, filter]);
 

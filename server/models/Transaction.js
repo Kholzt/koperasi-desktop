@@ -76,7 +76,47 @@ export default class Transaction {
             ).where("transactions.id", id).first();
     }
 
+    static async generateCode({ transaction_type, category_id }) {
+        // 1. Ambil kategori
+        const category = await db("categories")
+            .where("id", category_id)
+            .first();
+        if (!category) throw new Error("Kategori tidak ditemukan");
 
+        // 2. Tentukan kode jenis transaksi
+        const type = transaction_type === "debit" ? "DBT" : "KRD";
+
+        // 3. Ambil tanggal sekarang dan format jadi yymmddHHMMss
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        const datePart =
+            pad(now.getFullYear() % 100) + // yy
+            pad(now.getMonth() + 1) +      // mm
+            pad(now.getDate()) +           // dd
+            pad(now.getHours()) +          // HH
+            pad(now.getMinutes()) +        // MM
+            pad(now.getSeconds());         // ss
+
+        // 4. Ambil sequence terakhir hari ini
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const lastRecord = await db("transactions")
+            .where("date", ">=", todayStart)
+            .first();
+
+        const sequence = lastRecord ? lastRecord.sequence + 1 : 1;
+        const sequencePart = String(sequence).padStart(2, "0"); // jadi 2 digit
+
+        // 5. Gabung semua bagian
+        return `${category.code}${type}${datePart}${sequencePart}`;
+    }
+
+    static async getGroupTransaction() {
+        return await db("transactions as t")
+            .join("categories as p", "t.category_id", "p.id")
+            .where("p.name", "angsuran") // hanya ambil yang kategorinya angsuran
+            .select("t.description")
+            .groupBy("t.description");
+    }
 
     static async create(data) {
         const [id] = await db('transactions').insert(data)

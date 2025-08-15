@@ -124,6 +124,7 @@ app.post('/api/transactions', TransactionController.store);
 app.get('/api/transactions/:id', TransactionController.show);
 app.put('/api/transactions/:id', TransactionController.update);
 app.delete('/api/transactions/:id', TransactionController.delete);
+app.get('/api/getGroupsTransaction', TransactionController.getGroupTransaction);
 
 app.get('/api/configLoan', (req, res) => {
     const totalBulan = process.env.VITE_APP_BULAN || 10;

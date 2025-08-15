@@ -88489,6 +88489,27 @@ class Transaction {
       db$1.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
     ).where("transactions.id", id).first();
   }
+  static async generateCode({ transaction_type, category_id }) {
+    const category = await db$1("categories").where("id", category_id).first();
+    if (!category) throw new Error("Kategori tidak ditemukan");
+    const type2 = transaction_type === "debit" ? "DBT" : "KRD";
+    const now2 = /* @__PURE__ */ new Date();
+    const pad2 = (n) => String(n).padStart(2, "0");
+    const datePart = pad2(now2.getFullYear() % 100) + // yy
+    pad2(now2.getMonth() + 1) + // mm
+    pad2(now2.getDate()) + // dd
+    pad2(now2.getHours()) + // HH
+    pad2(now2.getMinutes()) + // MM
+    pad2(now2.getSeconds());
+    const todayStart = new Date(now2.getFullYear(), now2.getMonth(), now2.getDate());
+    const lastRecord = await db$1("transactions").where("date", ">=", todayStart).first();
+    const sequence = lastRecord ? lastRecord.sequence + 1 : 1;
+    const sequencePart = String(sequence).padStart(2, "0");
+    return `${category.code}${type2}${datePart}${sequencePart}`;
+  }
+  static async getGroupTransaction() {
+    return await db$1("transactions as t").join("categories as p", "t.category_id", "p.id").where("p.name", "angsuran").select("t.description").groupBy("t.description");
+  }
   static async create(data2) {
     const [id] = await db$1("transactions").insert(data2);
     return id;
@@ -88513,7 +88534,6 @@ class TransactionController {
         "groups[]": rawGroups = null,
         pos = null
       } = req.query;
-      console.log(req.query);
       const categories = rawCategories ? Array.isArray(rawCategories) ? rawCategories : [rawCategories] : [];
       const transaction_type = rawTransaction_type ? Array.isArray(rawTransaction_type) ? rawTransaction_type : [rawTransaction_type] : [];
       const groups = rawGroups ? Array.isArray(rawGroups) ? rawGroups : [rawGroups] : [];
@@ -88523,6 +88543,17 @@ class TransactionController {
       });
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+  }
+  static async getGroupTransaction(req, res) {
+    try {
+      const groups = await Transaction.getGroupTransaction();
+      res.status(200).json({ groups });
+    } catch (error) {
+      res.status(500).json({
+        error: "An error occurred while retrieving the transaction.",
+        errors: error
+      });
     }
   }
   // Menampilkan detail area berdasarkan ID
@@ -88597,7 +88628,7 @@ class TransactionController {
     }
     try {
       const { category_id, pos_id, description, transaction_type, nominal, date, user } = req.body;
-      const code = "test";
+      const code = await Transaction.generateCode({ category_id, transaction_type });
       const now2 = /* @__PURE__ */ new Date();
       const loanId = await Transaction.create({
         category_id,
@@ -88643,7 +88674,8 @@ class TransactionController {
         description,
         transaction_type,
         updated_by: user,
-        amount: nominal
+        amount: nominal,
+        date
         // date: date ?? now
       }, id);
       res.status(200).json({
@@ -88657,30 +88689,13 @@ class TransactionController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const pinjaman = await Transaction.findByIdOnlyOne(id);
+      const pinjaman = await Transaction.findById(id);
       if (!pinjaman) {
-        return res.status(404).json({ error: "Pinjaman tidak ditemukan" });
-      }
-      const isUsed = pinjaman.total_pinjaman > pinjaman.sisa_pembayaran || pinjaman.besar_tunggakan > 0;
-      if (isUsed) {
-        return res.status(409).json({
-          error: "Pinjaman gagal dihapus, Data sedang digunakan dibagian lain sistem"
-        });
+        return res.status(404).json({ error: "Transaksi tidak ditemukan" });
       }
       await Transaction.softDelete(id);
       res.status(200).json({
         pinjaman
-      });
-    } catch (error) {
-      res.status(500).json({ error: "An error occurred while retrieving the pinjaman.", errorss: error });
-    }
-  }
-  static async pinjamanAnggotaStatus(req, res) {
-    try {
-      const { id } = req.params;
-      const pinjaman = await Transaction.checkStatusPinjamanAnggota(id);
-      res.status(200).json({
-        punyaTunggakan: pinjaman > 0
       });
     } catch (error) {
       res.status(500).json({ error: "An error occurred while retrieving the pinjaman.", errorss: error });
@@ -88769,6 +88784,7 @@ app.post("/api/transactions", TransactionController.store);
 app.get("/api/transactions/:id", TransactionController.show);
 app.put("/api/transactions/:id", TransactionController.update);
 app.delete("/api/transactions/:id", TransactionController.delete);
+app.get("/api/getGroupsTransaction", TransactionController.getGroupTransaction);
 app.get("/api/configLoan", (req, res) => {
   const totalBulan = process.env.VITE_APP_BULAN || 10;
   const modalDo = process.env.VITE_APP_MODAL_DO || 13;

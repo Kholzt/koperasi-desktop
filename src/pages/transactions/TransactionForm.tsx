@@ -29,6 +29,7 @@ interface TransactionFormInput {
     description: string;
     nominal: string;
     pos_id: string;
+    date: string;
     user?: number;
 }
 
