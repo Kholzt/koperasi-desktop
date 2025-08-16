@@ -22,6 +22,7 @@ export default class Member {
             .andWhere(function () {
                 this.where('m.complete_name', 'like', `%${search}%`)
                     .orWhere('m.nik', 'like', `%${search}%`)
+                    .orWhere('m.no_kk', 'like', `%${search}%`)
             })
             .leftJoin("pos", "m.pos_id", "pos.id")
             .orderBy('m.created_at', 'desc')

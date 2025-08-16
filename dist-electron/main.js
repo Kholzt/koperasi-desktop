@@ -87641,7 +87641,7 @@ class Member {
       "a.area_name as area_name",
       "nama_pos"
     ).whereNull("m.deleted_at").andWhere(function() {
-      this.where("m.complete_name", "like", `%${search}%`).orWhere("m.nik", "like", `%${search}%`);
+      this.where("m.complete_name", "like", `%${search}%`).orWhere("m.nik", "like", `%${search}%`).orWhere("m.no_kk", "like", `%${search}%`);
     }).leftJoin("pos", "m.pos_id", "pos.id").orderBy("m.created_at", "desc").limit(parseInt(limit)).offset(offset2);
     const [{ total }] = await db$1("members").count("id as total").whereNull("deleted_at").andWhere("complete_name", "like", `%${search}%`);
     return { total, rows };
