@@ -52,12 +52,12 @@ const Loan: React.FC = () => {
     const { reload } = useTheme();
 
     useEffect(() => {
-        const stored = localStorage.getItem('filters');
+
         axios
             .get(`/api/loans?page=${pagination?.page}&status=${filter.status}&startDate=${filter.startDate}&endDate=${filter.endDate}&day=${dayMap[dayFilter]}&group=${groupFilter}&search=${search}`)
             .then((res: any) => {
                 setLoans(res.data.loans);
-                setPagination(res.data.pagination);
+                setPagination((prev)=>({...prev,totalPages:res.data.pagination.totalPages}));
             });
         axios
             .get(`/api/schedule?limit=20000000`)
@@ -73,7 +73,7 @@ const Loan: React.FC = () => {
         const stored = localStorage.getItem('filters');
         const isFromTransaction = searchParams.get("isFromTransaction");
         // perlu perbaikan
-        console.log(isFromTransaction);
+
 
         if (stored && isFromTransaction) {
             const savedFilters = JSON.parse(stored);
@@ -86,11 +86,11 @@ const Loan: React.FC = () => {
 
             setDayFilter(savedFilters.dayFilter || 'all');
             setGroupFilter(savedFilters.groupFilter || '');
-
             setSearch(savedFilters.search || '');
+            setPagination((prev)=>({...prev,page:savedFilters.page }));
 
-            setIsFiltersLoaded(true);
         }
+        setIsFiltersLoaded(true);
     }, []);
 
 
@@ -105,9 +105,11 @@ const Loan: React.FC = () => {
             dayFilter,
             groupFilter,
             search,
+            page:pagination?.page
         };
         localStorage.setItem('filters', JSON.stringify(savedFilters));
-    }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search, isFiltersLoaded]);
+
+    }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search, isFiltersLoaded,pagination?.page]);
 
     const searchAction = (e: any) => {
         const value = e.target.value;
@@ -205,7 +207,6 @@ interface FilterProps {
     };
     setFilter: (filter: { startDate: String | null; endDate: String | null; status: string | null }) => void;
 }
-
 const Filter: React.FC<FilterProps> = ({ filter, setFilter }) => {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const [startDate, setStartDate] = useState<String | null>(filter.startDate);
@@ -219,7 +220,6 @@ const Filter: React.FC<FilterProps> = ({ filter, setFilter }) => {
         setFilter({ startDate, endDate, status });
         closeDropdown();
     };
-
     return (
         <div className="relative">
             <Button
@@ -244,9 +244,9 @@ const Filter: React.FC<FilterProps> = ({ filter, setFilter }) => {
                             mode="range"
                             placeholder="Tanggal peminjaman"
                             defaultDate={
-                                startDate && endDate
-                                    ? [new Date(startDate as string), new Date(endDate as string)]
-                                    : (startDate ? [new Date(startDate as string)] : undefined)
+                                filter.startDate && filter.endDate
+                                    ? [new Date(filter.startDate as string), new Date(filter.endDate as string)]
+                                    : (filter.startDate ? [new Date(filter.startDate as string)] : undefined)
                             }
                             onChange={(date) => {
                                 setStartDate(toLocalDate(date[0]));
@@ -269,7 +269,7 @@ const Filter: React.FC<FilterProps> = ({ filter, setFilter }) => {
                             ]}
                             className="w-full rounded-md border px-2 py-1 dark:bg-gray-800 dark:border-gray-700"
                             value={status ?? ""}
-                            defaultValue={status ?? ""}
+                            defaultValue={filter.status ?? ""}
                             onChange={(e) => setStatus(e.target.value)}
                         />
                     </div>
