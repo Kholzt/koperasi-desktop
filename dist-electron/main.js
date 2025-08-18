@@ -17664,6 +17664,10 @@ if (!globalThis.__knexInstance) {
     },
     pool: { min: 2, max: 10 }
   });
+  globalThis.__knexInstance.on("query", (queryData) => {
+    console.log("SQL:", queryData.sql);
+    console.log("Bindings:", queryData.bindings);
+  });
 }
 function listBackup() {
   const backupDir = path.join(process.cwd(), "backups");
@@ -88258,15 +88262,16 @@ class UserController {
 }
 dotenv.config();
 const app = express();
-const port = "5000";
+const port = 5e3;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
-  req.headers["x-app-secret"];
-  {
+  const secret = req.headers["x-app-secret"];
+  if ("123412321123" == secret) {
     return next();
   }
+  return res.status(403).send("Forbidden");
 });
 app.post("/api/login", AuthController.login);
 app.get("/api/user", AuthController.getUser);

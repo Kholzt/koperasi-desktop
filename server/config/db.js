@@ -29,6 +29,11 @@ if (!globalThis.__knexInstance) {
         },
         pool: { min: 2, max: 10 },
     });
+
+    globalThis.__knexInstance.on('query', (queryData) => {
+        console.log('SQL:', queryData.sql);
+        console.log('Bindings:', queryData.bindings);
+    });
 }
 
 export function listBackup() {
