@@ -18,7 +18,7 @@ import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { AreaProps } from "../../utils/types";
 import Loading from "../../components/ui/Loading"
-
+import { useUser } from './../../hooks/useUser';
 interface MemberFormInput {
     pos_id: string;
     nik: string;
@@ -53,7 +53,7 @@ const MemberForm: React.FC = () => {
     const [noKKExist, setNoKKExist] = useState(false);
     const [hasPinjaman, setHasPinjaman] = useState(false);
     const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
-
+    const { user } = useUser();
     const { id } = useParams();
     const isUpdate = !!id;
     const navigate = useNavigate();
@@ -83,7 +83,7 @@ const MemberForm: React.FC = () => {
 
             axios.get("/api/members/" + id).then(res => {
                 const data = res.data.member
-                setHasPinjaman(data.hasPinjaman)
+                setHasPinjaman(data.hasPinjaman && (user?.role == "pusat" || user?.role == "controller"))
                 console.log(res.data, "halo");
                 reset(data)
                 setTimeout(() => {
