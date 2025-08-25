@@ -41,6 +41,16 @@ export default class Loan {
             query.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
         }
 
+        if (group && group !== "all") {
+            query
+                .joinRaw(
+                    `JOIN JSON_TABLE(pinjaman.penanggung_jawab, '$[*]'
+              COLUMNS (staff_id INT PATH '$')) pj ON TRUE`
+                )
+                .join("group_details", "pj.staff_id", "group_details.staff_id")
+                .where("group_details.group_id", group);
+        }
+
         let loans = await query
             .orderBy('pinjaman.id', 'desc')
             .limit(limit)
@@ -50,29 +60,7 @@ export default class Loan {
                 db.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
                 db.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`),
                 db.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
-            );
-
-        if (group && group !== "all") {
-            loans = await Promise.all(loans.map(async loan => {
-                try {
-                    const staffIds = JSON.parse(loan.penanggung_jawab || '[]');
-                    if (!Array.isArray(staffIds) || staffIds.length === 0) return null;
-
-                    const [{ total }] = await db("group_details")
-                        .whereIn("staff_id", staffIds)
-                        .andWhere("group_id", group)
-                        .count({ total: '*' });
-
-                    return total > 0 ? loan : null;
-                } catch (err) {
-                    return null;
-                }
-            }));
-
-            // Hapus null hasil dari filter
-            loans = loans.filter(Boolean);
-        }
-
+            ).groupBy("pinjaman.id");
 
 
         // Buat query baru untuk count
@@ -113,29 +101,20 @@ export default class Loan {
             countQuery.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
         }
 
+
+        if (group && group !== "all") {
+            countQuery
+                .joinRaw(
+                    `JOIN JSON_TABLE(pinjaman.penanggung_jawab, '$[*]'
+              COLUMNS (staff_id INT PATH '$')) pj ON TRUE`
+                )
+                .join("group_details", "pj.staff_id", "group_details.staff_id")
+                .where("group_details.group_id", group);
+        }
+
+
         // Ambil semua pinjaman untuk dihitung (tanpa limit & offset)
         let countResults = await countQuery;
-
-        // Jika perlu filter berdasarkan group_id dari JSON staff_id
-        if (group && group !== "all") {
-            countResults = await Promise.all(countResults.map(async loan => {
-                try {
-                    const staffIds = JSON.parse(loan.penanggung_jawab || '[]');
-                    if (!Array.isArray(staffIds) || staffIds.length === 0) return null;
-
-                    const [{ total }] = await db("group_details")
-                        .whereIn("staff_id", staffIds)
-                        .andWhere("group_id", group)
-                        .count({ total: '*' });
-
-                    return total > 0 ? loan : null;
-                } catch (err) {
-                    return null;
-                }
-            }));
-
-            countResults = countResults.filter(Boolean);
-        }
 
         const total = countResults.length;
         return { loans, total };
