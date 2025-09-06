@@ -15,7 +15,8 @@ import Button from "../../components/ui/button/Button";
 import { useTheme } from "../../context/ThemeContext";
 import axios from "../../utils/axios";
 import { formatCurrency, toLocalDate, unformatCurrency } from "../../utils/helpers";
-import { AngsuranProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
+import { AngsuranProps, EmployeProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
+import { useUser } from "../../hooks/useUser";
 
 
 interface FormInputs {
@@ -24,7 +25,7 @@ interface FormInputs {
     jumlah_katrol: string;
     tanggal_bayar: string;
     penagih: string[]; // atau number[] tergantung data
-    status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional';
+    status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional' | 'Libur Operasional' | "libur";
 };
 
 const schema: yup.SchemaOf<FormInputs> = yup.object({
@@ -51,6 +52,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
     const [angsuran, setAngsuran] = useState<AngsuranProps | null>(null);
     const [staffs, setStaffs] = useState<{ text: string, value: string }[]>([]);
     const { id, idAngsuran } = useParams();
+    const [employes, setEmployes] = useState<EmployeProps[]>([]);
 
     const [isLunas, setisLunas] = useState(false);
     const [pagination, setPagination] = useState<PaginationProps>({
@@ -59,6 +61,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
         limit: 10,
         total: 0
     });
+    const { user } = useUser();
     const { reload } = useTheme();
     const navigate = useNavigate();
 
@@ -67,7 +70,9 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
             setLoans(res.data.loan)
             reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) })
         });
+
         axios.get("/api/employees?limit=20000000").then(res => {
+            setEmployes(res.data.employees);
             setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
         });
     }, [pagination.page, reload]);
@@ -119,16 +124,29 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                 type: "required",
                 message: "Asal pembayaran wajib diisi"
             })
-            console.log(data);
-            
+            let res;
             if (!idAngsuran) {
-                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar:["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0: unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
+                res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             } else {
-                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar:["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0: unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
+                res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             }
-            onClose()
+            if (res.status === 201 || res.status === 200) {
+                const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
+
+                if (data.status != "Libur Operasional" && data.status != "libur") {
+                    await axios.post("/api/transactions", {
+                        transaction_type: 'debit',
+                        category_id: 1,
+                        description: description ?? "Kelompok 0",
+                        nominal: unformatCurrency(data.jumlah_bayar),
+                        pos_id: user?.pos_id,
+                        user: user?.id ?? null,
+                    });
+                }
+                onClose()
+            }
         } catch (error) {
             toast.error("Angsuran gagal diubah")
         }

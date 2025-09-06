@@ -21,7 +21,7 @@ import { useUser } from "../../hooks/useUser";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { formatCurrency, toLocalDate, unformatCurrency } from "../../utils/helpers";
-import { MemberProps, UserProps } from "../../utils/types";
+import { EmployeProps, MemberProps, UserProps } from "../../utils/types";
 import SelectSearch from './../../components/form/SelectSearch';
 import MultiSelect from "../../components/form/MultiSelect";
 
@@ -73,6 +73,7 @@ const LoanForm: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [disabled, setDisabled] = useState(false);
     const [hasAngsuran, setHasAngsuran] = useState(false);
+    const [employes, setEmployes] = useState<EmployeProps[]>([]);
     const [configLoan, setConfigLoan] = useState({
         totalBulan: 10,
         modalDo: 30
@@ -203,6 +204,7 @@ const LoanForm: React.FC = () => {
             setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id })));
         });
         axios.get("/api/employees?limit=20000000").then(res => {
+            setEmployes(res.data.employees);
             setUsers(res.data.employees.map((user: UserProps) => ({ text: user.complete_name, value: user.id })));
         });
     }, []);
@@ -223,8 +225,17 @@ const LoanForm: React.FC = () => {
             } else {
                 res = await axios.put("/api/loans/" + id, data);
             }
+            const description = employes.find((e) => data.penanggung_jawab.includes(e.id.toString()))?.group_name
 
             if (res.status === 201 || res.status === 200) {
+                await axios.post("/api/transactions", {
+                    transaction_type: 'credit',
+                    category_id: 1,
+                    description: description ?? "Kelompok 0",
+                    nominal: data.total_pinjaman,
+                    pos_id: user?.pos_id,
+                    user: user?.id ?? null,
+                });
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
                 navigate("/loan?isFromTransaction=true");
             }

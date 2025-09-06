@@ -17,15 +17,16 @@ import Button from "../../components/ui/button/Button";
 import { useTheme } from "../../context/ThemeContext";
 import axios from "../../utils/axios";
 import { formatCurrency, unformatCurrency } from "../../utils/helpers";
-import { AngsuranProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
+import { AngsuranProps, EmployeProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
 import { formatDate } from './../../utils/helpers';
+import { useUser } from "../../hooks/useUser";
 
 interface FormInputs {
     asal_pembayaran: string;
     jumlah_bayar: string;
     jumlah_katrol: string;
     penagih: string[]; // atau number[] tergantung data
-    status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional';
+    status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional' | "libur";
 };
 
 const schema: yup.SchemaOf<FormInputs> = yup.object({
@@ -46,6 +47,7 @@ const Angsuran: React.FC = () => {
     const [loans, setLoans] = useState<LoanProps | null>(null);
     const [angsuran, setAngsuran] = useState<AngsuranProps | null>(null);
     const [staffs, setStaffs] = useState<{ text: string, value: string }[]>([]);
+    const [employes, setEmployes] = useState<EmployeProps[]>([]);
     const { id, idAngsuran } = useParams();
     const [isLunas, setisLunas] = useState(false);
     const [pagination, setPagination] = useState<PaginationProps>({
@@ -54,6 +56,7 @@ const Angsuran: React.FC = () => {
         limit: 10,
         total: 0
     });
+    const { user } = useUser();
     const { reload } = useTheme();
     const navigate = useNavigate();
 
@@ -64,6 +67,8 @@ const Angsuran: React.FC = () => {
         });
 
         axios.get("/api/employees?limit=20000000").then(res => {
+            setEmployes(res.data.employees);
+
             setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
         });
         if (idAngsuran) {
@@ -120,15 +125,27 @@ const Angsuran: React.FC = () => {
                 type: "required",
                 message: "Asal pembayaran wajib diisi"
             })
-
+            let res;
             if (!idAngsuran) {
-                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
-                toast.success("Angsuran berhasil diubah")
+                res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
             } else {
-                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
-                toast.success("Angsuran berhasil diubah")
+                res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
             }
-            navigate("/loan?isFromTransaction=true");
+            if (res.status === 201 || res.status === 200) {
+                const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
+                if (data.status != "Libur Operasional" && data.status != "libur") {
+                    await axios.post("/api/transactions", {
+                        transaction_type: 'debit',
+                        category_id: 1,
+                        description: description ?? "Kelompok 0",
+                        nominal: unformatCurrency(data.jumlah_bayar),
+                        pos_id: user?.pos_id,
+                        user: user?.id ?? null,
+                    });
+                }
+                toast.success("Angsuran berhasil diubah")
+                navigate("/loan?isFromTransaction=true");
+            }
         } catch (error) {
             toast.error("Angsuran gagal diubah")
             console.log(error);

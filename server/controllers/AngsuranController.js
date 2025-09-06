@@ -82,6 +82,7 @@ export default class AngsuranController {
                         status
                     });
                 } else {
+                    // ini untuk tambah angsuran di detail
                     angsuran_id = await Angsuran.createAngsuran({
                         idPinjaman: idPinjaman,
                         jumlah_bayar,
@@ -91,6 +92,7 @@ export default class AngsuranController {
                         status
                     });
                 }
+
                 await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
                     sisa_pembayaran: sisaPembayaran,
                     //  besar_tunggakan: totalTunggakan,
@@ -179,6 +181,8 @@ export default class AngsuranController {
             res.status(500).json({ error: error.message });
         }
     }
+
+
 
 
 
