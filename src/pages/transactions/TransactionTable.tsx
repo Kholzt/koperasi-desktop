@@ -13,10 +13,11 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import { useModal } from "../../hooks/useModal";
 import { useUser } from "../../hooks/useUser";
-import { PencilIcon, TrashBinIcon } from "../../icons";
+import { InfoIcon, PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { formatCurrency, formatDate } from "../../utils/helpers";
 import { TransactionProps } from "../../utils/types";
+import Label from "../../components/form/Label";
 
 // import { toast } from 'react-hot-toast';
 interface TransactionTableProps {
@@ -238,6 +239,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
 
 function Action({ id, code }: { id: number, code: string }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
+    const [reason, setReason] = useState("");
     const openDropdown = () => setIsOpenDropdown(true);
     const closeDropdown = () => setIsOpenDropdown(false);
     const { isOpen, openModal, closeModal } = useModal();
@@ -245,7 +247,7 @@ function Action({ id, code }: { id: number, code: string }) {
     const { user } = useUser();
     const deleteAction = async () => {
         try {
-            let res = await axios.delete("/api/transactions/" + id);
+            let res = await axios.delete("/api/transactions/" + id, { data: { reason: reason, user: user?.id } });
             toast.success("Transaksi berhasil dihapus")
             setReload(!reload);
             closeModal();
@@ -274,6 +276,16 @@ function Action({ id, code }: { id: number, code: string }) {
             className="absolute right-20 mt-[17px] flex w-52 flex-col rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
         >
             <ul className="flex flex-col gap-1  ">
+                <li>
+                    {<DropdownItem
+                        tag="a"
+                        to={`/transactions/${id}`}
+                        className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                    >
+                        <InfoIcon fontSize={20} />
+                        Detail
+                    </DropdownItem>}
+                </li>
                 <li>
                     {user?.role != "staff" && <DropdownItem
                         onItemClick={closeDropdown}
@@ -313,9 +325,12 @@ function Action({ id, code }: { id: number, code: string }) {
                     <p className="text-base text-gray-800 dark:text-gray-400 ">
                         Apakah Anda yakin untuk menghapus transaksi dengan kode {code}?
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                         Data yang dihapus dapat dikembalikan nanti
                     </p>
+
+                    <Label htmlFor="reason">Alasan Perubahan</Label>
+                    <textarea value={reason} onChange={(e) => setReason(e.target.value)} className="w-full rounded-lg border px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden bg-transparent text-gray-900 dark:text-gray-300 text-gray-900 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800" placeholder="Alasan perubahan" rows={3}></textarea>
                 </div>
 
                 <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">

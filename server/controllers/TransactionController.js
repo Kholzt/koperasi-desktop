@@ -2,6 +2,8 @@ import { body, validationResult } from 'express-validator';
 import db from "../config/db.js";
 import Transaction from '../models/Transaction.js';
 import { isHoliday } from '../config/holidays.js';
+import PosModel from '../models/Pos.js';
+import CategoryModel from '../models/Category.js';
 
 export default class TransactionController {
     // Menampilkan daftar area dengan pagination
@@ -192,14 +194,15 @@ export default class TransactionController {
         }
 
         try {
-            const { pos_id, category_id, description, transaction_type, nominal, date, user } = req.body;
+            const { pos_id, category_id, description, transaction_type, nominal, date, user, reason } = req.body;
             const { id } = req.params;
 
             // const loanExist = await Transaction.existTransaction(anggota_id, kode);
             // if (loanExist) {
             //     return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
             // }
-            const now = new Date();
+            const transaction = await Transaction.findById(id);
+            const now = new Date(date);
 
             await Transaction.update({
                 pos_id,
@@ -208,9 +211,36 @@ export default class TransactionController {
                 transaction_type,
                 updated_by: user,
                 amount: nominal,
-                date
+                date: now
                 // date: date ?? now
             }, id);
+
+            let metas = {};
+            const newPos = await PosModel.findById(pos_id);
+            const newCategory = await CategoryModel.findById(category_id);
+            if (transaction.pos_id != pos_id)
+                metas["POS"] = { old: transaction.pos.nama_pos, new: newPos[0].nama_pos };
+
+            if (transaction.category_id != category_id)
+                metas["Kategori"] = { old: transaction.category.name, new: newCategory[0].name };
+
+            if (transaction.description != description)
+                metas["Keterangan"] = { old: transaction.description, new: description };
+
+            if (transaction.amount != nominal)
+                metas["Nominal"] = { old: transaction.amount, new: nominal };
+
+            if (transaction.transaction_type != transaction_type)
+                metas["Tipe Transaksi"] = { old: transaction.transaction_type, new: transaction_type };
+
+            await Transaction.createLog({
+                id_transaksi: id,
+                updated_by: user,
+                status: "edit",
+                meta: metas,
+                reason: reason
+
+            });
 
             res.status(200).json({
                 message: 'Transaksi berhasil diubah',
@@ -227,12 +257,21 @@ export default class TransactionController {
     static async delete(req, res) {
         try {
             const { id } = req.params;
+            const { user, reason } = req.body;
             const pinjaman = await Transaction.findById(id);
             if (!pinjaman) {
                 return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
             }
 
             await Transaction.softDelete(id);
+            await Transaction.createLog({
+                id_transaksi: id,
+                updated_by: user,
+                status: "delete",
+                meta: {},
+                reason: reason
+
+            });
             res.status(200).json({
                 pinjaman: pinjaman,
             });

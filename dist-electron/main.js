@@ -88480,13 +88480,23 @@ class Transaction {
     return { transactions };
   }
   static async findById(id) {
-    return await db$1("transactions").join("categories", "transactions.category_id", "categories.id").join("users as ucb", "transactions.created_by", "ucb.id").leftJoin("users as uub", "transactions.updated_by", "uub.id").join("pos", "transactions.pos_id", "pos.id").whereNull("transactions.deleted_at").select(
+    return await db$1("transactions").join("categories", "transactions.category_id", "categories.id").join("users as ucb", "transactions.created_by", "ucb.id").leftJoin("users as uub", "transactions.updated_by", "uub.id").join("pos", "transactions.pos_id", "pos.id").leftJoin("log_transactions", "transactions.id", "log_transactions.id_transaksi").leftJoin("users as lu", "log_transactions.updated_by", "lu.id").whereNull("transactions.deleted_at").select(
       "transactions.*",
       db$1.raw(`JSON_OBJECT('complete_name', ucb.complete_name ) as created_user`),
       db$1.raw(`JSON_OBJECT('complete_name', uub.complete_name) as update_user`),
       db$1.raw(`JSON_OBJECT('name', categories.name) as category`),
-      db$1.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
-    ).where("transactions.id", id).first();
+      db$1.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`),
+      db$1.raw(`COALESCE(JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'id', log_transactions.id,
+                    'updated_by', lu.complete_name,
+                    'status', log_transactions.status,
+                    'meta', log_transactions.meta,
+                    'reason', log_transactions.reason,
+                    'updated_at', log_transactions.updated_at
+                )
+            ), JSON_ARRAY()) as logs`)
+    ).where("transactions.id", id).groupBy("transactions.id").first();
   }
   static async generateCode({ transaction_type, category_id }) {
     const category = await db$1("categories").where("id", category_id).first();
@@ -88515,6 +88525,10 @@ class Transaction {
   }
   static async update(data2, id) {
     const result = await db$1("transactions").where({ id }).update(data2);
+    return result;
+  }
+  static async createLog(data2) {
+    const result = await db$1("log_transactions").insert(data2);
     return result;
   }
   static async softDelete(id) {
@@ -88664,9 +88678,10 @@ class TransactionController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { pos_id, category_id, description, transaction_type, nominal, date, user } = req.body;
+      const { pos_id, category_id, description, transaction_type, nominal, date, user, reason } = req.body;
       const { id } = req.params;
-      const now2 = /* @__PURE__ */ new Date();
+      const transaction = await Transaction.findById(id);
+      const now2 = new Date(date);
       await Transaction.update({
         pos_id,
         category_id,
@@ -88674,9 +88689,29 @@ class TransactionController {
         transaction_type,
         updated_by: user,
         amount: nominal,
-        date
+        date: now2
         // date: date ?? now
       }, id);
+      let metas = {};
+      const newPos = await PosModel.findById(pos_id);
+      const newCategory = await CategoryModel.findById(category_id);
+      if (transaction.pos_id != pos_id)
+        metas["POS"] = { old: transaction.pos.nama_pos, new: newPos[0].nama_pos };
+      if (transaction.category_id != category_id)
+        metas["Kategori"] = { old: transaction.category.name, new: newCategory[0].name };
+      if (transaction.description != description)
+        metas["Keterangan"] = { old: transaction.description, new: description };
+      if (transaction.amount != nominal)
+        metas["Nominal"] = { old: transaction.amount, new: nominal };
+      if (transaction.transaction_type != transaction_type)
+        metas["Tipe Transaksi"] = { old: transaction.transaction_type, new: transaction_type };
+      await Transaction.createLog({
+        id_transaksi: id,
+        updated_by: user,
+        status: "edit",
+        meta: metas,
+        reason
+      });
       res.status(200).json({
         message: "Transaksi berhasil diubah"
       });
@@ -88688,11 +88723,19 @@ class TransactionController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
+      const { user, reason } = req.body;
       const pinjaman = await Transaction.findById(id);
       if (!pinjaman) {
         return res.status(404).json({ error: "Transaksi tidak ditemukan" });
       }
       await Transaction.softDelete(id);
+      await Transaction.createLog({
+        id_transaksi: id,
+        updated_by: user,
+        status: "delete",
+        meta: {},
+        reason
+      });
       res.status(200).json({
         pinjaman
       });

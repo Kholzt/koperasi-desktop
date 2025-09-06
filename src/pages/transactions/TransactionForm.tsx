@@ -22,6 +22,7 @@ import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { formatCurrency, unformatCurrency } from "../../utils/helpers";
 import { CategoryProps, MemberProps, UserProps } from "../../utils/types";
+import TextArea from "../../components/form/input/TextArea";
 
 interface TransactionFormInput {
     transaction_type: 'credit' | 'debit';
@@ -31,6 +32,7 @@ interface TransactionFormInput {
     pos_id: string;
     date: string;
     user?: number;
+    reason?: string;
 }
 
 const schema: yup.SchemaOf<TransactionFormInput> = yup.object({
@@ -215,6 +217,12 @@ const TransactionForm: React.FC = () => {
                                 </div>
                                 {errors.nominal && <p className="text-sm text-red-500 mt-1">{errors.nominal.message}</p>}
                             </div>
+                            {isUpdate && <div className="col-span-2">
+                                <Label htmlFor="reason">Alasan Perubahan</Label>
+
+                                <textarea className="w-full rounded-lg border px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden bg-transparent text-gray-900 dark:text-gray-300 text-gray-900 border-gray-300 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"  {...register("reason")} placeholder="Alasan perubahan" rows={3}></textarea>
+                                {errors.reason && <p className="text-sm text-red-500 mt-1">{errors.reason.message}</p>}
+                            </div>}
                         </div>
                         <Button size="sm" disabled={disabled}>Simpan</Button>
                     </Form>

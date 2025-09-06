@@ -42,6 +42,7 @@ import TransactionForm from './pages/transactions/TransactionForm';
 import Category from './pages/category/Category';
 import CategoryForm from './pages/category/CategoryForm';
 import CategoryTable from "./pages/category/CategoryTable";
+import TransactionDetail from './pages/transactions/TransactionDetail';
 
 export default function App() {
     return (
@@ -91,6 +92,7 @@ export default function App() {
                         <Route path="/transactions" element={<Transaction />} />
                         <Route path="/transactions/create" element={<TransactionForm />} />
                         <Route path="/transactions/:id/edit" element={<TransactionForm />} />
+                        <Route path="/transactions/:id" element={<TransactionDetail />} />
 
                         <Route path="/category" element={<Category />} />
                         <Route path="/category/create" element={<CategoryForm />} />

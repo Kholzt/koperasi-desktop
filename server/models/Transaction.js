@@ -66,15 +66,32 @@ export default class Transaction {
             .join('users as ucb', 'transactions.created_by', 'ucb.id')
             .leftJoin('users as uub', 'transactions.updated_by', 'uub.id')
             .join("pos", "transactions.pos_id", "pos.id")
+            .leftJoin("log_transactions", "transactions.id", "log_transactions.id_transaksi")
+            .leftJoin("users as lu", "log_transactions.updated_by", "lu.id")
+
             .whereNull('transactions.deleted_at')
             .select(
                 'transactions.*',
                 db.raw(`JSON_OBJECT('complete_name', ucb.complete_name ) as created_user`),
                 db.raw(`JSON_OBJECT('complete_name', uub.complete_name) as update_user`),
                 db.raw(`JSON_OBJECT('name', categories.name) as category`),
-                db.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
-            ).where("transactions.id", id).first();
+                db.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`),
+                db.raw(`COALESCE(JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'id', log_transactions.id,
+                    'updated_by', lu.complete_name,
+                    'status', log_transactions.status,
+                    'meta', log_transactions.meta,
+                    'reason', log_transactions.reason,
+                    'updated_at', log_transactions.updated_at
+                )
+            ), JSON_ARRAY()) as logs`)
+            )
+            .where("transactions.id", id)
+            .groupBy("transactions.id") // penting untuk agregasi
+            .first();
     }
+
 
     static async generateCode({ transaction_type, category_id }) {
         // 1. Ambil kategori
@@ -127,6 +144,11 @@ export default class Transaction {
         const result = await db('transactions')
             .where({ id })
             .update(data);
+        return result;
+    }
+    static async createLog(data) {
+        const result = await db('log_transactions')
+            .insert(data);
         return result;
     }
 
