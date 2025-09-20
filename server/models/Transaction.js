@@ -156,7 +156,14 @@ export default class Transaction {
         return db('transactions').where({ id }).update({ deleted_at: new Date() });
     }
 
-
+    static async getTransactionsByInfo({ desc, date, type, category }) {
+        return await db("transactions as t")
+            .where("category_id", category)
+            .where("description", desc)
+            .where("date", date)
+            .where("transaction_type", type)
+            .first();
+    }
 
 
 }

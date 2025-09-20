@@ -111,6 +111,7 @@ const TransactionDetail: React.FC = () => {
                                     <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{formatDate(log.updated_at)}</td>
                                 </tr>
                             })}
+                            {transaction?.logs.length == 0 && <td colSpan={5}>Tidak ada data</td>}
                         </tbody>
                     </table>
                 </ComponentCard>

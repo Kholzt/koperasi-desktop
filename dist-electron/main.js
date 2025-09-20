@@ -88534,6 +88534,9 @@ class Transaction {
   static async softDelete(id) {
     return db$1("transactions").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
   }
+  static async getTransactionsByInfo({ desc, date, type: type2, category }) {
+    return await db$1("transactions as t").where("category_id", category).where("description", desc).where("date", date).where("transaction_type", type2).first();
+  }
 }
 class TransactionController {
   // Menampilkan daftar area dengan pagination
@@ -88643,17 +88646,22 @@ class TransactionController {
       const { category_id, pos_id, description, transaction_type, nominal, date, user } = req.body;
       const code = await Transaction.generateCode({ category_id, transaction_type });
       const now2 = /* @__PURE__ */ new Date();
-      const loanId = await Transaction.create({
-        category_id,
-        pos_id,
-        description,
-        transaction_type,
-        amount: nominal,
-        code,
-        created_by: user,
-        created_at: now2,
-        date: date ?? now2
-      });
+      const isUpdate = await Transaction.getTransactionsByInfo({ category: category_id, date: date ?? now2, desc: description, type: transaction_type });
+      if (isUpdate) {
+        isUpdate.update({ amount: nominal });
+      } else {
+        const loanId = await Transaction.create({
+          category_id,
+          pos_id,
+          description,
+          transaction_type,
+          amount: nominal,
+          code,
+          created_by: user,
+          created_at: now2,
+          date: date ?? now2
+        });
+      }
       res.status(200).json({
         message: "Transaksi berhasil dibuat"
       });

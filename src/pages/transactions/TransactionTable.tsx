@@ -65,6 +65,14 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                 isHeader
                                 className="px-5 py-3 border-gray-100 dark:border-white/[0.05] border-e  font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
+                                Pos
+                            </TableCell>
+                            <TableCell
+                                rowSpan={2}
+
+                                isHeader
+                                className="px-5 py-3 border-gray-100 dark:border-white/[0.05] border-e  font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
                                 Kategori
                             </TableCell>
                             <TableCell
@@ -132,6 +140,11 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                 </TableCell>
                                 <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
+                                        {user.pos?.nama_pos ?? "-"}
+                                    </span>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    <span className="block   text-theme-sm dark:text-white/90 capitalize">
                                         {user.category?.name}
                                     </span>
                                 </TableCell>
@@ -174,7 +187,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                             </TableRow>
                         })}
                         {data.length === 0 && <TableRow >
-                            <TableCell colSpan={6} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                            <TableCell colSpan={7} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                                 Tidak ada data
                             </TableCell></TableRow>}
                     </TableBody>
@@ -183,12 +196,12 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
 
                     <tfoot className="dark:bg-[#1e2636] bg-white sticky bottom-0">
                         <TableRow >
-                            <TableCell colSpan={isAdminAndPusat ? 8 : (isAdminPusatController ? 7 : 6)} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
+                            <TableCell colSpan={isAdminAndPusat ? 9 : (isAdminPusatController ? 8 : 7)} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
                             </TableCell>
                         </TableRow>
 
                         <TableRow className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                            <TableCell colSpan={3} className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
+                            <TableCell colSpan={4} className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
                                 Subtotal
                             </TableCell>
                             <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-start border-gray-100 border-t border-e dark:border-white/[0.05]">
@@ -209,7 +222,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                         </TableRow>
 
                         <TableRow className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                            <TableCell colSpan={3} className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
+                            <TableCell colSpan={4} className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
                                 Total
                             </TableCell>
 

@@ -152,17 +152,22 @@ export default class TransactionController {
             const code = await Transaction.generateCode({ category_id, transaction_type });
 
             const now = new Date();
+            const isUpdate = await Transaction.getTransactionsByInfo({ category: category_id, date: date ?? now, desc: description, type: transaction_type });
+            if (isUpdate) {
+                isUpdate.update({ amount: nominal });
+            } else {
+                const loanId = await Transaction.create({
+                    category_id,
+                    pos_id,
+                    description,
+                    transaction_type,
+                    amount: nominal,
+                    code,
+                    created_by: user,
+                    created_at: now, date: date ?? now
+                });
+            }
 
-            const loanId = await Transaction.create({
-                category_id,
-                pos_id,
-                description,
-                transaction_type,
-                amount: nominal,
-                code,
-                created_by: user,
-                created_at: now, date: date ?? now
-            });
 
             res.status(200).json({
                 message: 'Transaksi berhasil dibuat',

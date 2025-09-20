@@ -134,6 +134,7 @@ const Angsuran: React.FC = () => {
             if (res.status === 201 || res.status === 200) {
                 const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
                 if (data.status != "Libur Operasional" && data.status != "libur") {
+
                     await axios.post("/api/transactions", {
                         transaction_type: 'debit',
                         category_id: 1,
