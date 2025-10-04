@@ -17664,6 +17664,14 @@ if (!globalThis.__knexInstance) {
     },
     pool: { min: 2, max: 10 }
   });
+  globalThis.__knexInstance.on("query", (queryData) => {
+    if (queryData.sql.toLowerCase().includes("transactions")) {
+      console.log("--- Transactions Query ---");
+      console.log("SQL:", queryData.sql);
+      console.log("Bindings:", queryData.bindings);
+      console.log("--------------------------");
+    }
+  });
 }
 function listBackup() {
   const backupDir = path.join(process.cwd(), "backups");
@@ -88479,6 +88487,42 @@ class Transaction {
     });
     return { transactions };
   }
+  static async labaRugi({ startDate = null, endDate = null, transaction_type = null, categories = null, groups = null, pos }) {
+    const query = db$1("transactions").join("categories", "transactions.category_id", "categories.id").join("users as ucb", "transactions.created_by", "ucb.id").leftJoin("users as uub", "transactions.updated_by", "uub.id").join("pos", "transactions.pos_id", "pos.id").whereNull("transactions.deleted_at");
+    if (transaction_type && transaction_type.length > 0) query.whereIn("transaction_type", transaction_type);
+    if (categories && categories.length > 0) query.whereIn("category_id", categories);
+    if (groups && groups.length > 0) query.whereIn("description", groups);
+    if (pos) query.where("transactions.pos_id", pos);
+    if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+      query.andWhereRaw(
+        `transactions.date BETWEEN  '${startDate}' AND '${endDate}'`
+      );
+    } else if (startDate && startDate !== "null") {
+      query.andWhereRaw(`transactions.date >= '${startDate}'`);
+    } else if (endDate && endDate !== "null") {
+      query.andWhereRaw(`transactions.date <= '${endDate}'`);
+    }
+    let transactions = await query.groupBy("transactions.category_id", "transactions.description", "transactions.pos_id").select(
+      db$1.raw(`
+      MAX(transactions.pos_id) as pos_id,
+      MAX(transactions.category_id) as category_id,
+      MAX(transactions.created_by) as created_by,
+      MAX(transactions.updated_by) as updated_by,
+      MAX(transactions.transaction_type) as transaction_type,
+      MAX(transactions.date) as date,
+      MAX(transactions.description) as description,
+      SUM(CASE WHEN transactions.transaction_type = 'debit' THEN transactions.amount ELSE 0 END) as total_debit,
+      SUM(CASE WHEN transactions.transaction_type = 'kredit' THEN transactions.amount ELSE 0 END) as total_kredit,
+      (
+        SUM(CASE WHEN transactions.transaction_type = 'debit' THEN transactions.amount ELSE 0 END) -
+        SUM(CASE WHEN transactions.transaction_type = 'kredit' THEN transactions.amount ELSE 0 END)
+      ) as total,
+      JSON_OBJECT('name', categories.name) as category,
+      JSON_OBJECT('nama_pos', pos.nama_pos) as pos
+    `)
+    ).orderBy(db$1.raw("MAX(transactions.id)"), "asc");
+    return { transactions };
+  }
   static async findById(id) {
     return await db$1("transactions").join("categories", "transactions.category_id", "categories.id").join("users as ucb", "transactions.created_by", "ucb.id").leftJoin("users as uub", "transactions.updated_by", "uub.id").join("pos", "transactions.pos_id", "pos.id").leftJoin("log_transactions", "transactions.id", "log_transactions.id_transaksi").leftJoin("users as lu", "log_transactions.updated_by", "lu.id").whereNull("transactions.deleted_at").select(
       "transactions.*",
@@ -88534,8 +88578,16 @@ class Transaction {
   static async softDelete(id) {
     return db$1("transactions").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
   }
+  static formatDateLocal(date) {
+    const d2 = new Date(date);
+    const year = d2.getFullYear();
+    const month = String(d2.getMonth() + 1).padStart(2, "0");
+    const day = String(d2.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
   static async getTransactionsByInfo({ desc, date, type: type2, category }) {
-    return await db$1("transactions as t").where("category_id", category).where("description", desc).where("date", date).where("transaction_type", type2).first();
+    const formattedDate = this.formatDateLocal(date);
+    return await db$1("transactions as t").where("category_id", category).where("description", desc).whereRaw("DATE(`date`) = '" + formattedDate + "'").where("transaction_type", type2).first();
   }
 }
 class TransactionController {
@@ -88554,6 +88606,27 @@ class TransactionController {
       const transaction_type = rawTransaction_type ? Array.isArray(rawTransaction_type) ? rawTransaction_type : [rawTransaction_type] : [];
       const groups = rawGroups ? Array.isArray(rawGroups) ? rawGroups : [rawGroups] : [];
       const { transactions } = await Transaction.findAll({ startDate, endDate, transaction_type, categories, groups, pos });
+      res.status(200).json({
+        transactions
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async labaRugi(req, res) {
+    try {
+      const {
+        startDate = null,
+        endDate = null,
+        "transaction_type[]": rawTransaction_type = null,
+        "categories[]": rawCategories = null,
+        "groups[]": rawGroups = null,
+        pos = null
+      } = req.query;
+      const categories = rawCategories ? Array.isArray(rawCategories) ? rawCategories : [rawCategories] : [];
+      const transaction_type = rawTransaction_type ? Array.isArray(rawTransaction_type) ? rawTransaction_type : [rawTransaction_type] : [];
+      const groups = rawGroups ? Array.isArray(rawGroups) ? rawGroups : [rawGroups] : [];
+      const { transactions } = await Transaction.labaRugi({ startDate, endDate, transaction_type, categories, groups, pos });
       res.status(200).json({
         transactions
       });
@@ -88634,6 +88707,7 @@ class TransactionController {
     await libExports.body("transaction_type").notEmpty().withMessage("Jenis transaksi wajib diisi").run(req);
     await libExports.body("nominal").notEmpty().withMessage("Nominal wajib diisi").run(req);
     await libExports.body("user").notEmpty().withMessage("User wajib diisi").run(req);
+    await libExports.body("resource").notEmpty().withMessage("Resource wajib diisi").run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
@@ -88643,12 +88717,19 @@ class TransactionController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { category_id, pos_id, description, transaction_type, nominal, date, user } = req.body;
+      const { category_id, pos_id, description, transaction_type, nominal, date, user, resource } = req.body;
       const code = await Transaction.generateCode({ category_id, transaction_type });
       const now2 = /* @__PURE__ */ new Date();
       const isUpdate = await Transaction.getTransactionsByInfo({ category: category_id, date: date ?? now2, desc: description, type: transaction_type });
       if (isUpdate) {
-        isUpdate.update({ amount: nominal });
+        await Transaction.update({ amount: isUpdate.amount + nominal }, isUpdate.id);
+        await Transaction.createLog({
+          id_transaksi: isUpdate.id,
+          updated_by: user,
+          status: "edit",
+          meta: JSON.stringify(["Nominal"]),
+          reason: resource == "angsuran" ? "edit angsuran" : resource == "pinjaman" ? "edit pinjaman" : "edit transaksi"
+        });
       } else {
         const loanId = await Transaction.create({
           category_id,
@@ -88659,7 +88740,15 @@ class TransactionController {
           code,
           created_by: user,
           created_at: now2,
-          date: date ?? now2
+          date: date ?? now2,
+          resource
+        });
+        await Transaction.createLog({
+          id_transaksi: loanId,
+          updated_by: user,
+          status: "add",
+          meta: JSON.stringify(["Nominal", "pos", "category", "description", "transaction_type", "amount", "created_by"]),
+          reason: resource == "angsuran" ? "add angsuran" : resource == "pinjaman" ? "add pinjaman" : "add transaksi"
         });
       }
       res.status(200).json({
@@ -88677,6 +88766,7 @@ class TransactionController {
     await libExports.body("transaction_type").notEmpty().withMessage("Jenis transaksi wajib diisi").run(req);
     await libExports.body("nominal").notEmpty().withMessage("Nominal wajib diisi").run(req);
     await libExports.body("user").notEmpty().withMessage("User wajib diisi").run(req);
+    await libExports.body("resource").notEmpty().withMessage("Resource wajib diisi").run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
       const formattedErrors = errors.array().reduce((acc, error) => {
@@ -88686,7 +88776,7 @@ class TransactionController {
       return res.status(400).json({ errors: formattedErrors });
     }
     try {
-      const { pos_id, category_id, description, transaction_type, nominal, date, user, reason } = req.body;
+      const { pos_id, category_id, description, transaction_type, nominal, date, user, reason, resource } = req.body;
       const { id } = req.params;
       const transaction = await Transaction.findById(id);
       const now2 = new Date(date);
@@ -88697,27 +88787,33 @@ class TransactionController {
         transaction_type,
         updated_by: user,
         amount: nominal,
-        date: now2
+        date: now2,
+        resource
         // date: date ?? now
       }, id);
-      let metas = {};
+      let metas = [];
       const newPos = await PosModel.findById(pos_id);
       const newCategory = await CategoryModel.findById(category_id);
-      if (transaction.pos_id != pos_id)
-        metas["POS"] = { old: transaction.pos.nama_pos, new: newPos[0].nama_pos };
-      if (transaction.category_id != category_id)
-        metas["Kategori"] = { old: transaction.category.name, new: newCategory[0].name };
-      if (transaction.description != description)
-        metas["Keterangan"] = { old: transaction.description, new: description };
-      if (transaction.amount != nominal)
-        metas["Nominal"] = { old: transaction.amount, new: nominal };
-      if (transaction.transaction_type != transaction_type)
-        metas["Tipe Transaksi"] = { old: transaction.transaction_type, new: transaction_type };
+      if (transaction.pos_id != pos_id) {
+        metas.push("Pos");
+      }
+      if (transaction.category_id != category_id) {
+        metas.push("Kategori");
+      }
+      if (transaction.description != description) {
+        metas.push("Keterangan");
+      }
+      if (transaction.amount != nominal) {
+        metas.push("Nominal");
+      }
+      if (transaction.transaction_type != transaction_type) {
+        metas.push("Tipe Transaksi");
+      }
       await Transaction.createLog({
         id_transaksi: id,
         updated_by: user,
         status: "edit",
-        meta: metas,
+        meta: JSON.stringify(metas),
         reason
       });
       res.status(200).json({
@@ -88830,6 +88926,7 @@ app.post("/api/angsuran/:idPinjaman", AngsuranController.store);
 app.put("/api/angsuran/:id", AngsuranController.update);
 app.get("/api/angsuran/aktif/:id", AngsuranController.lastAngsuran);
 app.get("/api/transactions", TransactionController.index);
+app.get("/api/laba-rugi", TransactionController.labaRugi);
 app.post("/api/transactions", TransactionController.store);
 app.get("/api/transactions/:id", TransactionController.show);
 app.put("/api/transactions/:id", TransactionController.update);

@@ -91,6 +91,8 @@ class CategoryModel {
         const result = await query.first();
         return !!result;
     }
+
+ 
 }
 
 export default CategoryModel; // instansiasi tunggal

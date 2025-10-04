@@ -43,6 +43,7 @@ import Category from './pages/category/Category';
 import CategoryForm from './pages/category/CategoryForm';
 import CategoryTable from "./pages/category/CategoryTable";
 import TransactionDetail from './pages/transactions/TransactionDetail';
+import LabaRugi from './pages/laba-rugi/LabaRugi';
 
 export default function App() {
     return (
@@ -93,6 +94,9 @@ export default function App() {
                         <Route path="/transactions/create" element={<TransactionForm />} />
                         <Route path="/transactions/:id/edit" element={<TransactionForm />} />
                         <Route path="/transactions/:id" element={<TransactionDetail />} />
+
+                        <Route path="/laba-rugi" element={<LabaRugi />} />
+
 
                         <Route path="/category" element={<Category />} />
                         <Route path="/category/create" element={<CategoryForm />} />

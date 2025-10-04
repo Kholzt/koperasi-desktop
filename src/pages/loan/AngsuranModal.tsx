@@ -136,13 +136,16 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                 const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
 
                 if (data.status != "Libur Operasional" && data.status != "libur") {
+                    const jumlahBayar = unformatCurrency(data.jumlah_bayar ?? "0") + unformatCurrency(data.jumlah_katrol ?? "0");
+
                     await axios.post("/api/transactions", {
                         transaction_type: 'debit',
                         category_id: 1,
                         description: description ?? "Kelompok 0",
-                        nominal: unformatCurrency(data.jumlah_bayar),
+                        nominal: jumlahBayar,
                         pos_id: user?.pos_id,
                         user: user?.id ?? null,
+                        resource: "angsuran"
                     });
                 }
                 onClose()

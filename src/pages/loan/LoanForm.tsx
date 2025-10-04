@@ -74,6 +74,7 @@ const LoanForm: React.FC = () => {
     const [disabled, setDisabled] = useState(false);
     const [hasAngsuran, setHasAngsuran] = useState(false);
     const [employes, setEmployes] = useState<EmployeProps[]>([]);
+    const [totalPinjamanLama, setTotalPinjamanLama] = useState(0);
     const [configLoan, setConfigLoan] = useState({
         totalBulan: 10,
         modalDo: 30
@@ -190,6 +191,7 @@ const LoanForm: React.FC = () => {
             setLoading(true);
             axios.get("/api/loans/" + id).then((res: any) => {
                 const loan = res.data.loan
+                setTotalPinjamanLama(loan.total_pinjaman)
                 reset({ ...loan, penanggung_jawab: JSON.parse(loan.penanggung_jawab), tanggal_pinjam: new Date(loan.tanggal_peminjaman as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
                 setHasAngsuran(loan.hasAngsuran);
                 setTimeout(() => {
@@ -228,13 +230,15 @@ const LoanForm: React.FC = () => {
             const description = employes.find((e) => data.penanggung_jawab.includes(e.id.toString()))?.group_name
 
             if (res.status === 201 || res.status === 200) {
+                const nominal = totalPinjamanLama > parseInt(data.total_pinjaman) ? -(totalPinjamanLama - parseInt(data.total_pinjaman)) : parseInt(data.total_pinjaman) - totalPinjamanLama;
                 await axios.post("/api/transactions", {
                     transaction_type: 'credit',
                     category_id: 1,
                     description: description ?? "Kelompok 0",
-                    nominal: data.total_pinjaman,
+                    nominal: nominal,
                     pos_id: user?.pos_id,
                     user: user?.id ?? null,
+                    resource: "pinjaman"
                 });
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
                 navigate("/loan?isFromTransaction=true");

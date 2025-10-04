@@ -59,6 +59,52 @@ export default class Transaction {
 
         return { transactions };
     }
+    static async labaRugi({ startDate = null, endDate = null, transaction_type = null, categories = null, groups = null, pos }) {
+        const query = db('transactions')
+            .join('categories', 'transactions.category_id', 'categories.id')
+            .join('users as ucb', 'transactions.created_by', 'ucb.id')
+            .leftJoin('users as uub', 'transactions.updated_by', 'uub.id')
+            .join("pos", "transactions.pos_id", "pos.id")
+            .whereNull('transactions.deleted_at');
+
+        if (transaction_type && transaction_type.length > 0) query.whereIn('transaction_type', transaction_type);
+        if (categories && categories.length > 0) query.whereIn('category_id', categories);
+        if (groups && groups.length > 0) query.whereIn('description', groups);
+        if (pos) query.where('transactions.pos_id', pos);
+        if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+            query.andWhereRaw(
+                `transactions.date BETWEEN  '${startDate}' AND '${endDate}'`
+            );
+        } else if (startDate && startDate !== "null") {
+            query.andWhereRaw(`transactions.date >= '${startDate}'`);
+        } else if (endDate && endDate !== "null") {
+            query.andWhereRaw(`transactions.date <= '${endDate}'`);
+        }
+
+        let transactions = await query
+            .groupBy('transactions.category_id', 'transactions.description', 'transactions.pos_id')
+            .select(
+                db.raw(`
+      MAX(transactions.pos_id) as pos_id,
+      MAX(transactions.category_id) as category_id,
+      MAX(transactions.created_by) as created_by,
+      MAX(transactions.updated_by) as updated_by,
+      MAX(transactions.transaction_type) as transaction_type,
+      MAX(transactions.date) as date,
+      MAX(transactions.description) as description,
+      SUM(CASE WHEN transactions.transaction_type = 'debit' THEN transactions.amount ELSE 0 END) as total_debit,
+      SUM(CASE WHEN transactions.transaction_type = 'kredit' THEN transactions.amount ELSE 0 END) as total_kredit,
+      (
+        SUM(CASE WHEN transactions.transaction_type = 'debit' THEN transactions.amount ELSE 0 END) -
+        SUM(CASE WHEN transactions.transaction_type = 'kredit' THEN transactions.amount ELSE 0 END)
+      ) as total,
+      JSON_OBJECT('name', categories.name) as category,
+      JSON_OBJECT('nama_pos', pos.nama_pos) as pos
+    `)
+            )
+            .orderBy(db.raw('MAX(transactions.id)'), 'asc')
+        return { transactions };
+    }
 
     static async findById(id) {
         return await db('transactions')
@@ -155,15 +201,26 @@ export default class Transaction {
     static async softDelete(id) {
         return db('transactions').where({ id }).update({ deleted_at: new Date() });
     }
+    static formatDateLocal(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
 
     static async getTransactionsByInfo({ desc, date, type, category }) {
+        // ubah ke format YYYY-MM-DD
+        const formattedDate = this.formatDateLocal(date);
+
         return await db("transactions as t")
             .where("category_id", category)
             .where("description", desc)
-            .where("date", date)
+            .whereRaw("DATE(`date`) = '" + formattedDate + "'")
             .where("transaction_type", type)
             .first();
     }
+
 
 
 }

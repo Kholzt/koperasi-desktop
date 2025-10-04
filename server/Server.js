@@ -120,6 +120,7 @@ app.put('/api/angsuran/:id', AngsuranController.update);
 app.get('/api/angsuran/aktif/:id', AngsuranController.lastAngsuran);
 
 app.get('/api/transactions', TransactionController.index);
+app.get('/api/laba-rugi', TransactionController.labaRugi);
 app.post('/api/transactions', TransactionController.store);
 app.get('/api/transactions/:id', TransactionController.show);
 app.put('/api/transactions/:id', TransactionController.update);

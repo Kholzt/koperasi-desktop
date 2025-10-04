@@ -100,6 +100,12 @@ const posisiUsahaItems: NavItem[] = [
         path: "/transactions",
         access: ["staff", "controller", "pusat", "super admin"]
     },
+    {
+        icon: <DollarLineIcon />,
+        name: "Laba Rugi",
+        path: "/laba-rugi",
+        access: ["pusat", "super admin"]
+    },
 ];
 const othersItems: NavItem[] = [
     {

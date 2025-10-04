@@ -50,6 +50,7 @@ const Angsuran: React.FC = () => {
     const [employes, setEmployes] = useState<EmployeProps[]>([]);
     const { id, idAngsuran } = useParams();
     const [isLunas, setisLunas] = useState(false);
+    const [totalPinjamanLama, setTotalPinjamanLama] = useState(0);
     const [pagination, setPagination] = useState<PaginationProps>({
         page: 1,
         totalPages: 1,
@@ -76,6 +77,7 @@ const Angsuran: React.FC = () => {
             axios.get(`/api/angsuran/${idAngsuran}`).then((res: any) => {
                 const { data: { angsuran } } = res;
                 setAngsuran(angsuran)
+                setTotalPinjamanLama(angsuran.jumlah_bayar + angsuran.jumlah_katrol)
                 reset({ jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) });
                 setIsLoading(false)
 
@@ -134,14 +136,16 @@ const Angsuran: React.FC = () => {
             if (res.status === 201 || res.status === 200) {
                 const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
                 if (data.status != "Libur Operasional" && data.status != "libur") {
-
+                    const jumlahBayar = unformatCurrency(data.jumlah_bayar ?? "0") + unformatCurrency(data.jumlah_katrol ?? "0");
+                    const nominal = totalPinjamanLama > jumlahBayar ? -(totalPinjamanLama - jumlahBayar) : jumlahBayar - totalPinjamanLama;
                     await axios.post("/api/transactions", {
                         transaction_type: 'debit',
                         category_id: 1,
                         description: description ?? "Kelompok 0",
-                        nominal: unformatCurrency(data.jumlah_bayar),
+                        nominal: nominal,
                         pos_id: user?.pos_id,
                         user: user?.id ?? null,
+                        resource: "angsuran"
                     });
                 }
                 toast.success("Angsuran berhasil diubah")
