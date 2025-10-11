@@ -149,7 +149,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm text-red-500 capitalize">
+                                    <span className="block   text-theme-sm text-green-500 capitalize">
                                         {formatCurrency(user.total) ?? "Rp. 0"}
                                     </span>
                                 </TableCell>
@@ -179,6 +179,9 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                             <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-start border-gray-100 border-t border-e dark:border-white/[0.05]">
                                 {formatCurrency(credit)}
                             </TableCell>
+                            <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-start border-gray-100 border-t border-e dark:border-white/[0.05]">
+                                {/* {formatCurrency(credit)} */}
+                            </TableCell>
 
                         </TableRow>
 
@@ -187,7 +190,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                 Total
                             </TableCell>
 
-                            <TableCell colSpan={2} className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                            <TableCell colSpan={3} className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
                                 {formatCurrency(total)}
                             </TableCell>
 

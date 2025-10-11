@@ -111,11 +111,11 @@ const LabaRugi: React.FC = () => {
 
                 <ComponentCard
                     title="Laba Rugi"
-                    option={
-                        <div className="flex gap-4 ">
-                            <Button size="sm" onClick={handleExportPDF}>Export PDF</Button>
-                        </div>
-                    }
+                // option={
+                //     <div className="flex gap-4 ">
+                //         <Button size="sm" onClick={handleExportPDF}>Export PDF</Button>
+                //     </div>
+                // }
                 >
                     <Table
                         tableRef={tableRef}
