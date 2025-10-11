@@ -15,6 +15,7 @@ import SelectSearch from "../../components/form/SelectSearch";
 import { toLocalDate } from "../../utils/helpers";
 import { SearchIcon } from "../../icons";
 import Input from "../../components/form/input/InputField";
+import Loading from "../../components/ui/Loading";
 
 const days = [
     'all', "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"
@@ -61,11 +62,22 @@ const Loan: React.FC = () => {
                 setPagination((prev) => ({ ...prev, totalPages: res.data.pagination.totalPages }));
             });
         axios
-            .get(`/api/schedule?limit=20000000`)
+            .get(`/api/groups?limit=20000000`)
             .then((res: any) => {
-                const { schedule } = res.data
-                let scheduleFilter = schedule.filter((s: any) => dayFilter == "all" || s.day == dayFilter);
-                setGroups(scheduleFilter.map((group: ScheduleProps) => ({ label: group.group.group_name + " | " + group.day, value: group.group.id })))
+                const { groups } = res.data
+                // let scheduleFilter = schedule.filter((s: any) => dayFilter == "all" || s.day == dayFilter);
+                // setGroups(scheduleFilter.map((group: ScheduleProps) => ({ label: group.group.group_name + " | " + group.day, value: group.group.id })))
+                setGroups(
+                    groups
+                        .slice() // copy array biar tidak mutate state asli
+                        .sort((a: GroupProps, b: GroupProps) =>
+                            a.group_name.localeCompare(b.group_name)
+                        )
+                        .map((group: GroupProps) => ({
+                            label: group.group_name,
+                            value: group.id,
+                        }))
+                );
             });
     }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search]);
 
@@ -108,7 +120,7 @@ const Loan: React.FC = () => {
             status: filter.status,
             dayFilter,
             groupFilter,
-            search,
+            // search,
             page: pagination?.page
         };
         localStorage.setItem('filters', JSON.stringify(savedFilters));
@@ -123,6 +135,10 @@ const Loan: React.FC = () => {
             page: 1,
         }))
     }
+
+
+
+    if (!isFiltersLoaded) return <Loading />;
     return (
         <>
             <PageMeta title={`Peminjaman | ${import.meta.env.VITE_APP_NAME}`} description="" />
@@ -155,13 +171,14 @@ const Loan: React.FC = () => {
                         })}
                     </ul>
                     <div className="max-w-[300px] w-full">
-                        <SelectSearch
+                        {isFiltersLoaded && <SelectSearch
                             label=""
                             placeholder="Pilih kelompok"
                             options={[{ label: "All", value: "all" }, ...groups]}
                             defaultValue={groupFilter}
                             onChange={(val: any) => setGroupFilter(val)}
-                        />
+                        />}
+
                     </div>
                 </div>
 
@@ -180,7 +197,7 @@ const Loan: React.FC = () => {
                                     <SearchIcon className="size-6 text-gray-600" fill="#787878" color="#fff" />
                                 </span>
                             </div>
-                            <Filter filter={filter} setFilter={setFilter} />
+                            {isFiltersLoaded && <Filter filter={filter} setFilter={setFilter} />}
                             <Link to={"/loan/create"}>
                                 <Button size="sm">Tambah Peminjaman</Button>
                             </Link>
@@ -217,6 +234,11 @@ const Filter: React.FC<FilterProps> = ({ filter, setFilter }) => {
     const [endDate, setEndDate] = useState<String | null>(filter.endDate);
     const [status, setStatus] = useState<string | null>(filter.status);
 
+    useEffect(() => {
+        setStartDate(filter.startDate)
+        setEndDate(filter.endDate)
+        setStatus(filter.status)
+    }, [filter.startDate, filter.endDate, filter.status]);
     const openDropdown = () => setIsOpenDropdown(true);
     const closeDropdown = () => setIsOpenDropdown(false);
 
@@ -244,16 +266,21 @@ const Filter: React.FC<FilterProps> = ({ filter, setFilter }) => {
                     <div>
                         <label className="block mb-1 font-medium">Tanggal Peminjaman</label>
                         <DatePicker
+                            hasClear
                             id={"startDate"}
                             mode="range"
                             placeholder="Tanggal peminjaman"
                             defaultDate={
-                                filter.startDate && filter.endDate
-                                    ? [new Date(filter.startDate as string), new Date(filter.endDate as string)]
-                                    : (filter.startDate ? [new Date(filter.startDate as string)] : undefined)
+                                startDate && endDate
+                                    ? [new Date(startDate as string), new Date(endDate as string)]
+                                    : (startDate ? [new Date(startDate as string)] : undefined)
                             }
                             onChange={(date) => {
-                                setStartDate(toLocalDate(date[0]));
+                                date[0]
+                                    ? setStartDate(toLocalDate(date[0]))
+                                    : (setStartDate(null));
+
+
                                 date[1]
                                     ? setEndDate(toLocalDate(date[1]))
                                     : setEndDate(null);
