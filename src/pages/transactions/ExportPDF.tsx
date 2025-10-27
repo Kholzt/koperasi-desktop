@@ -12,16 +12,17 @@ interface ExportPDFProps {
 
 const ExportPDF: React.FC<ExportPDFProps> = ({ data, tableRef, date }) => {
     const debit = data
-        .filter(t => t.transaction_type === "debit" && t.category.name != "Kas")
+        .filter(t => t.transaction_type === "debit" && t.category.name != "Kas" && !t.deleted_at)
         .reduce((sum, t) => sum + t.amount, 0);
 
     // Hitung total credit
     const credit = data
-        .filter(t => t.transaction_type === "credit")
+        .filter(t => t.transaction_type === "credit" && !t.deleted_at)
         .reduce((sum, t) => sum + t.amount, 0);
 
     const total = debit - credit;
 
+    console.log(data.filter((user: TransactionProps) => !user.deleted_at));
     return (
         <div>
             <div style={{ textAlign: "center", marginBottom: "20px" }}>
@@ -62,25 +63,27 @@ const ExportPDF: React.FC<ExportPDFProps> = ({ data, tableRef, date }) => {
 
                 {/* Table Body */}
                 <tbody>
-                    {data.map((user: TransactionProps, index: number) => (
-                        <tr key={index}>
-                            <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                                {formatDate(user.date) ?? "-"}
-                            </td>
-                            <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                                {user.category?.name}
-                            </td>
-                            <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                                {user.description ?? "-"}
-                            </td>
-                            <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                                {user.transaction_type === "debit" ? formatCurrency(user.amount) : "Rp. 0"}
-                            </td>
-                            <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                                {user.transaction_type === "credit" ? formatCurrency(user.amount) : "Rp. 0"}
-                            </td>
-                        </tr>
-                    ))}
+                    {data.filter((user: TransactionProps) => !user.deleted_at).map((user: TransactionProps, index: number) => {
+                        return (
+                            <tr key={index}>
+                                <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+                                    {formatDate(user.date) ?? "-"}
+                                </td>
+                                <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+                                    {user.category?.name}
+                                </td>
+                                <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+                                    {user.description ?? "-"}
+                                </td>
+                                <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+                                    {user.transaction_type === "debit" ? formatCurrency(user.amount) : "Rp. 0"}
+                                </td>
+                                <td style={{ border: "1px solid #ccc", padding: "8px" }}>
+                                    {user.transaction_type === "credit" ? formatCurrency(user.amount) : "Rp. 0"}
+                                </td>
+                            </tr>
+                        )
+                    })}
 
                     {data.length === 0 && (
                         <tr>

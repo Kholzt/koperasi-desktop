@@ -28,12 +28,12 @@ interface TransactionTableProps {
 
 const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) => {
     const debit = data
-        .filter(t => t.transaction_type === "debit" && t.category.name != "Kas")
+        .filter(t => t.transaction_type === "debit" && t.category.name != "Kas" && !t.deleted_at)
         .reduce((sum, t) => sum + t.amount, 0);
 
     // Hitung total credit
     const credit = data
-        .filter(t => t.transaction_type === "credit")
+        .filter(t => t.transaction_type === "credit" && !t.deleted_at)
         .reduce((sum, t) => sum + t.amount, 0);
 
     // Selisih debit dan credit
