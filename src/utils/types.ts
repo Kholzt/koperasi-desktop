@@ -160,5 +160,6 @@ export interface TransactionProps{
     updated_user:UserProps,
     date:string,
     description:string,
+    deleted_at:string,
 
 }

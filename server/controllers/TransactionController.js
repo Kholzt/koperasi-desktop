@@ -15,7 +15,8 @@ export default class TransactionController {
                 'transaction_type[]': rawTransaction_type = null,
                 'categories[]': rawCategories = null,
                 'groups[]': rawGroups = null,
-                pos = null
+                pos = null,
+                isPusatAdmin
             } = req.query;
             // pastikan jadi array
             const categories = rawCategories
@@ -29,7 +30,7 @@ export default class TransactionController {
                 ? Array.isArray(rawGroups) ? rawGroups : [rawGroups]
                 : [];
             // Query transactions with join to members
-            const { transactions } = await Transaction.findAll({ startDate, endDate, transaction_type, categories, groups, pos })
+            const { transactions } = await Transaction.findAll({ startDate, endDate, transaction_type, categories, groups, pos, isPusatAdmin })
 
 
             res.status(200).json({

@@ -19,6 +19,7 @@ import ExportPDF from "./ExportPDF";
 import Table from "./TransactionTable";
 import ReactDOMServer from 'react-dom/server';
 import SelectSearch from "../../components/form/SelectSearch";
+import { useUser } from "../../hooks/useUser";
 
 
 const Transaction: React.FC = () => {
@@ -35,7 +36,7 @@ const Transaction: React.FC = () => {
     const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
     const [isAngsuran, setIsAngsuran] = useState(false);
     const { reload } = useTheme();
-
+    const { user: userLogin } = useUser();
     useEffect(() => {
         const params = {
             startDate: filter.date.startDate ?? toLocalDate(new Date()),
@@ -43,7 +44,8 @@ const Transaction: React.FC = () => {
             categories: filter.categories, // array
             transaction_type: filter.transaction_type, // array
             groups: filter.groups,
-            pos: filter.pos
+            pos: filter.pos,
+            isPusatAdmin: userLogin?.role == "pusat" || userLogin?.role == "super admin"
         };
 
         axios

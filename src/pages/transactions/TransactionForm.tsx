@@ -33,6 +33,7 @@ interface TransactionFormInput {
     date: string;
     user?: number;
     reason?: string;
+    resource?: string;
 }
 
 const schema: yup.SchemaOf<TransactionFormInput> = yup.object({
@@ -122,6 +123,7 @@ const TransactionForm: React.FC = () => {
         try {
             data.nominal = unformatCurrency(data.nominal).toString();
             data.user = user?.id;
+            data.resource = "transaksi"
             let res;
             if (!id) {
                 res = await axios.post("/api/transactions", data);
@@ -152,7 +154,7 @@ const TransactionForm: React.FC = () => {
 
     return (
         <>
-            <PageMeta title={`${!id ? "Tambah Peminjaman" : "Ubah Peminjaman"} | ${import.meta.env.VITE_APP_NAME}`} description="" />
+            <PageMeta title={`${!id ? "Tambah Transaksi" : "Ubah Transaksi"} | ${import.meta.env.VITE_APP_NAME}`} description="" />
             <PageBreadcrumb pageTitle={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"} />
             <div className="w-full mx-auto mb-2">
                 <Link to="/transactions" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">

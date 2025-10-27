@@ -1,7 +1,7 @@
 import db from "../config/db";
 
 export default class Transaction {
-    static async findAll({ startDate, endDate = null, transaction_type = null, categories = null, groups = null, pos }) {
+    static async findAll({ startDate, endDate = null, transaction_type = null, categories = null, groups = null, pos = null, isPusatAdmin = false }) {
         // 1. Hitung saldo awal
         const saldoQuery = await db('transactions')
             .whereNull('deleted_at')
@@ -19,8 +19,9 @@ export default class Transaction {
             .join('users as ucb', 'transactions.created_by', 'ucb.id')
             .leftJoin('users as uub', 'transactions.updated_by', 'uub.id')
             .join("pos", "transactions.pos_id", "pos.id")
-            .whereNull('transactions.deleted_at');
+            ;
 
+        if (!isPusatAdmin) query.whereNull('transactions.deleted_at');
         if (transaction_type && transaction_type.length > 0) query.whereIn('transaction_type', transaction_type);
         if (categories && categories.length > 0) query.whereIn('category_id', categories);
         if (groups && groups.length > 0) query.whereIn('description', groups);

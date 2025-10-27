@@ -18,6 +18,7 @@ import axios from "../../utils/axios";
 import { formatCurrency, formatDate } from "../../utils/helpers";
 import { TransactionProps } from "../../utils/types";
 import Label from "../../components/form/Label";
+import Badge from "../../components/ui/badge/Badge";
 
 // import { toast } from 'react-hot-toast';
 interface TransactionTableProps {
@@ -88,13 +89,22 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                             >
                                 Jenis Transaksi
                             </TableCell>
-                            {isAdminPusatController && <><TableCell
+                            {isAdminAndPusat && <TableCell
                                 rowSpan={2}
                                 isHeader
                                 className="px-5 py-3 border-gray-100  dark:border-white/[0.05] border-e border-b text-center  font-medium text-gray-500  text-theme-xs dark:text-gray-400"
                             >
-                                Dibuat oleh
-                            </TableCell>
+                                Status
+                            </TableCell>}
+                            {isAdminPusatController && <>
+
+                                <TableCell
+                                    rowSpan={2}
+                                    isHeader
+                                    className="px-5 py-3 border-gray-100  dark:border-white/[0.05] border-e border-b text-center  font-medium text-gray-500  text-theme-xs dark:text-gray-400"
+                                >
+                                    Dibuat oleh
+                                </TableCell>
                                 <TableCell
                                     rowSpan={2}
                                     isHeader
@@ -167,12 +177,22 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                         {user.transaction_type == "credit" ? formatCurrency(user.amount) : "Rp. 0"}
                                     </span>
                                 </TableCell>
-                                {isAdminPusatController && <><TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                    <span className="block   text-theme-sm  capitalize">
+                                {isAdminAndPusat && <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    <Badge
+                                        size="sm"
+                                        color={!user.deleted_at ? "success" : "error"}
+                                    >
+                                        {index == 0 ? "-" : (!user.deleted_at ? "Aktif" : "Terhapus")}
+                                    </Badge>
 
-                                        {user.created_user?.complete_name ?? "-"}
-                                    </span>
-                                </TableCell>
+                                </TableCell>}
+                                {isAdminPusatController && <>
+                                    <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                        <span className="block   text-theme-sm  capitalize">
+
+                                            {user.created_user?.complete_name ?? "-"}
+                                        </span>
+                                    </TableCell>
                                     <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                         <span className="block   text-theme-sm  capitalize">
                                             {user.updated_user?.complete_name ?? "-"}
@@ -196,7 +216,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
 
                     <tfoot className="dark:bg-[#1e2636] bg-white sticky bottom-0">
                         <TableRow >
-                            <TableCell colSpan={isAdminAndPusat ? 9 : (isAdminPusatController ? 8 : 7)} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
+                            <TableCell colSpan={isAdminAndPusat ? 10 : (isAdminPusatController ? 8 : 7)} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-white text-end border-gray-100 border-t border-e dark:border-white/[0.05]">
                             </TableCell>
                         </TableRow>
 
@@ -215,9 +235,14 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                             </TableCell><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
                                     {" "}
                                 </TableCell></>}
-                            {isAdminAndPusat && <><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
-                                {" "}
-                            </TableCell></>}
+                            {isAdminAndPusat && <>
+                                <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                                    {" "}
+                                </TableCell>
+                                <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                                    {" "}
+                                </TableCell>
+                            </>}
 
                         </TableRow>
 
@@ -234,9 +259,14 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                             </TableCell><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
                                     {" "}
                                 </TableCell></>}
-                            {isAdminAndPusat && <><TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
-                                {" "}
-                            </TableCell></>}
+                            {isAdminAndPusat && <>
+                                <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                                    {" "}
+                                </TableCell>
+                                <TableCell className="font-bold px-4 py-3 text-gray-700   text-theme-sm dark:text-white text-center border-gray-100 border-t border-e dark:border-white/[0.05]">
+                                    {" "}
+                                </TableCell>
+                            </>}
 
 
                         </TableRow>
