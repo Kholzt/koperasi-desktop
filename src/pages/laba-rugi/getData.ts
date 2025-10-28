@@ -32,6 +32,7 @@ export function getData(){
         axios
             .get('/api/laba-rugi', { params })
             .then((res: any) => {
+                console.log(res.data.transactions);
                 setTransactions(res.data.transactions);
             });
 
@@ -48,7 +49,6 @@ export function getData(){
         axios
             .get(`/api/getGroupsTransaction`)
             .then((res: any) => {
-                console.log(res);
                 setGroups(res.data.groups.map((group: any) => ({ text: group.description, value: group.description })))
             });
     }, [reload, filter]);

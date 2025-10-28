@@ -1,42 +1,27 @@
+import { yupResolver } from "@hookform/resolvers/yup";
 import React, { useRef, useState } from "react";
-import ReactDOMServer from 'react-dom/server';
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router";
+import * as yup from 'yup';
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Label from "../../components/form/Label";
-import MultiSelect from "../../components/form/MultiSelect";
-import Select from "../../components/form/Select";
-import SelectSearch from "../../components/form/SelectSearch";
 import DatePicker from "../../components/form/date-picker";
-import Button from "../../components/ui/button/Button";
-import { Dropdown } from "../../components/ui/dropdown/Dropdown";
-import { toLocalDate } from "../../utils/helpers";
-import ExportPDF from "./ExportPDF";
+import Input from "../../components/form/input/InputField";
+import { Modal } from "../../components/ui/modal";
+import { useUser } from "../../hooks/useUser";
+import axios from "../../utils/axios";
+import { formatCurrency, toLocalDate } from "../../utils/helpers";
 import Table from "./TransactionTable";
 import { getData } from "./getData";
-import { Modal } from "../../components/ui/modal";
-import { useNavigate } from "react-router";
-import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from 'yup';
-import Input from "../../components/form/input/InputField";
-import axios from "../../utils/axios";
-import { useUser } from "../../hooks/useUser";
 
 const LabaRugi: React.FC = () => {
-    const { filter, transactions, categories, groups, setFilter, pos, isAngsuran, setIsAngsuran } = getData();
+    const { filter, transactions, setFilter } = getData();
 
 
     const tableRef = useRef<HTMLDivElement>(null);
 
-    const handleExportPDF = async () => {
-        const formatDate = filter.date.endDate ? filter.date.startDate + " - " + filter.date.endDate : filter.date.startDate;
-        const htmlString = ReactDOMServer.renderToStaticMarkup(<ExportPDF date={formatDate ?? toLocalDate(new Date())} data={transactions} />);
-        await window.ipcRenderer.savePDF("Laporan Keuangan - " + formatDate, htmlString);
-    };
-
-
-    const angsuranId = categories.find(c => c.text.includes("angsuran"))?.value;
     return (
         <>
             <PageMeta title={`Laba Rugi | ${import.meta.env.VITE_APP_NAME}`} description="" />
@@ -63,7 +48,7 @@ const LabaRugi: React.FC = () => {
                             }}
                         />
                     </div>
-                    <div className=" w-full">
+                    {/* <div className=" w-full">
                         <Label>Pos</Label>
                         <SelectSearch
                             label=""
@@ -106,122 +91,83 @@ const LabaRugi: React.FC = () => {
                             defaultSelected={filter.transaction_type}
                             onChange={(val) => setFilter({ ...filter, transaction_type: val })}
                         />
+                    </div> */}
+                </div>
+                <div className="grid md:grid-cols-3 grid-cols-1 gap-4 md:gap-6 ">
+
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+                        {/* <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
+                            <Icon className="text-gray-800 size-6 dark:text-white/90" />
+                        </div> */}
+
+                        <div className="flex items-end justify-between mt-5">
+                            <div>
+                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                    Total Debit
+                                </span>
+                                <h4 className="mt-2 font-bold text-green-600 text-title-sm dark:text-white/90">
+                                    {formatCurrency(transactions[0]?.total_debit)}
+                                </h4>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+                        {/* <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
+                            <Icon className="text-gray-800 size-6 dark:text-white/90" />
+                        </div> */}
+
+                        <div className="flex items-end justify-between mt-5">
+                            <div>
+                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                    Total Kredit
+                                </span>
+                                <h4 className="mt-2 font-bold text-red-600 text-title-sm dark:text-white/90">
+                                    {formatCurrency(transactions[0]?.total_kredit)}
+                                </h4>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+                        {/* <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
+                            <Icon className="text-gray-800 size-6 dark:text-white/90" />
+                        </div> */}
+
+                        <div className="flex items-end justify-between mt-5">
+                            <div>
+                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                    Total
+                                </span>
+                                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90 ">
+                                    {formatCurrency(transactions[0]?.total)}
+                                </h4>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 
-                <ComponentCard
+                {/* <ComponentCard
                     title="Laba Rugi"
-                // option={
-                //     <div className="flex gap-4 ">
-                //         <Button size="sm" onClick={handleExportPDF}>Export PDF</Button>
-                //     </div>
-                // }
                 >
                     <Table
                         tableRef={tableRef}
                         data={transactions}
                     />
 
-                </ComponentCard>
+                    das
+                </ComponentCard> */}
             </div>
 
-            <Verification />
+            <Verification filter={filter} setFilter={setFilter} />
 
         </>
     );
 };
 
-interface FilterProps {
-    filter: {
-        startDate: String | null;
-        endDate: String | null;
-        status: string | null;
-    };
-    setFilter: (filter: { startDate: String | null; endDate: String | null; status: string | null }) => void;
-}
 
-const Filter: React.FC<FilterProps> = ({ filter, setFilter }) => {
-    const [isOpenDropdown, setIsOpenDropdown] = useState(false);
-    const [startDate, setStartDate] = useState<String | null>(filter.startDate);
-    const [endDate, setEndDate] = useState<String | null>(filter.endDate);
-    const [status, setStatus] = useState<string | null>(filter.status);
 
-    const openDropdown = () => setIsOpenDropdown(true);
-    const closeDropdown = () => setIsOpenDropdown(false);
-
-    const handleFilter = () => {
-        setFilter({ startDate, endDate, status });
-        closeDropdown();
-    };
-
-    return (
-        <div className="relative">
-            <Button
-                size="sm"
-                variant="outline"
-                onClick={openDropdown}
-                className="flex items-center text-gray-700 dark:text-gray-400 px-4"
-            >
-                Filter
-            </Button>
-
-            <Dropdown
-                isOpen={isOpenDropdown}
-                onClose={closeDropdown}
-                className="absolute right-0 mt-[17px] w-[600px] rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
-            >
-                <div className="flex flex-col gap-3 text-sm text-gray-700 dark:text-gray-300">
-                    <div>
-                        <label className="block mb-1 font-medium">Tanggal Peminjaman</label>
-                        <DatePicker
-                            id={"startDate"}
-                            mode="range"
-                            placeholder="Tanggal peminjaman"
-                            defaultDate={
-                                startDate && endDate
-                                    ? [new Date(startDate as string), new Date(endDate as string)]
-                                    : (startDate ? [new Date(startDate as string)] : undefined)
-                            }
-                            onChange={(date) => {
-                                setStartDate(toLocalDate(date[0]));
-                                date[1]
-                                    ? setEndDate(toLocalDate(date[1]))
-                                    : setEndDate(null);
-                            }}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block mb-1 font-medium">Status Peminjaman</label>
-                        <Select
-                            placeholder="Pilih status"
-                            options={[
-                                { label: "Semua", value: "" },
-                                { label: "Aktif", value: "aktif" },
-                                { label: "Menunggak", value: "menunggak" },
-                                { label: "Lunas", value: "lunas" }
-                            ]}
-                            className="w-full rounded-md border px-2 py-1 dark:bg-gray-800 dark:border-gray-700"
-                            value={status ?? ""}
-                            defaultValue={status ?? ""}
-                            onChange={(e) => setStatus(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="flex justify-end gap-2 mt-2">
-                        <Button size="sm" variant="outline" onClick={closeDropdown}>
-                            Batal
-                        </Button>
-                        <Button size="sm" onClick={handleFilter}>
-                            Terapkan
-                        </Button>
-                    </div>
-                </div>
-            </Dropdown>
-
-        </div>
-    );
-};
 
 export default LabaRugi;
 
@@ -236,11 +182,11 @@ interface FormInput {
 const schema: yup.SchemaOf<FormInput> = yup.object({
     password: yup.string().required('Kata sandi wajib diisi'),
 });
-function Verification() {
+function Verification({ filter, setFilter }: { filter: any, setFilter: any }) {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(true);
+    const [showFilterTanggal, setShowFilterTanggal] = useState(false);
     const { user } = useUser();
-    const [message, setMessage] = useState<null | string>(null);
     const closeModal = () => navigate(-1);
 
     const {
@@ -265,6 +211,7 @@ function Verification() {
 
             if (res.status === 200) {
                 setIsOpen(false);
+                setShowFilterTanggal(true)
             } else {
 
             }
@@ -285,32 +232,101 @@ function Verification() {
 
 
 
+    return <>
+        <Modal
+            isOpen={isOpen}
+            onClose={closeModal}
+            className="max-w-[600px] p-6 lg:p-10"
+        >
+            <form onSubmit={handleSubmit(verification)}>
+                <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar normal-case">
+                    <div>
+                        <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
+                            Pemberitahuan
+                        </h5>
+                        <p className="text-base text-gray-800 dark:text-gray-400 mb-6">
+                            Masukkan kata sandi anda untuk melihat laba rugi
+                        </p>
+                        {/* <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                    Data yang dihapus dapat dikembalikan nanti
+                </p> */}
+
+                        <Label htmlFor="reason">Kata sandi</Label>
+                        <Input
+                            type="password"
+                            placeholder="Masukkan kata sandi"
+                            {...register("password")}
+                        />
+                        {errors.password && (
+                            <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
+                        )}                </div>
+
+                    <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
+                        <button
+                            onClick={closeModal}
+                            type="button"
+                            className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
+                        >
+                            Tutup
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-600 sm:w-auto"
+                        >
+                            Buka</button>
+                    </div>
+                </div>
+            </form>
+        </Modal>
+        <FilterDate filter={filter} setOpen={setShowFilterTanggal} isOpen={showFilterTanggal} setFilter={setFilter} />
+    </>
+}
+
+function FilterDate({ isOpen, filter, setFilter, setOpen }: { isOpen: any, setFilter: any, filter: any, setOpen: any }) {
+    const closeModal = () => setOpen(false);
+
+
+
+
+
+
+
     return <Modal
         isOpen={isOpen}
         onClose={closeModal}
         className="max-w-[600px] p-6 lg:p-10"
     >
-        <form onSubmit={handleSubmit(verification)}>
-            <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar normal-case">
-                <div>
+        <form>
+            <div className=" flex flex-col px-2 overflow-y-auto custom-scrollbar normal-case">
+                <div className="min-h-[500px]">
                     <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
                         Pemberitahuan
                     </h5>
                     <p className="text-base text-gray-800 dark:text-gray-400 mb-6">
-                        Masukkan kata sandi anda untuk melihat laba rugi
+                        Silahkan pilih tanggal transaksi
                     </p>
-                    {/* <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                    Data yang dihapus dapat dikembalikan nanti
-                </p> */}
 
-                    <Label htmlFor="reason">Kata sandi</Label>
-                    <Input
-                        placeholder="Masukkan kata sandi"
-                        {...register("password")}
-                    />
-                    {errors.password && (
-                        <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
-                    )}                </div>
+                    <div className=" w-full">
+                        <Label>Tanggal</Label>
+
+                        <DatePicker
+                            id={"startDate"}
+                            mode="range"
+                            placeholder="Tanggal transaksi"
+                            defaultDate={
+                                filter.date.startDate && filter.date.endDate
+                                    ? [new Date(filter.date.startDate as string), new Date(filter.date.endDate as string)]
+                                    : (filter.date.startDate ? [new Date(filter.date.startDate as string)] : undefined)
+                            }
+                            onChange={(date) => {
+                                setFilter({ ...filter, date: { startDate: toLocalDate(date[0]), endDate: filter.date.endDate } });
+                                date[1]
+                                    ? setFilter({ ...filter, date: { startDate: toLocalDate(date[0]), endDate: toLocalDate(date[1]) } })
+                                    : setFilter({ ...filter, date: { startDate: toLocalDate(date[0]), endDate: null } });
+                            }}
+                        />
+                    </div>
+                </div>
 
                 <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
                     <button
@@ -321,10 +337,10 @@ function Verification() {
                         Tutup
                     </button>
                     <button
-                        type="submit"
+                        onClick={() => setOpen(false)}
                         className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-600 sm:w-auto"
                     >
-                        Buka</button>
+                        Filter</button>
                 </div>
             </div>
         </form>
