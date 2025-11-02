@@ -155,11 +155,15 @@ export default class Transaction {
 
         // 4. Ambil sequence terakhir hari ini
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const lastRecord = await db("transactions")
+        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+        const totalToday = await db("transactions")
             .where("date", ">=", todayStart)
+            .where("date", "<", todayEnd)
+            .count("id as count")
             .first();
 
-        const sequence = lastRecord ? lastRecord.sequence + 1 : 1;
+        const sequence = (totalToday?.count || 0) + 1;
         const sequencePart = String(sequence).padStart(2, "0"); // jadi 2 digit
 
         // 5. Gabung semua bagian

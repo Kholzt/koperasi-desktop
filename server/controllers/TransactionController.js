@@ -103,56 +103,6 @@ export default class TransactionController {
 
 
 
-    static async getCode(req, res) {
-        try {
-            const { id } = req.params;
-            const rows = await db("pinjaman").where("anggota_id", id).whereNull("deleted_at");
-            const member = await db("members").select("sequence_number").where("id", id).first();
-            console.log(rows);
-            let num = rows.length + 1;
-            const roman = [
-                ["M", 1000],
-                ["CM", 900],
-                ["D", 500],
-                ["CD", 400],
-                ["C", 100],
-                ["XC", 90],
-                ["L", 50],
-                ["XL", 40],
-                ["X", 10],
-                ["IX", 9],
-                ["V", 5],
-                ["IV", 4],
-                ["I", 1]
-            ];
-
-            // let result = "";
-            // let romanVal = member.sequence_number;
-            // for (const [letter, value] of roman) {
-            //     while (romanVal >= value) {
-            //         result += letter;
-            //         romanVal -= value;
-            //     }
-            // }
-            // const romanLength = result;
-            // const code = `${romanLength}/${num}`;
-            let result = "";
-            // let romanVal = member.sequence_number;
-            for (const [letter, value] of roman) {
-                while (num >= value) {
-                    result += letter;
-                    num -= value;
-                }
-            }
-            const romanLength = result;
-            const code = `${romanLength}/${member.sequence_number}`;
-            res.status(200).json({
-                code, rows, member, num, result
-            });
-        } catch (error) {
-            res.status(500).json({ error: 'An error occurred while retrieving the area.' + error.message });
-        }
-    }
 
 
 
