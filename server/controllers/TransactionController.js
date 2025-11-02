@@ -177,21 +177,22 @@ export default class TransactionController {
         }
 
         try {
-            const { category_id, pos_id, description, transaction_type, nominal, date, user, resource } = req.body;
+            const { category_id, pos_id, description, transaction_type, nominal, date, user, resource, meta, reason, status } = req.body;
 
 
             const code = await Transaction.generateCode({ category_id, transaction_type });
 
             const now = new Date();
             const isUpdate = await Transaction.getTransactionsByInfo({ category: category_id, date: date ?? now, desc: description, type: transaction_type });
+
             if (isUpdate) {
                 await Transaction.update({ amount: isUpdate.amount + nominal }, isUpdate.id);
                 await Transaction.createLog({
                     id_transaksi: isUpdate.id,
                     updated_by: user,
-                    status: "edit",
-                    meta: JSON.stringify(["Nominal"]),
-                    reason: resource == "angsuran" ? "edit angsuran" : (resource == "pinjaman" ? "edit pinjaman" : "edit transaksi")
+                    status: status ?? "edit",
+                    meta: meta,
+                    reason: reason ?? (resource == "angsuran" ? "edit angsuran" : (resource == "pinjaman" ? "edit pinjaman" : "edit transaksi"))
 
                 });
             } else {
@@ -210,7 +211,7 @@ export default class TransactionController {
                     id_transaksi: loanId,
                     updated_by: user,
                     status: "add",
-                    meta: JSON.stringify(["Nominal", "pos", "category", "description", "transaction_type", "amount", "created_by"]),
+                    meta: (resource != "angsuran" && resource != "pinjaman") ? JSON.stringify(["Nominal", "pos", "category", "description", "transaction_type", "amount", "created_by"]) : meta,
                     reason: resource == "angsuran" ? "add angsuran" : (resource == "pinjaman" ? "add pinjaman" : "add transaksi")
 
                 });

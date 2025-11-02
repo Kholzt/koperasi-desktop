@@ -75,7 +75,7 @@ export default class Transaction {
         // if (pos) query.where('transactions.pos_id', pos);
         if (startDate && endDate && startDate !== "null" && endDate !== "null") {
             query.andWhereRaw(
-                `transactions.date BETWEEN  '${startDate}' AND '${endDate}'`
+                `transactions.date BETWEEN  '${startDate} 00:00:00' AND '${endDate} 23:59:59'`
             );
         } else if (startDate && startDate !== "null") {
             query.andWhereRaw(`DATE(transactions.date) = '${startDate}'`);

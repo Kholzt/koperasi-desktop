@@ -3,7 +3,6 @@ import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import * as yup from 'yup';
-import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Label from "../../components/form/Label";
@@ -13,7 +12,6 @@ import { Modal } from "../../components/ui/modal";
 import { useUser } from "../../hooks/useUser";
 import axios from "../../utils/axios";
 import { formatCurrency, toLocalDate } from "../../utils/helpers";
-import Table from "./TransactionTable";
 import { getData } from "./getData";
 
 const LabaRugi: React.FC = () => {

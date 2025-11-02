@@ -1,8 +1,4 @@
-import React, { useRef, useState } from "react";
-import { toast } from 'react-toastify';
-import { Dropdown } from "../../components/ui/dropdown/Dropdown";
-import { DropdownItem } from "../../components/ui/dropdown/DropdownItem";
-import { Modal } from "../../components/ui/modal";
+import React from "react";
 import {
     Table, // Ubah nama komponen yang diimpor
     TableBody,
@@ -10,14 +6,9 @@ import {
     TableHeader,
     TableRow,
 } from "../../components/ui/table";
-import { useTheme } from "../../context/ThemeContext";
-import { useModal } from "../../hooks/useModal";
 import { useUser } from "../../hooks/useUser";
-import { InfoIcon, PencilIcon, TrashBinIcon } from "../../icons";
-import axios from "../../utils/axios";
 import { formatCurrency, formatDate } from "../../utils/helpers";
 import { TransactionProps } from "../../utils/types";
-import Label from "../../components/form/Label";
 
 // import { toast } from 'react-hot-toast';
 interface TransactionTableProps {

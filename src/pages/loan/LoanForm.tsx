@@ -75,6 +75,7 @@ const LoanForm: React.FC = () => {
     const [hasAngsuran, setHasAngsuran] = useState(false);
     const [employes, setEmployes] = useState<EmployeProps[]>([]);
     const [totalPinjamanLama, setTotalPinjamanLama] = useState(0);
+    const [memberNameEdit, setMemberNameEdit] = useState("halo");
     const [configLoan, setConfigLoan] = useState({
         totalBulan: 10,
         modalDo: 30
@@ -92,7 +93,7 @@ const LoanForm: React.FC = () => {
         watch,
         setValue,
         getValues,
-        formState: { errors }
+        formState: { errors, dirtyFields }
     } = useForm<LoanFormInput>({
         resolver: yupResolver(schema),
         defaultValues: {
@@ -107,6 +108,7 @@ const LoanForm: React.FC = () => {
             tanggal_pinjam: new Date().toISOString(),
         }
     });
+
 
     const jumlah_pinjaman = watch("jumlah_pinjaman");
     const persen_bunga = watch("persen_bunga");
@@ -194,6 +196,7 @@ const LoanForm: React.FC = () => {
                 setTotalPinjamanLama(loan.total_pinjaman)
                 reset({ ...loan, penanggung_jawab: JSON.parse(loan.penanggung_jawab), tanggal_pinjam: new Date(loan.tanggal_peminjaman as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
                 setHasAngsuran(loan.hasAngsuran);
+                setMemberNameEdit(loan.anggota_nama)
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
@@ -202,9 +205,9 @@ const LoanForm: React.FC = () => {
         axios.get("/api/configLoan").then(res => {
             setConfigLoan(res.data.config);
         });
-        axios.get("/api/members?limit=20000000").then(res => {
-            setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id })));
-        });
+        // axios.get("/api/members?limit=20000000").then(res => {
+        //     setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id })));
+        // });
         axios.get("/api/employees?limit=20000000").then(res => {
             setEmployes(res.data.employees);
             setUsers(res.data.employees.map((user: UserProps) => ({ text: user.complete_name, value: user.id })));
@@ -221,11 +224,14 @@ const LoanForm: React.FC = () => {
             data.modal_do = unformatCurrency(data.modal_do).toString();
             data.total_bunga = unformatCurrency(data.total_bunga).toString();
             data.petugas_input = user?.id ?? 1;
+            let meta = Object.keys(dirtyFields);
             let res;
             if (!id) {
                 res = await axios.post("/api/loans", data);
+                meta = Object.keys(data);
             } else {
                 res = await axios.put("/api/loans/" + id, data);
+
             }
             const description = employes.find((e) => data.penanggung_jawab.includes(e.id.toString()))?.group_name
 
@@ -238,13 +244,14 @@ const LoanForm: React.FC = () => {
                     nominal: nominal,
                     pos_id: user?.pos_id,
                     user: user?.id ?? null,
-                    resource: "pinjaman"
+                    resource: "pinjaman",
+                    meta: JSON.stringify(meta)
+
                 });
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
                 navigate("/loan?isFromTransaction=true");
             }
         } catch (error: any) {
-            console.error(error);
             if (error.status === 400 && error.response.data.errors) {
                 Object.keys(error.response.data.errors).forEach((key: any) => {
                     setError(key as any, {
@@ -259,6 +266,7 @@ const LoanForm: React.FC = () => {
     };
 
     if (loading && isUpdate) return <Loading />;
+
 
     return (
         <>
@@ -282,6 +290,12 @@ const LoanForm: React.FC = () => {
                                     label=""
                                     placeholder="Pilih anggota"
                                     options={anggota}
+                                    fetchOptions={async (query) => {
+                                        const qr = query != getValues("anggota_id") ? query : memberNameEdit
+                                        const res = await axios.get(`/api/members?search=${qr}`);
+                                        return res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id }))
+
+                                    }}
                                     defaultValue={getValues("anggota_id")}
                                     {...register("anggota_id")}
                                     onChange={(val: any) => setValue("anggota_id", val)}

@@ -11,7 +11,7 @@ export function getData(){
         pos: null,
         transaction_type: [],
         groups: [],
-        date: { startDate: null, endDate: null },
+        date: { startDate: toLocalDate(new Date()), endDate: null },
     });
     const [transactions, setTransactions] = useState<TransactionProps[]>([]);
     const [categories, setCategories] = useState<{ text: string, value: string }[]>([]);

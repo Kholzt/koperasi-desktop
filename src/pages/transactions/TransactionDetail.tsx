@@ -92,20 +92,13 @@ const TransactionDetail: React.FC = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {transaction?.logs?.map((log: any, i: number) => {
+                                console.log(log.meta);
                                 return <tr key={i}>
                                     <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{log.status}</td>
                                     <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{log.reason}</td>
                                     <td className="p-3 font-medium text-gray-700 text-theme-sm dark:text-white">
-                                        {Object.entries(log.meta || {}).map(([key, value]) =>
-                                            value?.old && value?.new ? (
-                                                <span key={key}>
-                                                    {value.old} {"->"} {value.new}
-                                                    <br />
-                                                </span>
-                                            ) : null
-                                        )}
+                                        {log?.meta?.join(",")}
                                     </td>
-
 
                                     <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{log.updated_by}</td>
                                     <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{formatDate(log.updated_at)}</td>

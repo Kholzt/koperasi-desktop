@@ -89,7 +89,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
     }, [idAngsuran, reload]);
 
 
-    const { register, handleSubmit, setValue, getValues, watch, setError, formState: { errors }, reset } = useForm<FormInputs>({
+    const { register, handleSubmit, setValue, getValues, watch, setError, formState: { errors, dirtyFields }, reset } = useForm<FormInputs>({
         resolver: yupResolver(schema),
         defaultValues: {
             asal_pembayaran: undefined
@@ -100,7 +100,9 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
 
     useEffect(() => {
         if (lunasUpdate) {
-            setisLunas((lunasUpdate != "menunggak" && lunasUpdate != "Libur Operasional"))
+            setisLunas((lunasUpdate != "menunggak" && lunasUpdate != "Libur Operasional" && lunasUpdate != 'libur'))
+            setValue("asal_pembayaran", "")
+
         }
     }, [lunasUpdate]);
 
@@ -119,6 +121,9 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
         }
     }, [jumlahBayar, jumlahKatrol]);
     const onSubmit = async (data: FormInputs) => {
+        let meta = Object.keys(data).filter(key => data[key] !== null && data[key] !== '');
+        let reason;
+        let status;
         try {
             if (!data.asal_pembayaran && (data.status != "menunggak" && data.status != "Libur Operasional")) return setError("asal_pembayaran", {
                 type: "required",
@@ -126,9 +131,13 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
             })
             let res;
             if (!idAngsuran) {
+                reason = "add angsuran"
+                status = "add"
                 res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             } else {
+                reason = "edit angsuran"
+                status = "edit"
                 res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
                 toast.success("Angsuran berhasil diubah")
             }
@@ -145,7 +154,10 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                         nominal: jumlahBayar,
                         pos_id: user?.pos_id,
                         user: user?.id ?? null,
-                        resource: "angsuran"
+                        resource: "angsuran",
+                        meta: JSON.stringify(meta),
+                        reason: reason,
+                        status: status
                     });
                 }
                 onClose()
