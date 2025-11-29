@@ -70477,6 +70477,9 @@ class Angsuran {
       besar_tunggakan: totalTunggakan
     });
   }
+  static async softDeleteAngsuran(id) {
+    return db$1("angsuran").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
+  }
 }
 var lib = {};
 var exact = {};
@@ -84348,6 +84351,148 @@ function requireLib() {
   return lib;
 }
 var libExports = requireLib();
+class Loan {
+  static async findAll({ limit, offset: offset2, startDate, endDate, status, day, group, search }) {
+    const query = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").leftJoin("pos", "members.pos_id", "pos.id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
+    if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+      query.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
+      );
+    } else if (startDate && startDate !== "null") {
+      query.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
+      );
+    } else if (endDate && endDate !== "null") {
+      query.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
+      );
+    }
+    if (search && search !== "null") {
+      query.andWhere(function() {
+        this.where("complete_name", "like", `%${search}%`).orWhere("nik", "like", `%${search}%`).orWhere("no_kk", "like", `%${search}%`);
+      });
+    }
+    if (status && status !== "null") {
+      query.andWhere("pinjaman.status", status);
+    }
+    if (day && day !== "all") {
+      query.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
+    }
+    if (group && group !== "all") {
+      query.joinRaw(
+        `JOIN JSON_TABLE(pinjaman.penanggung_jawab, '$[*]'
+              COLUMNS (staff_id INT PATH '$')) pj ON TRUE`
+      ).join("group_details", "pj.staff_id", "group_details.staff_id").where("group_details.group_id", group);
+    }
+    let loans = await query.orderBy("pinjaman.id", "desc").limit(limit).offset(offset2).select(
+      "pinjaman.*",
+      "complete_name",
+      "nik",
+      db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
+      db$1.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`),
+      db$1.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
+    ).groupBy("pinjaman.id");
+    let countQuery = db$1("pinjaman").select("pinjaman.*", "complete_name", "nik   ").join("members", "pinjaman.anggota_id", "members.id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
+    if (startDate && endDate && startDate !== "null" && endDate !== "null") {
+      countQuery.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
+      );
+    } else if (startDate && startDate !== "null") {
+      countQuery.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
+      );
+    } else if (endDate && endDate !== "null") {
+      countQuery.andWhereRaw(
+        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
+      );
+    }
+    if (search && search !== "null") {
+      countQuery.andWhere(function() {
+        this.where("complete_name", "like", `%${search}%`).orWhere("nik", "like", `%${search}%`);
+      });
+    }
+    if (status && status !== "null") {
+      countQuery.andWhere("pinjaman.status", status);
+    }
+    if (day && day !== "all") {
+      countQuery.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
+    }
+    if (group && group !== "all") {
+      countQuery.joinRaw(
+        `JOIN JSON_TABLE(pinjaman.penanggung_jawab, '$[*]'
+              COLUMNS (staff_id INT PATH '$')) pj ON TRUE`
+      ).join("group_details", "pj.staff_id", "group_details.staff_id").where("group_details.group_id", group);
+    }
+    let countResults = await countQuery;
+    const total = countResults.length;
+    return { loans, total };
+  }
+  static async findById(id) {
+    return await db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").join("users as pit", "pinjaman.petugas_input", "pit.id").leftJoin("angsuran", "pinjaman.id", "angsuran.id_pinjaman").leftJoin("penagih_angsuran ", "penagih_angsuran.id_angsuran", "angsuran.id").leftJoin("users", "penagih_angsuran.id_karyawan", "users.id").leftJoin("pos", "members.pos_id", "pos.id").whereNull("pinjaman.deleted_at").whereNull("angsuran.deleted_at").andWhere("pinjaman.id", id).orderBy("angsuran.tanggal_pembayaran", "asc").select(
+      "pinjaman.*",
+      db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
+      "members.complete_name as anggota_nama",
+      // 'pj.complete_name as pj_nama',
+      "pit.complete_name as pit_nama",
+      "angsuran.id as id_angsuran",
+      "angsuran.jumlah_bayar",
+      "angsuran.jumlah_katrol",
+      "angsuran.tanggal_pembayaran",
+      "angsuran.status as status_angsuran",
+      "angsuran.asal_pembayaran",
+      "users.complete_name as penagih_nama",
+      "nama_pos"
+    );
+  }
+  static async findByIdOnlyOne(id) {
+    return await db$1("pinjaman").where("id", id).first();
+  }
+  static async findPenanggungJawab(penanggung_jawab) {
+    return await db$1("users").whereIn("id", JSON.parse(penanggung_jawab));
+  }
+  static async createAngsuran({ idPinjaman, tanggalPembayaran, status }) {
+    return await db$1("angsuran").insert({ jumlah_bayar: 0, id_pinjaman: idPinjaman, asal_pembayaran: null, status, tanggal_pembayaran: tanggalPembayaran });
+  }
+  static async existLoan(anggota_id, kode, excludeId) {
+    const member = await db$1("members").where("id", anggota_id).first();
+    const loan = db$1("pinjaman").where("kode", kode).join("members", "pinjaman.anggota_id", "members.id").where("members.area_id", member.area_id).whereNull("pinjaman.deleted_at");
+    if (excludeId) loan.andWhereNot("pinjaman.id", excludeId);
+    return await loan.first();
+  }
+  static async create(data2) {
+    const [id] = await db$1("pinjaman").insert(data2);
+    return id;
+  }
+  static async update(data2, id) {
+    const result = await db$1("pinjaman").where({ id }).update(data2);
+    return result;
+  }
+  static async softDelete(id) {
+    return db$1("pinjaman").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
+  }
+  static async checkStatusPinjamanAnggota(id) {
+    const [{ total }] = await db$1("pinjaman").where("anggota_id", id).whereNot("status", "lunas").whereNull("pinjaman.deleted_at").count({ total: "*" });
+    return total;
+  }
+  static async checkStatusAngsuran(id) {
+    const [{ total }] = await db$1("angsuran").where("id_pinjaman", id).whereNot("jumlah_bayar", 0).count({ total: "*" });
+    return total;
+  }
+  static async findByTanggal(id, tanggal) {
+    const [{ total }] = await db$1("angsuran").where("id_pinjaman", id).where("tanggal_pembayaran", tanggal).count({ total: "*" });
+    return total > 0;
+  }
+  static async updateSisaPembayaran(idPinjaman) {
+    const pinjaman = await db$1("pinjaman").where("id", idPinjaman).first();
+    const [sumResult] = await db$1("angsuran").where("id_pinjaman", idPinjaman).sum({ total_katrol: "jumlah_katrol" }).sum({ total_bayar: "jumlah_bayar" });
+    const totalAngsuran = (Number(sumResult.total_katrol) || 0) + (Number(sumResult.total_bayar) || 0);
+    const sisaPembayaran = Number(pinjaman.total_pinjaman) - totalAngsuran;
+    console.log(sisaPembayaran, totalAngsuran);
+    return await db$1("pinjaman").where("id", idPinjaman).update({
+      sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran
+    });
+  }
+}
 class AngsuranController {
   static async index(req, res) {
     try {
@@ -84569,6 +84714,36 @@ class AngsuranController {
       await trx.commit();
       res.status(200).json({
         angsuran
+      });
+    } catch (error) {
+      await trx.rollback();
+      res.status(500).json({ error: error.message });
+    }
+  }
+  static async delete(req, res) {
+    const trx = await db$1.transaction();
+    try {
+      const { id } = req.params;
+      const angsuran = await Angsuran.findById(id);
+      if (!angsuran) {
+        return res.status(404).json({ error: "Angsuran tidak ditemukan" });
+      }
+      const loan = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
+      if (!loan) {
+        return res.status(404).json({ error: "Angsuran tidak ditemukan" });
+      }
+      let sisaPembayaran = loan.sisa_pembayaran + angsuran.jumlah_bayar;
+      let statusPinjaman = "aktif";
+      await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+        sisa_pembayaran: sisaPembayaran,
+        //  besar_tunggakan: totalTunggakan,
+        status: statusPinjaman
+      });
+      await Angsuran.softDeleteAngsuran(id);
+      await trx.commit();
+      res.status(200).json({
+        angsuran,
+        loan
       });
     } catch (error) {
       await trx.rollback();
@@ -87138,148 +87313,6 @@ class PosController {
     }
   }
 }
-class Loan {
-  static async findAll({ limit, offset: offset2, startDate, endDate, status, day, group, search }) {
-    const query = db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").leftJoin("pos", "members.pos_id", "pos.id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
-    if (startDate && endDate && startDate !== "null" && endDate !== "null") {
-      query.andWhereRaw(
-        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
-      );
-    } else if (startDate && startDate !== "null") {
-      query.andWhereRaw(
-        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
-      );
-    } else if (endDate && endDate !== "null") {
-      query.andWhereRaw(
-        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
-      );
-    }
-    if (search && search !== "null") {
-      query.andWhere(function() {
-        this.where("complete_name", "like", `%${search}%`).orWhere("nik", "like", `%${search}%`).orWhere("no_kk", "like", `%${search}%`);
-      });
-    }
-    if (status && status !== "null") {
-      query.andWhere("pinjaman.status", status);
-    }
-    if (day && day !== "all") {
-      query.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
-    }
-    if (group && group !== "all") {
-      query.joinRaw(
-        `JOIN JSON_TABLE(pinjaman.penanggung_jawab, '$[*]'
-              COLUMNS (staff_id INT PATH '$')) pj ON TRUE`
-      ).join("group_details", "pj.staff_id", "group_details.staff_id").where("group_details.group_id", group);
-    }
-    let loans = await query.orderBy("pinjaman.id", "desc").limit(limit).offset(offset2).select(
-      "pinjaman.*",
-      "complete_name",
-      "nik",
-      db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
-      db$1.raw(`JSON_OBJECT('complete_name', members.complete_name, 'nik', members.nik) as anggota`),
-      db$1.raw(`JSON_OBJECT('nama_pos', pos.nama_pos) as pos`)
-    ).groupBy("pinjaman.id");
-    let countQuery = db$1("pinjaman").select("pinjaman.*", "complete_name", "nik   ").join("members", "pinjaman.anggota_id", "members.id").groupBy("pinjaman.id").whereNull("pinjaman.deleted_at");
-    if (startDate && endDate && startDate !== "null" && endDate !== "null") {
-      countQuery.andWhereRaw(
-        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) BETWEEN  '${startDate}' AND '${endDate}'`
-      );
-    } else if (startDate && startDate !== "null") {
-      countQuery.andWhereRaw(
-        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) >= '${startDate}'`
-      );
-    } else if (endDate && endDate !== "null") {
-      countQuery.andWhereRaw(
-        `DATE_SUB(pinjaman.tanggal_angsuran_pertama, INTERVAL 7 DAY) <= ${endDate}`
-      );
-    }
-    if (search && search !== "null") {
-      countQuery.andWhere(function() {
-        this.where("complete_name", "like", `%${search}%`).orWhere("nik", "like", `%${search}%`);
-      });
-    }
-    if (status && status !== "null") {
-      countQuery.andWhere("pinjaman.status", status);
-    }
-    if (day && day !== "all") {
-      countQuery.andWhereRaw('DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"');
-    }
-    if (group && group !== "all") {
-      countQuery.joinRaw(
-        `JOIN JSON_TABLE(pinjaman.penanggung_jawab, '$[*]'
-              COLUMNS (staff_id INT PATH '$')) pj ON TRUE`
-      ).join("group_details", "pj.staff_id", "group_details.staff_id").where("group_details.group_id", group);
-    }
-    let countResults = await countQuery;
-    const total = countResults.length;
-    return { loans, total };
-  }
-  static async findById(id) {
-    return await db$1("pinjaman").join("members", "pinjaman.anggota_id", "members.id").join("users as pit", "pinjaman.petugas_input", "pit.id").leftJoin("angsuran", "pinjaman.id", "angsuran.id_pinjaman").leftJoin("penagih_angsuran ", "penagih_angsuran.id_angsuran", "angsuran.id").leftJoin("users", "penagih_angsuran.id_karyawan", "users.id").leftJoin("pos", "members.pos_id", "pos.id").whereNull("pinjaman.deleted_at").andWhere("pinjaman.id", id).orderBy("angsuran.tanggal_pembayaran", "asc").select(
-      "pinjaman.*",
-      db$1.raw("DATE_SUB(tanggal_angsuran_pertama, INTERVAL 7 DAY) AS tanggal_peminjaman"),
-      "members.complete_name as anggota_nama",
-      // 'pj.complete_name as pj_nama',
-      "pit.complete_name as pit_nama",
-      "angsuran.id as id_angsuran",
-      "angsuran.jumlah_bayar",
-      "angsuran.jumlah_katrol",
-      "angsuran.tanggal_pembayaran",
-      "angsuran.status as status_angsuran",
-      "angsuran.asal_pembayaran",
-      "users.complete_name as penagih_nama",
-      "nama_pos"
-    );
-  }
-  static async findByIdOnlyOne(id) {
-    return await db$1("pinjaman").where("id", id).first();
-  }
-  static async findPenanggungJawab(penanggung_jawab) {
-    return await db$1("users").whereIn("id", JSON.parse(penanggung_jawab));
-  }
-  static async createAngsuran({ idPinjaman, tanggalPembayaran, status }) {
-    return await db$1("angsuran").insert({ jumlah_bayar: 0, id_pinjaman: idPinjaman, asal_pembayaran: null, status, tanggal_pembayaran: tanggalPembayaran });
-  }
-  static async existLoan(anggota_id, kode, excludeId) {
-    const member = await db$1("members").where("id", anggota_id).first();
-    const loan = db$1("pinjaman").where("kode", kode).join("members", "pinjaman.anggota_id", "members.id").where("members.area_id", member.area_id).whereNull("pinjaman.deleted_at");
-    if (excludeId) loan.andWhereNot("pinjaman.id", excludeId);
-    return await loan.first();
-  }
-  static async create(data2) {
-    const [id] = await db$1("pinjaman").insert(data2);
-    return id;
-  }
-  static async update(data2, id) {
-    const result = await db$1("pinjaman").where({ id }).update(data2);
-    return result;
-  }
-  static async softDelete(id) {
-    return db$1("pinjaman").where({ id }).update({ deleted_at: /* @__PURE__ */ new Date() });
-  }
-  static async checkStatusPinjamanAnggota(id) {
-    const [{ total }] = await db$1("pinjaman").where("anggota_id", id).whereNot("status", "lunas").whereNull("pinjaman.deleted_at").count({ total: "*" });
-    return total;
-  }
-  static async checkStatusAngsuran(id) {
-    const [{ total }] = await db$1("angsuran").where("id_pinjaman", id).whereNot("jumlah_bayar", 0).count({ total: "*" });
-    return total;
-  }
-  static async findByTanggal(id, tanggal) {
-    const [{ total }] = await db$1("angsuran").where("id_pinjaman", id).where("tanggal_pembayaran", tanggal).count({ total: "*" });
-    return total > 0;
-  }
-  static async updateSisaPembayaran(idPinjaman) {
-    const pinjaman = await db$1("pinjaman").where("id", idPinjaman).first();
-    const [sumResult] = await db$1("angsuran").where("id_pinjaman", idPinjaman).sum({ total_katrol: "jumlah_katrol" }).sum({ total_bayar: "jumlah_bayar" });
-    const totalAngsuran = (Number(sumResult.total_katrol) || 0) + (Number(sumResult.total_bayar) || 0);
-    const sisaPembayaran = Number(pinjaman.total_pinjaman) - totalAngsuran;
-    console.log(sisaPembayaran, totalAngsuran);
-    return await db$1("pinjaman").where("id", idPinjaman).update({
-      sisa_pembayaran: sisaPembayaran <= 0 ? 0 : sisaPembayaran
-    });
-  }
-}
 class LoanController {
   // Menampilkan daftar area dengan pagination
   static async index(req, res) {
@@ -88121,7 +88154,12 @@ class ScheduleController {
 class UserController {
   static async index(req, res) {
     try {
-      const { page = 1, limit = 10, search = "", status = "aktif" } = req.query;
+      const {
+        page = 1,
+        limit = 10,
+        search = "",
+        status = "aktif"
+      } = req.query;
       const pagination = await User.findAll({
         page: parseInt(page),
         limit: parseInt(limit),
@@ -88133,7 +88171,9 @@ class UserController {
         if (!map2.has(row.id)) {
           map2.set(row.id, {
             ...row,
-            pos: { nama_pos: row.nama_pos }
+            pos: {
+              nama_pos: row.nama_pos
+            }
           });
         }
       }
@@ -88147,21 +88187,33 @@ class UserController {
         }
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({
+        error: error.message
+      });
     }
   }
   static async show(req, res) {
     try {
-      const { id } = req.params;
+      const {
+        id
+      } = req.params;
       const rows = await User.findById(id);
-      if (!rows) return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      if (!rows) return res.status(404).json({
+        error: "Pengguna tidak ditemukan"
+      });
       const user = {
         ...rows,
-        pos: { nama_pos: rows.nama_pos }
+        pos: {
+          nama_pos: rows.nama_pos
+        }
       };
-      res.status(200).json({ user });
+      res.status(200).json({
+        user
+      });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred while retrieving the user." });
+      res.status(500).json({
+        error: "An error occurred while retrieving the user."
+      });
     }
   }
   static async store(req, res) {
@@ -88170,16 +88222,36 @@ class UserController {
     await libExports.body("role").notEmpty().withMessage("Role wajib diisi").run(req);
     await libExports.body("pos_id").notEmpty().run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif atau nonAktif").run(req);
-    await libExports.body("password").isLength({ min: 6 }).withMessage("Password harus 6 karakter atau lebih").run(req);
+    await libExports.body("password").isLength({
+      min: 6
+    }).withMessage("Password harus 6 karakter atau lebih").run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
-      const formatted = errors.array().reduce((acc, e) => ({ ...acc, [e.path]: e.msg }), {});
-      return res.status(400).json({ errors: formatted });
+      const formatted = errors.array().reduce((acc, e) => ({
+        ...acc,
+        [e.path]: e.msg
+      }), {});
+      return res.status(400).json({
+        errors: formatted
+      });
     }
     try {
-      const { username, complete_name, role, access_apps, position: position2, status, password, pos_id } = req.body;
+      const {
+        username,
+        complete_name,
+        role,
+        access_apps,
+        position: position2,
+        status,
+        password,
+        pos_id
+      } = req.body;
       const existingUser = await User.findByUsernameOnly(username);
-      if (existingUser) return res.status(400).json({ errors: { username: "Username sudah terdaftar" } });
+      if (existingUser) return res.status(400).json({
+        errors: {
+          username: "Username sudah terdaftar"
+        }
+      });
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await User.create({
         username,
@@ -88191,9 +88263,14 @@ class UserController {
         password: hashedPassword,
         pos_id
       });
-      res.status(200).json({ message: "Pengguna berhasil dibuat", user });
+      res.status(200).json({
+        message: "Pengguna berhasil dibuat",
+        user
+      });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred while creating the user." });
+      res.status(500).json({
+        error: "An error occurred while creating the user."
+      });
     }
   }
   static async update(req, res) {
@@ -88201,38 +88278,77 @@ class UserController {
     await libExports.body("complete_name").notEmpty().withMessage("Nama lengkap wajib diisi").run(req);
     await libExports.body("role").notEmpty().withMessage("Role wajib diisi").run(req);
     await libExports.body("pos_id").notEmpty().run(req);
+    await libExports.body("password").optional({
+      checkFalsy: true
+    }).isLength({
+      min: 6
+    }).withMessage("Password minimal 6 karakter").run(req);
     await libExports.body("status").isIn(["aktif", "nonAktif"]).withMessage("Status harus aktif atau nonAktif").run(req);
     const errors = libExports.validationResult(req);
     if (!errors.isEmpty()) {
-      const formatted = errors.array().reduce((acc, e) => ({ ...acc, [e.path]: e.msg }), {});
-      return res.status(400).json({ errors: formatted });
+      const formatted = errors.array().reduce((acc, e) => ({
+        ...acc,
+        [e.path]: e.msg
+      }), {});
+      return res.status(400).json({
+        errors: formatted
+      });
     }
     try {
-      const { id } = req.params;
-      const { username, complete_name, role, access_apps, position: position2, status, pos_id } = req.body;
-      const user = await User.findById(id);
-      if (!user) return res.status(404).json({ error: "Pengguna tidak ditemukan" });
-      const existingUser = await User.existsByUsernameExcludingId(username, id);
-      if (existingUser) return res.status(400).json({ errors: { username: "Username sudah terdaftar" } });
-      await User.update(id, {
+      const {
+        id
+      } = req.params;
+      const {
         username,
         complete_name,
         role,
-        access_apps: "access",
+        access_apps,
         position: position2,
         status,
+        password,
         pos_id
+      } = req.body;
+      const user = await User.findById(id);
+      if (!user) return res.status(404).json({
+        error: "Pengguna tidak ditemukan"
       });
-      res.status(200).json({ message: "User updated successfully" });
+      const existingUser = await User.existsByUsernameExcludingId(username, id);
+      if (existingUser) return res.status(400).json({
+        errors: {
+          username: "Username sudah terdaftar"
+        }
+      });
+      const payload = {
+        username,
+        complete_name,
+        role,
+        position: position2,
+        status,
+        pos_id,
+        access_apps: "access"
+      };
+      if (password && password.trim() !== "") {
+        payload.password = await bcrypt.hash(password, 10);
+      }
+      await User.update(id, payload);
+      res.status(200).json({
+        message: "User updated successfully"
+      });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred while updating the user." });
+      res.status(500).json({
+        error: "An error occurred while updating the user."
+      });
     }
   }
   static async delete(req, res) {
     try {
-      const { id } = req.params;
+      const {
+        id
+      } = req.params;
       const user = await User.findById(id);
-      if (!user) return res.status(404).json({ error: "Pengguna tidak ditemukan" });
+      if (!user) return res.status(404).json({
+        error: "Pengguna tidak ditemukan"
+      });
       const isUsed = await User.checkContraint(id);
       if (isUsed) {
         return res.status(409).json({
@@ -88240,24 +88356,27 @@ class UserController {
         });
       }
       await User.softDelete(id);
-      res.status(200).json({ user });
+      res.status(200).json({
+        user
+      });
     } catch (error) {
-      res.status(500).json({ error: "An error occurred while deleting the user." });
+      res.status(500).json({
+        error: "An error occurred while deleting the user."
+      });
     }
   }
 }
 dotenv.config();
 const app = express();
-const port = 5e3;
+const port = "5000";
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
-  const secret = req.headers["x-app-secret"];
-  if ("123412321123" == secret) {
+  req.headers["x-app-secret"];
+  {
     return next();
   }
-  return res.status(403).send("Forbidden");
 });
 app.post("/api/login", AuthController.login);
 app.get("/api/user", AuthController.getUser);
@@ -88316,6 +88435,7 @@ app.delete("/api/loans/:id", LoanController.delete);
 app.get("/api/angsuran/:id", AngsuranController.index);
 app.post("/api/angsuran/:idPinjaman", AngsuranController.store);
 app.put("/api/angsuran/:id", AngsuranController.update);
+app.put("/api/delete-angsuran/:id", AngsuranController.delete);
 app.get("/api/angsuran/aktif/:id", AngsuranController.lastAngsuran);
 app.get("/api/configLoan", (req, res) => {
   const totalBulan = process.env.VITE_APP_BULAN || 10;

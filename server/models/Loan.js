@@ -132,6 +132,7 @@ export default class Loan {
             .leftJoin('users', 'penagih_angsuran.id_karyawan', 'users.id')
             .leftJoin("pos", "members.pos_id", "pos.id")
             .whereNull('pinjaman.deleted_at')
+            .whereNull('angsuran.deleted_at')
             .andWhere('pinjaman.id', id)
             .orderBy('angsuran.tanggal_pembayaran', "asc")
             .select(
@@ -186,6 +187,7 @@ export default class Loan {
     static async softDelete(id) {
         return db('pinjaman').where({ id }).update({ deleted_at: new Date() });
     }
+
 
     static async checkStatusPinjamanAnggota(id) {
         const [{ total }] = await db("pinjaman").where("anggota_id", id).whereNot("status", "lunas").whereNull('pinjaman.deleted_at').count({ total: '*' })
