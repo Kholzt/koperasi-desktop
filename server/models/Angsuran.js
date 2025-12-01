@@ -101,4 +101,9 @@ export default class Angsuran {
         });
     }
 
+
+    static async softDeleteAngsuran(id) {
+        return db('angsuran').where({ id }).update({ deleted_at: new Date() });
+    }
+
 }

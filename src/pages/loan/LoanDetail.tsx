@@ -7,23 +7,58 @@ import PageMeta from "../../components/common/PageMeta";
 import axios from "../../utils/axios";
 import { AngsuranProps, LoanProps } from "../../utils/types";
 import { formatCurrency, formatDate, formatLongDate } from "../../utils/helpers";
-import { ChevronLeftIcon, PencilIcon } from "../../icons";
+import { ChevronLeftIcon, PencilIcon, TrashBinIcon } from "../../icons";
 import Button from "../../components/ui/button/Button";
 import { Modal } from "../../components/ui/modal";
 import AngsuranModal from './AngsuranModal';
 import { useUser } from "../../hooks/useUser";
 import Badge from "../../components/ui/badge/Badge";
+import { useModal } from "../../hooks/useModal";
+import { toast } from "react-toastify";
+import { useTheme } from "../../context/ThemeContext";
 const LoanDetail: React.FC = () => {
     const { id } = useParams();
     const [loan, setLoan] = useState<LoanProps | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const [tanggal, setTanggal] = useState('');
+    const [jumlahBayar, setJumlahBayar] = useState('');
+
+
+    const closeModal = () => setIsOpen(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+
+    const openModal = (id: number) => {
+        setSelectedId(id);
+        setIsOpen(true);
+    };
+    const { setReload, reload } = useTheme();
     const { user } = useUser();
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
             setLoan(res.data.loan)
 
         });
-    }, [showModal]);
+    }, [showModal, reload]);
+
+    const deleteAction = async () => {
+        try {
+            await axios.put("/api/delete-angsuran/" + selectedId);
+            
+            
+            toast.success("Angsuran berhasil dihapus")
+            setReload(!reload);
+            closeModal();
+        } catch (error: any) {
+            if (error.status == 409) {
+                toast.error("Angsuran gagal dihapus, Data pengguna digunakan di bagian lain sistem");
+                setReload(!reload);
+                closeModal();
+                // if (error.response.data.errors) {
+                // }
+            }
+        }
+    }
 
     return (
         <>
@@ -117,7 +152,7 @@ const LoanDetail: React.FC = () => {
                         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                             {(loan?.angsuran?.length ?? 0) > 0 ? (
                                 loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => {
-                                    const canEdit = (angsuran.status != "menunggak" && angsuran.status != "Libur Operasional" && angsuran.status != "libur" && angsuran.status != "aktif") && user?.role != "staff";
+                                    const canEdit = (angsuran.status != "menunggak" && angsuran.status != "Libur Operasional" && angsuran.status != "libur" && angsuran.status != "aktif") && user?.role != "staff";
 
                                     return <tr key={index} className={getRowClass(angsuran)}>
 
@@ -130,8 +165,21 @@ const LoanDetail: React.FC = () => {
                                         <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">
                                             {angsuran.tanggal_pembayaran ? formatLongDate(angsuran.tanggal_pembayaran) : "-"}
                                         </td>
-                                        <td className=" text-gray-700   text-theme-sm dark:text-white p-3  capitalize">
-                                            {canEdit && <Link to={`/loan/${loan.id}/angsuran/${angsuran.id}`}><PencilIcon fontSize={20} /></Link>}
+                                        <td className=" text-gray-700 text-theme-sm dark:text-white p-3  capitalize">
+                                            <div className="flex items-center gap-2">
+                                                {canEdit && <Link to={`/loan/${loan.id}/angsuran/${angsuran.id}`}><PencilIcon fontSize={20} /></Link>}
+                                                {canEdit && <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        openModal(angsuran?.id);
+                                                        setJumlahBayar(formatCurrency(angsuran.jumlah_bayar));
+                                                        setTanggal(formatLongDate(angsuran.tanggal_pembayaran));
+                                                    }}
+                                                    className="inline-flex"
+                                                >
+                                                    <TrashBinIcon fontSize={20} />
+                                                </button>}
+                                            </div>
                                         </td>
                                     </tr>
                                 })
@@ -152,6 +200,41 @@ const LoanDetail: React.FC = () => {
                     onClose={() => setShowModal(false)} className="max-w-[800px] p-6 lg:p-10">
                     <AngsuranModal onClose={() => setShowModal(false)} />
                 </Modal>
+                <Modal
+                    isOpen={isOpen}
+                    onClose={closeModal}
+                    className="max-w-[600px] p-6 lg:p-10"
+                >
+                    <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar normal-case">
+                        <div>
+                            <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
+                                Pemberitahuan
+                            </h5>
+                            <p className="text-base text-gray-800 dark:text-gray-400 ">
+                                Apakah Anda yakin untuk menghapus Angsuran dengan tanggal {tanggal} dan jumlah bayar  {jumlahBayar}?
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Data yang dihapus dapat dikembalikan nanti
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
+                            <button
+                                onClick={closeModal}
+                                type="button"
+                                className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
+                            >
+                                Tutup
+                            </button>
+                            <button
+                                onClick={deleteAction}
+                                type="button"
+                                className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-600 sm:w-auto"
+                            >
+                                Hapus</button>
+                        </div>
+                    </div>
+                </Modal>
             </div>
         </>
     );
@@ -165,7 +248,7 @@ function getRowClass(angsuran) {
         return "bg-blue-500 text-white";
     } else if (angsuran.status === "menunggak" || (angsuran.asal_pembayaran === "katrol" && angsuran.status === "kurang")) {
         return "bg-red-500";
-    } else if (angsuran.status === "libur" || angsuran.status == "Libur Operasional" || angsuran.status == "Libur Operasional") {
+    } else if (angsuran.status === "libur" || angsuran.status == "Libur Operasional" || angsuran.status == "Libur Operasional") {
         return "bg-yellow-500";
     } else {
         return "";

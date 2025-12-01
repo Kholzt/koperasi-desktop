@@ -17,39 +17,40 @@ import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import Loading from "../../components/ui/Loading"
+import { log } from "node:console";
 
 interface UserFormInput {
     complete_name: string;
     username: string;
-    password: string;
+    password?: string;
     pos_id: string;
     role: 'staff' | 'controller' | 'pusat' | 'super admin';
     status: 'aktif' | 'nonAktif';
 }
 
 
-const schema: yup.SchemaOf<UserFormInput> = yup.object({
-    complete_name: yup.string().required('Nama Lengkap wajib diisi'),
-    username: yup.string().required('Username wajib diisi'),
-    pos_id: yup.string().required('Pos wajib dipilih'),
-    password: yup.string()
-        .min(6, 'Password minimal 6 karakter')
-        .nullable(),
-    role: yup.mixed<'staff' | 'controller' | 'pusat' | 'super admin'>()
-        .oneOf(['staff', 'controller', 'pusat', 'super admin'], 'Role tidak valid')
-        .required('Role wajib dipilih'),
-    status: yup.mixed<'aktif' | 'nonAktif'>()
-        .oneOf(['aktif', 'nonAktif'], 'Status tidak valid')
-        .required('Status wajib dipilih'),
-});
 
 const UserForm: React.FC = () => {
     const [alert, setAlert] = useState("");
     const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
-
     const isUpdate = !!id;
+
+    const schema: yup.SchemaOf<UserFormInput> = yup.object({
+        complete_name: yup.string().required('Nama Lengkap wajib diisi'),
+        username: yup.string().required('Username wajib diisi'),
+        pos_id: yup.string().required('Pos wajib dipilih'),
+        password: isUpdate ? yup.string().notRequired() : yup.string()
+            .min(6, 'Password minimal 6 karakter')
+            .nullable(),
+        role: yup.mixed<'staff' | 'controller' | 'pusat' | 'super admin'>()
+            .oneOf(['staff', 'controller', 'pusat', 'super admin'], 'Role tidak valid')
+            .required('Role wajib dipilih'),
+        status: yup.mixed<'aktif' | 'nonAktif'>()
+            .oneOf(['aktif', 'nonAktif'], 'Status tidak valid')
+            .required('Status wajib dipilih'),
+    });
     const {
         register,
         handleSubmit,
@@ -64,7 +65,10 @@ const UserForm: React.FC = () => {
         if (id) {
             setLoading(true);
             axios.get("/api/users/" + id).then(res => {
-                reset(res.data.user)
+                let payload = {...res.data.user};
+                delete payload.password;
+                reset(payload)
+
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
@@ -76,6 +80,10 @@ const UserForm: React.FC = () => {
     }, []);
     const onSubmit = async (data: UserFormInput) => {
         try {
+            if (isUpdate && data.password === "") {
+                delete data.password; // Jangan kirim password kosong
+            }
+            
             let res;
             if (!id) {
                 res = await axios.post("/api/users", data);
@@ -160,7 +168,7 @@ const UserForm: React.FC = () => {
                                     <p className="mt-1 text-sm text-red-500">{errors.username.message}</p>
                                 )}
                             </div>
-                            {!isUpdate && <div>
+                            <div>
                                 <Label>
                                     Password <span className="text-error-500">*</span>
                                 </Label>
@@ -168,13 +176,13 @@ const UserForm: React.FC = () => {
 
                                     type="password"
 
-                                    placeholder="Masukkan password"
+                                    placeholder={isUpdate ? "Kosongkan jika tidak ingin mengubah password" : "Masukkan password"}
                                     {...register("password")}
                                 />
                                 {errors.password && (
                                     <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
                                 )}
-                            </div>}
+                            </div>
                             <div>
                                 <Label>
                                     Role <span className="text-error-500">*</span>
