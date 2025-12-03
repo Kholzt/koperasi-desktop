@@ -153,6 +153,7 @@ const LoanDetail: React.FC = () => {
                             {(loan?.angsuran?.length ?? 0) > 0 ? (
                                 loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => {
                                     const canEdit = (angsuran.status != "menunggak" && angsuran.status != "Libur Operasional" && angsuran.status != "libur" && angsuran.status != "aktif") && user?.role != "staff";
+                                    const canDelete =  angsuran.status != "aktif" && user?.role != "staff";
 
                                     return <tr key={index} className={getRowClass(angsuran)}>
 
@@ -168,7 +169,7 @@ const LoanDetail: React.FC = () => {
                                         <td className=" text-gray-700 text-theme-sm dark:text-white p-3  capitalize">
                                             <div className="flex items-center gap-2">
                                                 {canEdit && <Link to={`/loan/${loan.id}/angsuran/${angsuran.id}`}><PencilIcon fontSize={20} /></Link>}
-                                                {canEdit && <button
+                                                {canDelete && <button
                                                     type="button"
                                                     onClick={() => {
                                                         openModal(angsuran?.id);

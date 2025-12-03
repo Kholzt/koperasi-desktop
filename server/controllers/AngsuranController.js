@@ -1,31 +1,44 @@
 import db from "../config/db";
-import { isHoliday } from "../config/holidays";
+import {
+    isHoliday
+} from "../config/holidays";
 import Angsuran from "../models/Angsuran";
-import { body, validationResult } from 'express-validator';
+import {
+    body,
+    validationResult
+} from 'express-validator';
 import Loan from "../models/Loan";
 
 export default class AngsuranController {
     static async index(req, res) {
         try {
-            const { id } = req.params
+            const {
+                id
+            } = req.params
             const angsuran = await Angsuran.findByIdAngsuran(id);
             res.status(200).json({
                 angsuran,
             });
 
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 
     static async store(req, res) {
-        await body('penagih').isArray({ min: 1 }).run(req);
+        await body('penagih').isArray({
+            min: 1
+        }).run(req);
         // await body('jumlah_bayar').min({ min: 1 }).run(req);
         await body('status')
             .notEmpty()
             .run(req);
         await body('asal_pembayaran')
-            .custom((value, { req }) => {
+            .custom((value, {
+                req
+            }) => {
                 if (req.body.status === 'lunas' && (value != 'anggota' && value != 'penagih' && value != 'katrol')) {
                     throw new Error('Jika status lunas, asal pembayaran harus anggota atau penagih');
                 }
@@ -40,7 +53,9 @@ export default class AngsuranController {
                 acc[e.path] = e.msg;
                 return acc;
             }, {});
-            return res.status(400).json({ errors: formattedErrors });
+            return res.status(400).json({
+                errors: formattedErrors
+            });
         }
         const trx = await db.transaction();
         try {
@@ -50,11 +65,22 @@ export default class AngsuranController {
                 const day = String(date.getDate()).padStart(2, '0');
                 return `${year}-${month}-${day}`;
             };
-            const { idPinjaman } = req.params
-            const { status, penagih, asal_pembayaran, jumlah_bayar, tanggal_bayar, jumlah_katrol } = req.body
+            const {
+                idPinjaman
+            } = req.params
+            const {
+                status,
+                penagih,
+                asal_pembayaran,
+                jumlah_bayar,
+                tanggal_bayar,
+                jumlah_katrol
+            } = req.body
             const angsuran = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman);
             if (!angsuran) {
-                res.status(404).json({ error: "Angsuran tidak ditemukan" });
+                res.status(404).json({
+                    error: "Angsuran tidak ditemukan"
+                });
             }
 
 
@@ -103,7 +129,9 @@ export default class AngsuranController {
                 sisaPembayaran = sisaPembayaran - parseInt(sisaPembayaran >= jumlah_katrol ? jumlah_katrol : sisaPembayaran)
                 totalTunggakan = parseInt(pinjaman.besar_tunggakan) + parseInt(pinjaman.jumlah_angsuran)
                 if (!tanggal_bayar) {
-                    await Angsuran.updateAngsuran(angsuran.id, { status: status });
+                    await Angsuran.updateAngsuran(angsuran.id, {
+                        status: status
+                    });
                 } else {
                     angsuran_id = await Angsuran.createAngsuran({
                         idPinjaman,
@@ -116,7 +144,11 @@ export default class AngsuranController {
                 }
 
                 if (status == "menunggak")
-                    await Angsuran.updatePinjaman(angsuran.id_pinjaman, { sisa_pembayaran: sisaPembayaran, besar_tunggakan: totalTunggakan, status: statusPinjaman });
+                    await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+                        sisa_pembayaran: sisaPembayaran,
+                        besar_tunggakan: totalTunggakan,
+                        status: statusPinjaman
+                    });
 
 
                 const tanggalPembayaran = new Date(lastAngsuran.tanggal_pembayaran);
@@ -169,7 +201,10 @@ export default class AngsuranController {
             }
             await Angsuran.updateTunggakan(idPinjaman);
             for (const p of penagih) {
-                await Angsuran.createPenagihAngsuran({ id_karyawan: p, id_angsuran: angsuran_id });
+                await Angsuran.createPenagihAngsuran({
+                    id_karyawan: p,
+                    id_angsuran: angsuran_id
+                });
             }
             await trx.commit();
             res.status(200).json({
@@ -177,20 +212,26 @@ export default class AngsuranController {
             });
         } catch (error) {
             await trx.rollback();
-            res.status(500).json({ error: error.message });
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 
 
 
     static async update(req, res) {
-        await body('penagih').isArray({ min: 1 }).run(req);
+        await body('penagih').isArray({
+            min: 1
+        }).run(req);
         await body('status')
             .notEmpty()
             .run(req);
 
         await body('asal_pembayaran')
-            .custom((value, { req }) => {
+            .custom((value, {
+                req
+            }) => {
                 if (req.body.status === 'lunas' && (value != 'anggota' && value != 'penagih' && value != 'katrol')) {
                     throw new Error('Jika status lunas, asal pembayaran harus anggota');
                 }
@@ -205,17 +246,28 @@ export default class AngsuranController {
                 acc[e.path] = e.msg;
                 return acc;
             }, {});
-            return res.status(400).json({ errors: formattedErrors });
+            return res.status(400).json({
+                errors: formattedErrors
+            });
         }
         const trx = await db.transaction();
         try {
 
 
-            const { id } = req.params
-            const { penagih, asal_pembayaran, jumlah_bayar, jumlah_katrol } = req.body
+            const {
+                id
+            } = req.params
+            const {
+                penagih,
+                asal_pembayaran,
+                jumlah_bayar,
+                jumlah_katrol
+            } = req.body
             const angsuran = await Angsuran.findById(id);
             if (!angsuran) {
-                res.status(404).json({ error: "Angsuran tidak ditemukan" });
+                res.status(404).json({
+                    error: "Angsuran tidak ditemukan"
+                });
             }
 
 
@@ -228,7 +280,10 @@ export default class AngsuranController {
             });
             await Angsuran.deletePenagihAngsuranByIdAngsuran(id)
             for (const p of penagih) {
-                await Angsuran.createPenagihAngsuran({ id_karyawan: p, id_angsuran: id });
+                await Angsuran.createPenagihAngsuran({
+                    id_karyawan: p,
+                    id_angsuran: id
+                });
             }
             await Angsuran.updateSisaPembayaran(angsuran.id_pinjaman);
             await Angsuran.updateTunggakan(angsuran.id_pinjaman);
@@ -270,32 +325,40 @@ export default class AngsuranController {
             });
         } catch (error) {
             await trx.rollback();
-            res.status(500).json({ error: error.message });
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 
-    static async delete(req, res){
+    static async delete(req, res) {
         const trx = await db.transaction();
         try {
-            const { id } = req.params
+            const {
+                id
+            } = req.params
             const angsuran = await Angsuran.findById(id);
             if (!angsuran) {
-                return res.status(404).json({ error: 'Angsuran tidak ditemukan' });
+                return res.status(404).json({
+                    error: 'Angsuran tidak ditemukan'
+                });
             }
             const loan = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
             if (!loan) {
-                return res.status(404).json({ error: 'Angsuran tidak ditemukan' });
-            }
-            let sisaPembayaran = loan.sisa_pembayaran + angsuran.jumlah_bayar;
-            
-            let statusPinjaman = "aktif";
-           
-            await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
-                    sisa_pembayaran: sisaPembayaran,
-                    //  besar_tunggakan: totalTunggakan,
-                    status: statusPinjaman
+                return res.status(404).json({
+                    error: 'Angsuran tidak ditemukan'
                 });
-            
+            }
+            let sisaPembayaran = loan.sisa_pembayaran + (angsuran.jumlah_katrol ?? 0) + angsuran.jumlah_bayar;
+
+            let statusPinjaman = "aktif";
+
+            await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+                sisa_pembayaran: sisaPembayaran,
+                //  besar_tunggakan: totalTunggakan,
+                status: statusPinjaman
+            });
+
             await Angsuran.softDeleteAngsuran(id);
             await trx.commit();
             res.status(200).json({
@@ -303,21 +366,27 @@ export default class AngsuranController {
                 loan,
             });
         } catch (error) {
-             await trx.rollback();
-            res.status(500).json({ error: error.message });
+            await trx.rollback();
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 
     static async lastAngsuran(req, res) {
         try {
-            const { id } = req.params;
+            const {
+                id
+            } = req.params;
             const angsuran = await Angsuran.getAngsuranAktifByIdPeminjaman(id);
             res.json({
                 angsuran
             })
 
         } catch (error) {
-            res.json({ error })
+            res.json({
+                error
+            })
         }
     }
 }
