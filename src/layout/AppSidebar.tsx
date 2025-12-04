@@ -57,7 +57,7 @@ const masterDataItems: NavItem[] = [
         icon: <GroupIcon />,
         name: "Karyawan",
         path: "/employe",
-        access: ["pusat", "super admin"]
+        access: ["pusat", "super admin", "controller"]
 
     },
     {

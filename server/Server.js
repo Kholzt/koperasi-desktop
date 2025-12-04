@@ -117,6 +117,7 @@ app.delete('/api/loans/:id', LoanController.delete);
 app.get('/api/angsuran/:id', AngsuranController.index);
 app.post('/api/angsuran/:idPinjaman', AngsuranController.store);
 app.put('/api/angsuran/:id', AngsuranController.update);
+app.put('/api/delete-angsuran/:id', AngsuranController.delete);
 app.get('/api/angsuran/aktif/:id', AngsuranController.lastAngsuran);
 
 app.get('/api/transactions', TransactionController.index);

@@ -2,6 +2,7 @@ import db from "../config/db";
 import { isHoliday } from "../config/holidays";
 import Angsuran from "../models/Angsuran";
 import { body, validationResult } from 'express-validator';
+import Loan from "../models/Loan";
 
 export default class AngsuranController {
     static async index(req, res) {
@@ -268,6 +269,40 @@ export default class AngsuranController {
             });
         } catch (error) {
             await trx.rollback();
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    static async delete(req, res){
+        const trx = await db.transaction();
+        try {
+            const { id } = req.params
+            const angsuran = await Angsuran.findById(id);
+            if (!angsuran) {
+                return res.status(404).json({ error: 'Angsuran tidak ditemukan' });
+            }
+            const loan = await Angsuran.findByIdPinjamanOnlyOne(angsuran.id_pinjaman);
+            if (!loan) {
+                return res.status(404).json({ error: 'Angsuran tidak ditemukan' });
+            }
+            let sisaPembayaran = loan.sisa_pembayaran + angsuran.jumlah_bayar;
+            
+            let statusPinjaman = "aktif";
+           
+            await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+                    sisa_pembayaran: sisaPembayaran,
+                    //  besar_tunggakan: totalTunggakan,
+                    status: statusPinjaman
+                });
+            
+            await Angsuran.softDeleteAngsuran(id);
+            await trx.commit();
+            res.status(200).json({
+                angsuran,
+                loan,
+            });
+        } catch (error) {
+             await trx.rollback();
             res.status(500).json({ error: error.message });
         }
     }

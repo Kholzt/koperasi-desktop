@@ -57,6 +57,8 @@ const Angsuran: React.FC = () => {
 
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
+            // setLoans(res.data.loan) // untuk menentukan sisa pembayaran
+
             if (!idAngsuran) reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) });
         });
 
@@ -119,6 +121,24 @@ const Angsuran: React.FC = () => {
         let reason;
         let status;
         try {
+            const cleanNumber = (value: any) => {
+                const cleaned = String(value).replace(/[^0-9]/g, "");
+                return cleaned === "" ? 0 : parseInt(cleaned, 10);
+            };
+
+            const jumlahBayar = cleanNumber(data.jumlah_bayar);
+            const sisaPembayaran = cleanNumber(loans?.sisa_pembayaran);
+            console.log("jumlahBayar:", jumlahBayar);
+            console.log("sisaPembayaran:", sisaPembayaran);
+            if (jumlahBayar > sisaPembayaran) {
+                console.log('lebih', parseInt(data.jumlah_bayar.replace(/[^0-9]/g, "")));
+                console.log(`sisa`, parseInt(String(loans?.sisa_pembayaran)));
+                setError("jumlah_bayar", {
+                    type: "manual",
+                    message: "Jumlah pembayaran tidak boleh melebihi sisa pembayaran"
+                })
+                return;
+            }
             if (!data.asal_pembayaran && (data.status != "menunggak" && data.status != "Libur Operasional")) return setError("asal_pembayaran", {
                 type: "required",
                 message: "Asal pembayaran wajib diisi"
@@ -181,12 +201,15 @@ const Angsuran: React.FC = () => {
                             <div className="col-span-2">
                                 <Label>Jumlah bayar</Label>
                                 <Input type="text" {...register("jumlah_bayar")} />
+                                {errors.jumlah_bayar && typeof errors.jumlah_bayar?.message === 'string' && (
+                                    <p className="mt-1 text-sm text-red-500">{errors.jumlah_bayar?.message}</p>
+                                )}
                             </div>
 
                             <div  >
                                 <Label>Penagih</Label>
                                 <MultiSelect
-                                    readOnly={!!idAngsuran}
+                                    // readOnly={!!idAngsuran}
                                     label=""
                                     placeholder="Pilih penagih"
                                     options={staffs}
@@ -201,7 +224,7 @@ const Angsuran: React.FC = () => {
                             <div>
                                 <Label>Status</Label>
                                 <Select
-                                    readOnly={!!idAngsuran}
+                                    // readOnly={!!idAngsuran}
                                     options={[
                                         { label: "Lunas", value: "lunas" },
                                         { label: "Menunggak", value: "menunggak" },
@@ -217,7 +240,7 @@ const Angsuran: React.FC = () => {
                             {isLunas && <div>
                                 <Label>Asal Pembayaran</Label>
                                 <Select
-                                    readOnly={!!idAngsuran}
+                                    // readOnly={!!idAngsuran}
                                     options={[
                                         { label: "Anggota", value: "anggota" },
                                         { label: "Penagih", value: "penagih" },
