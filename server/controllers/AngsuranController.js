@@ -221,9 +221,6 @@ export default class AngsuranController {
                 res.status(404).json({ error: "Angsuran tidak ditemukan" });
             }
 
-
-
-
             await Angsuran.updateAngsuran(id, {
                 asal_pembayaran,
                 jumlah_bayar,
@@ -264,8 +261,6 @@ export default class AngsuranController {
                     isAktifAdded = true;
                 }
             }
-
-
             await trx.commit();
             res.status(200).json({
                 angsuran,

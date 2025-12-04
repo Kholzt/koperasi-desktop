@@ -15,11 +15,11 @@ import Input from "../../components/form/input/InputField";
 import Loading from "../../components/ui/Loading";
 import Button from "../../components/ui/button/Button";
 import { useTheme } from "../../context/ThemeContext";
+import { useUser } from "../../hooks/useUser";
 import axios from "../../utils/axios";
 import { formatCurrency, unformatCurrency } from "../../utils/helpers";
-import { AngsuranProps, EmployeProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
+import { AngsuranProps, EmployeProps, UserProps } from "../../utils/types";
 import { formatDate } from './../../utils/helpers';
-import { useUser } from "../../hooks/useUser";
 
 interface FormInputs {
     asal_pembayaran: string;
@@ -44,26 +44,19 @@ const schema: yup.SchemaOf<FormInputs> = yup.object({
 
 const Angsuran: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
-    const [loans, setLoans] = useState<LoanProps | null>(null);
     const [angsuran, setAngsuran] = useState<AngsuranProps | null>(null);
     const [staffs, setStaffs] = useState<{ text: string, value: string }[]>([]);
     const [employes, setEmployes] = useState<EmployeProps[]>([]);
     const { id, idAngsuran } = useParams();
     const [isLunas, setisLunas] = useState(false);
     const [totalPinjamanLama, setTotalPinjamanLama] = useState(0);
-    const [pagination, setPagination] = useState<PaginationProps>({
-        page: 1,
-        totalPages: 1,
-        limit: 10,
-        total: 0
-    });
+
     const { user } = useUser();
     const { reload } = useTheme();
     const navigate = useNavigate();
 
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
-            setLoans(res.data.loan)
             if (!idAngsuran) reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) });
         });
 
@@ -87,7 +80,7 @@ const Angsuran: React.FC = () => {
                 setAngsuran(res.data.angsuran)
             });
         }
-    }, [pagination.page, reload]);
+    }, [reload]);
 
 
 
