@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 import PageMeta from "../../components/common/PageMeta";
-import Metrics from './Metrics';
-import Schedule from "./Schedule";
 import axios from "../../utils/axios";
-export default function Home() {
+import Metrics from './Metrics';
+export default function PosisiUsaha() {
 
     useEffect(() => {
         axios.post("/api/export-db")
@@ -17,11 +16,6 @@ export default function Home() {
             <div className="grid grid-cols-12 gap-4 md:gap-6">
                 <div className="col-span-12 space-y-6">
                     <Metrics />
-                </div>
-
-
-                <div className="col-span-12">
-                    <Schedule />
                 </div>
 
             </div>

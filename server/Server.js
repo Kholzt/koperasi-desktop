@@ -15,6 +15,7 @@ import { exportDB, listBackup } from "./config/db";
 import { getAllHoliday, getHolidayJson, isHoliday, saveHolidayJson } from "./config/holidays";
 import CategoryController from "./controllers/CategoryController";
 import TransactionController from "./controllers/TransactionController";
+import PosisiUsaha from "./controllers/PosisiUsaha";
 
 
 dotenv.config();
@@ -144,6 +145,7 @@ app.get('/api/list-backup', async (req, res) => {
 });
 
 
+app.get("/api/posisi-usaha-angsuran", PosisiUsaha.getAngsuran)
 app.listen(port, async () => {
 
     console.log(`Server running at http://localhost:${port}`);

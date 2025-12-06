@@ -125,5 +125,4 @@ export function exportDB() {
 
 
 db = globalThis.__knexInstance;
-
 export default db;

@@ -46,58 +46,11 @@ const LabaRugi: React.FC = () => {
                             }}
                         />
                     </div>
-                    {/* <div className=" w-full">
-                        <Label>Pos</Label>
-                        <SelectSearch
-                            label=""
-                            placeholder="Pilih pos"
-                            options={pos}
-                            defaultValue={filter.pos ?? undefined}
-                            onChange={(val: any) => setFilter({ ...filter, pos: val })}
-                        />
 
-                    </div>
-                    <div className=" w-full">
-                        <Label>Kategori</Label>
-                        <MultiSelect
-                            label=""
-                            placeholder="Pilih kategori"
-                            options={categories}
-                            defaultSelected={filter.categories}
-                            onChange={(val) => {
-                                setFilter({ ...filter, categories: val })
-                                setIsAngsuran(val.includes(angsuranId ?? ""))
-                            }}
-                        />
-                    </div>
-                    {isAngsuran && <div className=" w-full">
-                        <Label>Kelompok</Label>
-                        <MultiSelect
-                            label=""
-                            placeholder="Pilih kelompok"
-                            options={groups}
-                            defaultSelected={filter.groups}
-                            onChange={(val) => setFilter({ ...filter, groups: val })}
-                        />
-                    </div>}
-                    <div className=" w-full">
-                        <Label>Jenis Transaksi</Label>
-                        <MultiSelect
-                            label=""
-                            placeholder="Pilih jenis transaksi"
-                            options={[{ text: "Debit", value: "debit" }, { text: "Kredit", value: "credit" }]}
-                            defaultSelected={filter.transaction_type}
-                            onChange={(val) => setFilter({ ...filter, transaction_type: val })}
-                        />
-                    </div> */}
                 </div>
                 <div className="grid md:grid-cols-3 grid-cols-1 gap-4 md:gap-6 ">
 
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-                        {/* <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-                            <Icon className="text-gray-800 size-6 dark:text-white/90" />
-                        </div> */}
-
                         <div className="flex items-end justify-between mt-5">
                             <div>
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -111,10 +64,6 @@ const LabaRugi: React.FC = () => {
                         </div>
                     </div>
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-                        {/* <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-                            <Icon className="text-gray-800 size-6 dark:text-white/90" />
-                        </div> */}
-
                         <div className="flex items-end justify-between mt-5">
                             <div>
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -128,9 +77,6 @@ const LabaRugi: React.FC = () => {
                         </div>
                     </div>
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-                        {/* <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-                            <Icon className="text-gray-800 size-6 dark:text-white/90" />
-                        </div> */}
 
                         <div className="flex items-end justify-between mt-5">
                             <div>
@@ -145,17 +91,6 @@ const LabaRugi: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* <ComponentCard
-                    title="Laba Rugi"
-                >
-                    <Table
-                        tableRef={tableRef}
-                        data={transactions}
-                    />
-
-                    das
-                </ComponentCard> */}
             </div>
 
             <Verification filter={filter} setFilter={setFilter} />

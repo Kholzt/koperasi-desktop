@@ -1,12 +1,8 @@
-import React, { useState, useEffect, SVGProps } from 'react'
+import React, { SVGProps, useEffect, useState } from 'react';
 import {
-    ArrowDownIcon,
-    ArrowUpIcon,
-    BoxIconLine,
     GroupIcon,
-    LocationIcon,
+    LocationIcon
 } from "../../icons";
-import Badge from "../../components/ui/badge/Badge";
 import axios from '../../utils/axios';
 const Metrics: React.FC = () => {
 

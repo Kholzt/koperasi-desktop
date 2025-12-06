@@ -21,10 +21,13 @@ import UserProfiles from "./pages/UserProfiles";
 import Area from './pages/area/Area';
 import AreaForm from './pages/area/AreaForm';
 import Backup from './pages/backup-page/Backup';
+import Category from './pages/category/Category';
+import CategoryForm from './pages/category/CategoryForm';
 import Employe from "./pages/employe/Employe";
 import EmployeForm from './pages/employe/EmployeForm';
 import Group from './pages/group/Group';
 import GroupForm from './pages/group/GroupForm';
+import LabaRugi from './pages/laba-rugi/LabaRugi';
 import Angsuran from './pages/loan/Angsuran';
 import Loan from './pages/loan/Loan';
 import LoanDetail from './pages/loan/LoanDetail';
@@ -35,15 +38,12 @@ import Pos from './pages/pos/Pos';
 import PosForm from './pages/pos/PosForm';
 import Schedule from './pages/schedule/Schedule';
 import ScheduleForm from './pages/schedule/ScheduleForm';
+import Transaction from './pages/transactions/Transaction';
+import TransactionDetail from './pages/transactions/TransactionDetail';
+import TransactionForm from './pages/transactions/TransactionForm';
 import User from "./pages/user/User";
 import UserForm from './pages/user/UserForm';
-import Transaction from './pages/transactions/Transaction';
-import TransactionForm from './pages/transactions/TransactionForm';
-import Category from './pages/category/Category';
-import CategoryForm from './pages/category/CategoryForm';
-import CategoryTable from "./pages/category/CategoryTable";
-import TransactionDetail from './pages/transactions/TransactionDetail';
-import LabaRugi from './pages/laba-rugi/LabaRugi';
+import PosisiUsaha from './pages/posisi-usaha/PosisiUsaha';
 
 export default function App() {
     return (
@@ -96,12 +96,13 @@ export default function App() {
                         <Route path="/transactions/:id" element={<TransactionDetail />} />
 
                         <Route path="/laba-rugi" element={<LabaRugi />} />
+                        <Route path="/posisi-usaha" element={<PosisiUsaha />} />
 
 
                         <Route path="/category" element={<Category />} />
                         <Route path="/category/create" element={<CategoryForm />} />
                         <Route path="/category/:id/edit" element={<CategoryForm />} />
-                        {/* <Route path="/transactions/:id" element={<LoanDetail />} /> */}
+
 
                         <Route path="/loan/:id/angsuran" element={<Angsuran />} />
                         <Route path="/loan/:id/angsuran/:idAngsuran" element={<Angsuran />} />
