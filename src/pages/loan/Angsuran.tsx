@@ -50,6 +50,7 @@ const Angsuran: React.FC = () => {
     const { id, idAngsuran } = useParams();
     const [isLunas, setisLunas] = useState(false);
     const [totalPinjamanLama, setTotalPinjamanLama] = useState(0);
+    const [loans, setLoans] = useState();
 
     const { user } = useUser();
     const { reload } = useTheme();
@@ -57,7 +58,7 @@ const Angsuran: React.FC = () => {
 
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
-            // setLoans(res.data.loan) // untuk menentukan sisa pembayaran
+            setLoans(res.data.loan) // untuk menentukan sisa pembayaran
 
             if (!idAngsuran) reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) });
         });

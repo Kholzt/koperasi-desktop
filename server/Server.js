@@ -146,6 +146,7 @@ app.get('/api/list-backup', async (req, res) => {
 
 
 app.get("/api/posisi-usaha-angsuran", PosisiUsaha.getAngsuran)
+app.get("/api/posisi-usaha-modaldo", PosisiUsaha.getModalDo)
 app.listen(port, async () => {
 
     console.log(`Server running at http://localhost:${port}`);
