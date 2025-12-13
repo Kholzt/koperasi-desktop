@@ -347,13 +347,21 @@ export default class AngsuranController {
                 });
             }
             let sisaPembayaran = loan.sisa_pembayaran + (angsuran.jumlah_katrol ?? 0) + angsuran.jumlah_bayar;
-
+            let tunggakan = loan.besar_tunggakan;
             let statusPinjaman = "aktif";
-
-            await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
-                sisa_pembayaran: sisaPembayaran,
-                status: statusPinjaman
-            });
+            if (angsuran.status === 'menunggak') {
+                tunggakan = loan.besar_tunggakan - loan.jumlah_angsuran;
+                // if (tunggakan < 0) tunggakan = 0;
+                await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+                    besar_tunggakan: tunggakan,
+                    status: statusPinjaman
+                });
+            } else {
+                await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+                    sisa_pembayaran: sisaPembayaran,
+                    status: statusPinjaman
+                });
+            }
 
             await Angsuran.softDeleteAngsuran(id);
             const formatDate = (date) => {
