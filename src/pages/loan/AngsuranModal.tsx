@@ -13,17 +13,17 @@ import Input from "../../components/form/input/InputField";
 import Loading from "../../components/ui/Loading";
 import Button from "../../components/ui/button/Button";
 import { useTheme } from "../../context/ThemeContext";
+import { useUser } from "../../hooks/useUser";
 import axios from "../../utils/axios";
 import { formatCurrency, toLocalDate, unformatCurrency } from "../../utils/helpers";
 import { AngsuranProps, EmployeProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
-import { useUser } from "../../hooks/useUser";
 
 
 interface FormInputs {
     asal_pembayaran: string;
     jumlah_bayar: string;
     jumlah_katrol: string;
-    tanggal_bayar: string;
+    tanggal_bayar?: string;
     penagih: string[]; // atau number[] tergantung data
     status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional' | 'Libur Operasional' | "libur";
 };
@@ -53,14 +53,10 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
     const [staffs, setStaffs] = useState<{ text: string, value: string }[]>([]);
     const { id, idAngsuran } = useParams();
     const [employes, setEmployes] = useState<EmployeProps[]>([]);
+    const [originalData, setOriginalData] = useState<FormInputs>();
 
     const [isLunas, setisLunas] = useState(false);
-    const [pagination, setPagination] = useState<PaginationProps>({
-        page: 1,
-        totalPages: 1,
-        limit: 10,
-        total: 0
-    });
+
     const { user } = useUser();
     const { reload } = useTheme();
     const navigate = useNavigate();
@@ -75,15 +71,17 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
             setEmployes(res.data.employees);
             setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
         });
-    }, [pagination.page, reload]);
+    }, [reload]);
 
     useEffect(() => {
         if (idAngsuran) {
             axios.get(`/api/angsuran/${idAngsuran}`).then((res: any) => {
                 const { data: { angsuran } } = res;
-                reset({ jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) });
-                console.log(angsuran);
+                const initialData = { jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) }
+                reset(initialData);
                 setIsLoading(false)
+                setOriginalData(initialData)
+
             });
         }
     }, [idAngsuran, reload]);
@@ -100,9 +98,17 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
 
     useEffect(() => {
         if (lunasUpdate) {
-            setisLunas((lunasUpdate != "menunggak" && lunasUpdate != "Libur Operasional" && lunasUpdate != 'libur'))
-            setValue("asal_pembayaran", "")
+            const isLunasValue =
+                lunasUpdate !== "menunggak" &&
+                lunasUpdate !== "Libur Operasional" &&
+                lunasUpdate !== "libur";
 
+            setisLunas(isLunasValue);
+
+            // hanya reset asal_pembayaran jika memang tidak relevan
+            if (!isLunasValue) {
+                setValue("asal_pembayaran", "", { shouldDirty: true });
+            }
         }
     }, [lunasUpdate]);
 
@@ -113,16 +119,20 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
     useEffect(() => {
         if (jumlahBayar) {
             const jumlahBayarFormat = unformatCurrency(jumlahBayar);
-            setValue("jumlah_bayar", formatCurrency(jumlahBayarFormat));
+            setValue("jumlah_bayar", formatCurrency(jumlahBayarFormat), { shouldDirty: true });
         }
         if (jumlahKatrol) {
             const jumlahKatrolFormat = unformatCurrency(jumlahKatrol);
-            setValue("jumlah_katrol", formatCurrency(jumlahKatrolFormat));
+            setValue("jumlah_katrol", formatCurrency(jumlahKatrolFormat), { shouldDirty: true });
         }
     }, [jumlahBayar, jumlahKatrol]);
     const onSubmit = async (data: FormInputs) => {
-        let meta = Object.keys(data).filter(key => data[key] !== null && data[key] !== '');
-        let reason;
+        let meta: any = {};
+        Object.keys(dirtyFields).forEach((key: string) => {
+            meta[key] = originalData
+                ? { original: originalData[key], updated: data[key] }
+                : { original: data[key], updated: "-" };
+        }); let reason;
         let status;
         try {
             if (!data.asal_pembayaran && (data.status != "menunggak" && data.status != "Libur Operasional")) return setError("asal_pembayaran", {
@@ -185,7 +195,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                             options={staffs}
                             defaultSelected={getValues("penagih") ?? []}
                             {...register("penagih")}
-                            onChange={(val) => setValue("penagih", val)}
+                            onChange={(val) => setValue("penagih", val, { shouldDirty: true })}
                         />
                         {errors.penagih && typeof errors.penagih?.message === 'string' && (
                             <p className="mt-1 text-sm text-red-500">{errors.penagih?.message}</p>
@@ -234,7 +244,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                             placeholder="Tanggal bayar"
                             defaultDate={getValues("tanggal_bayar")}
                             onChange={(date) => {
-                                setValue("tanggal_bayar", toLocalDate(date[0]));
+                                setValue("tanggal_bayar", toLocalDate(date[0]), { shouldDirty: true });
                             }}
                         />
                         {errors.tanggal_bayar && <p className="text-sm text-red-500 mt-1">{errors.tanggal_bayar.message}</p>}

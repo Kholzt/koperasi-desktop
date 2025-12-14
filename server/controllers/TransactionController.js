@@ -129,7 +129,6 @@ export default class TransactionController {
         try {
             const { category_id, pos_id, description, transaction_type, nominal, date, user, resource, meta, reason, status } = req.body;
 
-
             const code = await Transaction.generateCode({ category_id, transaction_type });
 
             const now = new Date();

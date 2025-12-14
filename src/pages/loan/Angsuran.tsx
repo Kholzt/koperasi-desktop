@@ -51,6 +51,8 @@ const Angsuran: React.FC = () => {
     const [isLunas, setisLunas] = useState(false);
     const [totalPinjamanLama, setTotalPinjamanLama] = useState(0);
     const [loans, setLoans] = useState();
+    const [originalData, setOriginalData] = useState<FormInputs>();
+
 
     const { user } = useUser();
     const { reload } = useTheme();
@@ -60,7 +62,7 @@ const Angsuran: React.FC = () => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
             setLoans(res.data.loan) // untuk menentukan sisa pembayaran
 
-            if (!idAngsuran) reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) });
+            if (!idAngsuran) setValue("jumlah_bayar", formatCurrency(res.data.loan.jumlah_angsuran), { shouldDirty: true });
         });
 
         axios.get("/api/employees?limit=20000000").then(res => {
@@ -74,8 +76,11 @@ const Angsuran: React.FC = () => {
                 const { data: { angsuran } } = res;
                 setAngsuran(angsuran)
                 setTotalPinjamanLama(angsuran.jumlah_bayar + angsuran.jumlah_katrol)
-                reset({ jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) });
+                const initialData = { jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) }
+                reset(initialData);
                 setIsLoading(false)
+                setOriginalData(initialData)
+                setTotalAngsuranLama(angsuran.jumlah_katrol + angsuran.jumlah_bayar)
 
             });
         } else {
@@ -90,7 +95,8 @@ const Angsuran: React.FC = () => {
     const { register, handleSubmit, setValue, getValues, watch, setError, formState: { errors, dirtyFields }, reset } = useForm<FormInputs>({
         resolver: yupResolver(schema),
         defaultValues: {
-            jumlah_katrol: formatCurrency(0)
+            jumlah_katrol: formatCurrency(0),
+            asal_pembayaran: "anggota"
         }
     });
 
@@ -98,8 +104,17 @@ const Angsuran: React.FC = () => {
 
     useEffect(() => {
         if (lunasUpdate) {
-            setisLunas((lunasUpdate != "menunggak" && lunasUpdate != 'Libur Operasional' && lunasUpdate != 'libur'))
-            setValue("asal_pembayaran", "")
+            const isLunasValue =
+                lunasUpdate !== "menunggak" &&
+                lunasUpdate !== "Libur Operasional" &&
+                lunasUpdate !== "libur";
+
+            setisLunas(isLunasValue);
+
+            // hanya reset asal_pembayaran jika memang tidak relevan
+            if (!isLunasValue) {
+                setValue("asal_pembayaran", "", { shouldDirty: true });
+            }
         }
     }, [lunasUpdate]);
 
@@ -110,15 +125,21 @@ const Angsuran: React.FC = () => {
     useEffect(() => {
         if (jumlahBayar) {
             const jumlahBayarFormat = unformatCurrency(jumlahBayar);
-            setValue("jumlah_bayar", formatCurrency(jumlahBayarFormat));
+            setValue("jumlah_bayar", formatCurrency(jumlahBayarFormat), { shouldDirty: true });
         }
         if (jumlahKatrol) {
             const jumlahKatrolFormat = unformatCurrency(jumlahKatrol);
-            setValue("jumlah_katrol", formatCurrency(jumlahKatrolFormat));
+            setValue("jumlah_katrol", formatCurrency(jumlahKatrolFormat), { shouldDirty: true });
         }
     }, [jumlahBayar, jumlahKatrol]);
     const onSubmit = async (data: FormInputs) => {
-        let meta = Object.keys(data).filter(key => data[key] !== null && data[key] !== '');
+        let meta: any = {};
+        Object.keys(dirtyFields).forEach((key: string) => {
+            meta[key] = originalData
+                ? { original: originalData[key], updated: data[key] }
+                : { original: data[key], updated: "-" };
+        });
+
         let reason;
         let status;
         try {
@@ -216,7 +237,7 @@ const Angsuran: React.FC = () => {
                                     options={staffs}
                                     defaultSelected={getValues("penagih") ?? []}
                                     {...register("penagih")}
-                                    onChange={(val) => setValue("penagih", val)}
+                                    onChange={(val) => setValue("penagih", val, { shouldDirty: true })}
                                 />
                                 {errors.penagih && typeof errors.penagih?.message === 'string' && (
                                     <p className="mt-1 text-sm text-red-500">{errors.penagih?.message}</p>

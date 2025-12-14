@@ -204,6 +204,7 @@ function Action({ id, status, kode, completeName }: { id: number, kode: string, 
         try {
             let res = await axios.delete("/api/loans/" + id);
             toast.success("Pinjaman berhasil dihapus")
+
             setReload(!reload);
             closeModal();
         } catch (error: any) {

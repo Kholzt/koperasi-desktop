@@ -97,7 +97,9 @@ const TransactionDetail: React.FC = () => {
                                     <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{log.status}</td>
                                     <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{log.reason}</td>
                                     <td className="p-3 font-medium text-gray-700 text-theme-sm dark:text-white">
-                                        {log?.meta?.join(",")}
+                                        <pre className="whitespace-pre-wrap text-xs">
+                                            {JSON.stringify(log?.meta, null, 2)}
+                                        </pre>
                                     </td>
 
                                     <td className="p-3  font-medium text-gray-700   text-theme-sm dark:text-white">{log.updated_by}</td>
