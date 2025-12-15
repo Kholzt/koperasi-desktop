@@ -1,142 +1,82 @@
-import React, { SVGProps, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import DatePicker from "../../components/form/date-picker";
 import {
-    GroupIcon,
-    LocationIcon
+    DollarLineIcon
 } from "../../icons";
-import axios from '../../utils/axios';
-import { formatCurrency, formatDate, toLocalDate } from '../../utils/helpers';
-import { Modal } from '../../components/ui/modal';
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../components/ui/table';
+import { toLocalDate } from '../../utils/helpers';
+import { MetricItem } from './MetricItem';
+import { Modals } from './Modals';
+import { useAngsuran, useModalDo } from './hooks/usePosisiUsaha';
 const Metrics: React.FC = () => {
 
-    const [angsuranHistory, setAngsuranHistory] = useState<any[]>([]);
-    const [modalDoHistory, setModalDoHistory] = useState<any[]>([]);
-    const [angsuranSum, setAngsuranSum] = useState(0);
-    const [modalDoSum, setModalDoSum] = useState(0);
+    interface PaginationProps {
+        page: number;
+        totalPages: number;
+        limit: number;
+        total: number;
+    }
+
+
+
+    const [startDate, setStartDate] = useState<string | null>(null);
+    const [endDate, setEndDate] = useState<string | null>(null);
+
+    const { items: angsuranHistory, sum: angsuranSum, pagination: paginationAngsuran, fetchPage: fetchAngsuran } = useAngsuran();
+    const { items: modalDoHistory, sum: modalDoSum, pagination: paginationModalDo, fetchPage: fetchModalDo } = useModalDo();
     const [areaCount, setAreaCount] = useState(0);
     const [groupCount, setGroupCount] = useState(0);
     const [angsuranHistoryOpen, setAngsuranHistoryOpen] = useState<boolean>(false);
     const [modalDoHistoryOpen, setModalDoHistoryOpen] = useState<boolean>(false);
     useEffect(() => {
-        axios("/api/posisi-usaha-angsuran").then(data => {
-            setAngsuranHistory(data.data.angsuran)
-            setAngsuranSum(data.data.jumlah)
-        });
-        axios("/api/posisi-usaha-modaldo").then(data => {
-            setModalDoHistory(data.data.modaldo)
-            setModalDoSum(data.data.jumlah)
-        });
-        axios("/api/areas/count").then(data => setAreaCount(data.data.total));
-        axios("/api/groups/count").then(data => setGroupCount(data.data.total));
-    }, []);
+        // initial load
+        fetchAngsuran(1, paginationAngsuran.limit, startDate || '', endDate || '');
+        fetchModalDo(1, paginationModalDo.limit, startDate || '', endDate || '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [startDate, endDate]);
     return (
         <>
+            <div className="md:w-[50%] w-full">
+                <label htmlFor="" className="mb-2 inline-block">Filter Rentang Tanggal</label>
+                <DatePicker
+                    hasClear
+                    id={"startDate"}
+                    mode="range"
+                    placeholder="Tanggal peminjaman"
+                    defaultDate={
+                        startDate && endDate
+                            ? [new Date(startDate as string), new Date(endDate as string)]
+                            : (startDate ? [new Date(startDate as string)] : undefined)
+                    }
+                    onChange={(date) => {
+                        date[0]
+                            ? setStartDate(toLocalDate(date[0]))
+                            : (setStartDate(null));
+
+
+                        date[1]
+                            ? setEndDate(toLocalDate(date[1]))
+                            : setEndDate(null);
+                    }}
+                /></div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
 
 
-                <MetricItem hasPointer onClick={() => setAngsuranHistoryOpen(!angsuranHistoryOpen)} Icon={GroupIcon} title='Storting' count={angsuranSum} />
-                <MetricItem hasPointer onClick={() => setModalDoHistoryOpen(!modalDoHistoryOpen)} Icon={GroupIcon} title='Modal DO' count={modalDoSum} />
-                <MetricItem Icon={LocationIcon} title='IP' count={0} />
-                <MetricItem Icon={LocationIcon} title='Target' count={0} />
-                <MetricItem Icon={LocationIcon} title='Target Anggota' count={0} />
-                <MetricItem Icon={LocationIcon} title='Sirkulasi' count={0} />
-                <MetricItem Icon={LocationIcon} title='Naik/Turun' count={0} />
-                <MetricItem Icon={LocationIcon} title='PD' count={0} />
-                <MetricItem Icon={LocationIcon} title='SU' count={0} />
+                <MetricItem hasPointer onClick={() => setAngsuranHistoryOpen(!angsuranHistoryOpen)} Icon={DollarLineIcon} title='Storting' count={angsuranSum} />
+                <MetricItem hasPointer onClick={() => setModalDoHistoryOpen(!modalDoHistoryOpen)} Icon={DollarLineIcon} title='Modal DO' count={modalDoSum} />
+                <MetricItem Icon={DollarLineIcon} title='IP' count={0} />
+                <MetricItem Icon={DollarLineIcon} title='Target' count={0} />
+                <MetricItem Icon={DollarLineIcon} title='Target Anggota' count={0} />
+                <MetricItem Icon={DollarLineIcon} title='Sirkulasi' count={0} />
+                <MetricItem Icon={DollarLineIcon} title='Naik/Turun' count={0} />
+                <MetricItem Icon={DollarLineIcon} title='PD' count={0} />
+                <MetricItem Icon={DollarLineIcon} title='SU' count={0} />
             </div>
-            {Modals(setAngsuranHistoryOpen, angsuranHistoryOpen, angsuranHistory, "Jumlah Angsuran")}
-            {Modals(setModalDoHistoryOpen, modalDoHistoryOpen, modalDoHistory, "Jumlah Modal Do")}
+            {Modals(setAngsuranHistoryOpen, angsuranHistoryOpen, angsuranHistory, "History Angsuran", "Jumlah Angsuran", paginationAngsuran, (page: number) => fetchAngsuran(page, paginationAngsuran.limit, startDate || '', endDate || ''))}
+            {Modals(setModalDoHistoryOpen, modalDoHistoryOpen, modalDoHistory, "History Modal DO", "Jumlah Modal Do", paginationModalDo, (page: number) => fetchModalDo(page, paginationModalDo.limit, startDate || '', endDate || ''))}
         </>
     )
 
-    function MetricItem({ title, count, Icon, onClick, hasPointer = false }: { hasPointer?: boolean, title: string, count: number, Icon: React.FC<SVGProps<SVGSVGElement>>, onClick?: () => void }) {
-        return <div onClick={onClick} className={`${hasPointer ? "cursor-pointer" : "cursor-auto"} rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6`}>
-            <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-                <Icon className="text-gray-800 size-6 dark:text-white/90" />
-            </div>
 
-            <div className="flex items-end justify-between mt-5">
-                <div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {title}
-                    </span>
-                    <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                        {formatCurrency(count)}
-                    </h4>
-                </div>
-                {/* <Badge color="success">
-                    <ArrowUpIcon />
-                    11.01%
-                </Badge> */}
-            </div>
-        </div>;
-    }
 }
 
 export default Metrics
-function Modals(setAngsuranHistoryOpen: React.Dispatch<React.SetStateAction<boolean>>, angsuranHistoryOpen: boolean, angsuranHistory: any[], title: string) {
-    return <Modal
-        showCloseButton
-        // isFullscreen
-        className="max-w-[800px] max-h-[70vh] p-6 lg:p-10"
-        onClose={() => setAngsuranHistoryOpen(!angsuranHistoryOpen)} isOpen={angsuranHistoryOpen}>
-        <div className=" h-[55vh] overflow-auto mt-10">
-            <Table className='relative'>
-                {/* Table Header */}
-                <TableHeader className="border-b sticky top-0 bg-white dark:bg-gray-900 border-gray-100 dark:border-white/[0.05]">
-                    <TableRow>
-                        <TableCell
-                            isHeader
-                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                        >
-                            No
-                        </TableCell>
-                        <TableCell
-                            isHeader
-                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                        >
-                            {title}
-                        </TableCell>
-                        <TableCell
-                            isHeader
-                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                        >
-                            Tanggal
-                        </TableCell>
-
-
-                    </TableRow>
-                </TableHeader>
-
-                {/* Table Body */}
-                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                    {angsuranHistory.map((user: any, index: number) => (
-                        <TableRow key={index}>
-                            <TableCell className="px-5 py-4 sm:px-6 text-start">
-                                <div className="flex items-center gap-3">
-                                    <div>
-                                        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                                            {(index + 1)}
-                                        </span>
-                                    </div>
-                                </div>
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                {formatCurrency(user.jumlah) ?? "-"}
-                            </TableCell>
-                            <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                {formatDate(user.tanggal)}
-                            </TableCell>
-
-                        </TableRow>
-                    ))}
-
-                    {angsuranHistory.length === 0 && <TableRow>
-                        <TableCell colSpan={3} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
-                            Tidak ada data
-                        </TableCell></TableRow>}
-                </TableBody>
-            </Table>
-        </div>
-    </Modal>;
-}
