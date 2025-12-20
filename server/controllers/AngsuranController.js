@@ -109,6 +109,7 @@ export default class AngsuranController {
                         status
                     });
                 } else {
+                    // ini untuk tambah angsuran di detail
                     angsuran_id = await Angsuran.createAngsuran({
                         idPinjaman: idPinjaman,
                         jumlah_bayar,
@@ -118,6 +119,7 @@ export default class AngsuranController {
                         status
                     });
                 }
+
                 await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
                     sisa_pembayaran: sisaPembayaran,
                     //  besar_tunggakan: totalTunggakan,
@@ -218,8 +220,6 @@ export default class AngsuranController {
         }
     }
 
-
-
     static async update(req, res) {
         await body('penagih').isArray({
             min: 1
@@ -313,8 +313,6 @@ export default class AngsuranController {
                     isAktifAdded = true;
                 }
             }
-
-
             await trx.commit();
             res.status(200).json({
                 angsuran,

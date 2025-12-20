@@ -13,6 +13,9 @@ import ScheduleController from './controllers/ScheduleController';
 import UserController from './controllers/UserController';
 import { exportDB, listBackup } from "./config/db";
 import { getAllHoliday, getHolidayJson, isHoliday, saveHolidayJson } from "./config/holidays";
+import CategoryController from "./controllers/CategoryController";
+import TransactionController from "./controllers/TransactionController";
+import PosisiUsaha from "./controllers/PosisiUsaha";
 
 
 dotenv.config();
@@ -26,7 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
     const secret = req.headers['x-app-secret'];
     if ("123412321123" == (import.meta.env.VITE_APP_SECRET || secret)) {
-        return next();
+        return next();;
+
     }
     return res.status(403).send("Forbidden");
 });
@@ -77,6 +81,13 @@ app.get('/api/pos/:id', PosController.show);
 app.put('/api/pos/:id', PosController.update);
 app.delete('/api/pos/:id', PosController.delete);
 
+app.get('/api/categories', CategoryController.index);
+app.get('/api/categories/count', CategoryController.count);
+app.post('/api/categories', CategoryController.store);
+app.get('/api/categories/:id', CategoryController.show);
+app.put('/api/categories/:id', CategoryController.update);
+app.delete('/api/categories/:id', CategoryController.delete);
+
 // Group
 app.get('/api/members', MemberController.index);
 app.get('/api/members/:nik/nik-check', MemberController.nixExist);
@@ -110,6 +121,14 @@ app.put('/api/angsuran/:id', AngsuranController.update);
 app.put('/api/delete-angsuran/:id', AngsuranController.delete);
 app.get('/api/angsuran/aktif/:id', AngsuranController.lastAngsuran);
 
+app.get('/api/transactions', TransactionController.index);
+app.get('/api/laba-rugi', TransactionController.labaRugi);
+app.post('/api/transactions', TransactionController.store);
+app.get('/api/transactions/:id', TransactionController.show);
+app.put('/api/transactions/:id', TransactionController.update);
+app.delete('/api/transactions/:id', TransactionController.delete);
+app.get('/api/getGroupsTransaction', TransactionController.getGroupTransaction);
+
 app.get('/api/configLoan', (req, res) => {
     const totalBulan = process.env.VITE_APP_BULAN || 10;
     const modalDo = process.env.VITE_APP_MODAL_DO || 13;
@@ -126,6 +145,8 @@ app.get('/api/list-backup', async (req, res) => {
 });
 
 
+app.get("/api/posisi-usaha-angsuran", PosisiUsaha.getAngsuran)
+app.get("/api/posisi-usaha-modaldo", PosisiUsaha.getModalDo)
 app.listen(port, async () => {
 
     console.log(`Server running at http://localhost:${port}`);

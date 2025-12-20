@@ -7,10 +7,14 @@ class Employe {
         const offset = (page - 1) * limit;
 
         const employees = await db(this.tableName)
+            .select("users.*", "group_name")
             .whereNull('deleted_at')
             .andWhere('complete_name', 'like', `%${search}%`)
             .andWhere('access_apps', access_apps)
             .orderBy('id', 'desc')
+            .join("group_details", "users.id", "group_details.staff_id")
+            .join("groups", "group_details.group_id", "groups.id")
+            .groupBy("groups.id")
             .limit(limit)
             .offset(offset);
 

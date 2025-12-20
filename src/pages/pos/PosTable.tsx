@@ -132,7 +132,7 @@ function Action({ id, nama_pos }: { id: number, nama_pos: string }) {
     const deleteAction = async () => {
         try {
             let res = await axios.delete("/api/pos/" + id);
-            toast.success("Kelompok berhasil dihapus")
+            toast.success("Pos berhasil dihapus")
             setReload(!reload);
             closeModal();
         } catch (error: any) {

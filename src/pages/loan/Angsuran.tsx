@@ -15,9 +15,10 @@ import Input from "../../components/form/input/InputField";
 import Loading from "../../components/ui/Loading";
 import Button from "../../components/ui/button/Button";
 import { useTheme } from "../../context/ThemeContext";
+import { useUser } from "../../hooks/useUser";
 import axios from "../../utils/axios";
 import { formatCurrency, unformatCurrency } from "../../utils/helpers";
-import { AngsuranProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
+import { AngsuranProps, EmployeProps, UserProps } from "../../utils/types";
 import { formatDate } from './../../utils/helpers';
 
 interface FormInputs {
@@ -25,7 +26,7 @@ interface FormInputs {
     jumlah_bayar: string;
     jumlah_katrol: string;
     penagih: string[]; // atau number[] tergantung data
-    status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional';
+    status: "lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional' | "libur";
 };
 
 const schema: yup.SchemaOf<FormInputs> = yup.object({
@@ -43,17 +44,17 @@ const schema: yup.SchemaOf<FormInputs> = yup.object({
 
 const Angsuran: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
-    const [loans, setLoans] = useState<LoanProps | null>(null);
     const [angsuran, setAngsuran] = useState<AngsuranProps | null>(null);
     const [staffs, setStaffs] = useState<{ text: string, value: string }[]>([]);
+    const [employes, setEmployes] = useState<EmployeProps[]>([]);
     const { id, idAngsuran } = useParams();
     const [isLunas, setisLunas] = useState(false);
-    const [pagination, setPagination] = useState<PaginationProps>({
-        page: 1,
-        totalPages: 1,
-        limit: 10,
-        total: 0
-    });
+    const [totalPinjamanLama, setTotalPinjamanLama] = useState(0);
+    const [loans, setLoans] = useState();
+    const [originalData, setOriginalData] = useState<FormInputs>();
+
+
+    const { user } = useUser();
     const { reload } = useTheme();
     const navigate = useNavigate();
 
@@ -61,10 +62,12 @@ const Angsuran: React.FC = () => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
             setLoans(res.data.loan) // untuk menentukan sisa pembayaran
 
-            if (!idAngsuran) reset({ jumlah_bayar: formatCurrency(res.data.loan.jumlah_angsuran) });
+            if (!idAngsuran) setValue("jumlah_bayar", formatCurrency(res.data.loan.jumlah_angsuran), { shouldDirty: true });
         });
 
         axios.get("/api/employees?limit=20000000").then(res => {
+            setEmployes(res.data.employees);
+
             setStaffs(res.data.employees.map((employe: UserProps) => ({ text: employe.complete_name, value: employe.id })))
         });
         if (idAngsuran) {
@@ -72,8 +75,12 @@ const Angsuran: React.FC = () => {
             axios.get(`/api/angsuran/${idAngsuran}`).then((res: any) => {
                 const { data: { angsuran } } = res;
                 setAngsuran(angsuran)
-                reset({ jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) });
+                setTotalPinjamanLama(angsuran.jumlah_bayar + angsuran.jumlah_katrol)
+                const initialData = { jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) }
+                reset(initialData);
                 setIsLoading(false)
+                setOriginalData(initialData)
+                setTotalAngsuranLama(angsuran.jumlah_katrol + angsuran.jumlah_bayar)
 
             });
         } else {
@@ -81,14 +88,15 @@ const Angsuran: React.FC = () => {
                 setAngsuran(res.data.angsuran)
             });
         }
-    }, [pagination.page, reload]);
+    }, [reload]);
 
 
 
-    const { register, handleSubmit, setValue, getValues, watch, setError, formState: { errors }, reset } = useForm<FormInputs>({
+    const { register, handleSubmit, setValue, getValues, watch, setError, formState: { errors, dirtyFields }, reset } = useForm<FormInputs>({
         resolver: yupResolver(schema),
         defaultValues: {
-            jumlah_katrol: formatCurrency(0)
+            jumlah_katrol: formatCurrency(0),
+            asal_pembayaran: "anggota"
         }
     });
 
@@ -96,7 +104,17 @@ const Angsuran: React.FC = () => {
 
     useEffect(() => {
         if (lunasUpdate) {
-            setisLunas((lunasUpdate != "menunggak" && lunasUpdate != 'Libur Operasional'))
+            const isLunasValue =
+                lunasUpdate !== "menunggak" &&
+                lunasUpdate !== "Libur Operasional" &&
+                lunasUpdate !== "libur";
+
+            setisLunas(isLunasValue);
+
+            // hanya reset asal_pembayaran jika memang tidak relevan
+            if (!isLunasValue) {
+                setValue("asal_pembayaran", "", { shouldDirty: true });
+            }
         }
     }, [lunasUpdate]);
 
@@ -107,20 +125,29 @@ const Angsuran: React.FC = () => {
     useEffect(() => {
         if (jumlahBayar) {
             const jumlahBayarFormat = unformatCurrency(jumlahBayar);
-            setValue("jumlah_bayar", formatCurrency(jumlahBayarFormat));
+            setValue("jumlah_bayar", formatCurrency(jumlahBayarFormat), { shouldDirty: true });
         }
         if (jumlahKatrol) {
             const jumlahKatrolFormat = unformatCurrency(jumlahKatrol);
-            setValue("jumlah_katrol", formatCurrency(jumlahKatrolFormat));
+            setValue("jumlah_katrol", formatCurrency(jumlahKatrolFormat), { shouldDirty: true });
         }
     }, [jumlahBayar, jumlahKatrol]);
     const onSubmit = async (data: FormInputs) => {
+        let meta: any = {};
+        Object.keys(dirtyFields).forEach((key: string) => {
+            meta[key] = originalData
+                ? { original: originalData[key], updated: data[key] }
+                : { original: data[key], updated: "-" };
+        });
+
+        let reason;
+        let status;
         try {
             const cleanNumber = (value: any) => {
                 const cleaned = String(value).replace(/[^0-9]/g, "");
                 return cleaned === "" ? 0 : parseInt(cleaned, 10);
             };
-    
+
             const jumlahBayar = cleanNumber(data.jumlah_bayar);
             const sisaPembayaran = cleanNumber(loans?.sisa_pembayaran);
             console.log("jumlahBayar:", jumlahBayar);
@@ -138,15 +165,38 @@ const Angsuran: React.FC = () => {
                 type: "required",
                 message: "Asal pembayaran wajib diisi"
             })
-
+            let res;
             if (!idAngsuran) {
-                const res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
-                toast.success("Angsuran berhasil diubah")
+                reason = "add angsuran"
+                status = "add"
+                res = await axios.post(`/api/angsuran/${id}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
             } else {
-                const res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
-                toast.success("Angsuran berhasil diubah")
+                reason = "edit angsuran"
+                status = "edit"
+                res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
             }
-            navigate("/loan?isFromTransaction=true");
+            if (res.status === 201 || res.status === 200) {
+                const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
+                if (data.status != "Libur Operasional" && data.status != "libur") {
+                    const jumlahBayar = unformatCurrency(data.jumlah_bayar ?? "0") + unformatCurrency(data.jumlah_katrol ?? "0");
+                    const nominal = totalPinjamanLama > jumlahBayar ? -(totalPinjamanLama - jumlahBayar) : jumlahBayar - totalPinjamanLama;
+                    // await axios.post("/api/transactions", {
+                    //     transaction_type: 'debit',
+                    //     category_id: 1,
+                    //     description: description ?? "Kelompok 0",
+                    //     nominal: nominal,
+                    //     pos_id: user?.pos_id,
+                    //     user: user?.id ?? null,
+                    //     resource: "angsuran",
+                    //     meta: JSON.stringify(meta),
+                    //     reason: reason,
+                    //     status: status
+                    // });
+
+                }
+                toast.success("Angsuran berhasil diubah")
+                navigate("/loan?isFromTransaction=true");
+            }
         } catch (error) {
             toast.error("Angsuran gagal diubah")
             console.log(error);
@@ -187,7 +237,7 @@ const Angsuran: React.FC = () => {
                                     options={staffs}
                                     defaultSelected={getValues("penagih") ?? []}
                                     {...register("penagih")}
-                                    onChange={(val) => setValue("penagih", val)}
+                                    onChange={(val) => setValue("penagih", val, { shouldDirty: true })}
                                 />
                                 {errors.penagih && typeof errors.penagih?.message === 'string' && (
                                     <p className="mt-1 text-sm text-red-500">{errors.penagih?.message}</p>

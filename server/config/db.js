@@ -29,12 +29,23 @@ if (!globalThis.__knexInstance) {
         },
         pool: { min: 2, max: 10 },
     });
+    // globalThis.__knexInstance.on('query', (queryData) => {
+    //     // cek apakah query mengandung nama tabel "transactions"
+    //     if (queryData.sql.toLowerCase().includes('transactions')) {
+    //         console.log('--- Transactions Query ---');
+    //         console.log('SQL:', queryData.sql);
+    //         console.log('Bindings:', queryData.bindings);
+    //         console.log('--------------------------');
+    //     }
+    // });
+
 
     globalThis.__knexInstance.on('query', (queryData) => {
         console.log('SQL:', queryData.sql);
         console.log('Bindings:', queryData.bindings);
     });
 }
+
 
 export function listBackup() {
     const backupDir = path.join(process.cwd(), 'backups');
@@ -114,5 +125,4 @@ export function exportDB() {
 
 
 db = globalThis.__knexInstance;
-
 export default db;

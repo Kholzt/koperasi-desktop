@@ -36,11 +36,12 @@ export default function DatePicker({
             dateFormat: "Y-m-d",
             defaultDate,
             onChange,
-
         });
+
         if (clear && hasClear && !Array.isArray(flatPickr)) {
             flatPickr.clear();
         }
+
         return () => {
             if (!Array.isArray(flatPickr)) {
                 flatPickr.destroy();
@@ -65,9 +66,10 @@ export default function DatePicker({
                     <CalenderIcon className="size-6" />
                 </span>
             </div>
-            <button className="text-black dark:text-white text-sm" type="button" onClick={() => {
+            {hasClear && <button className="text-black dark:text-white text-sm" type="button" onClick={() => {
                 setClear(true);
-            }}>Reset</button>
+            }}>Reset</button>}
+
         </div>
     );
 }

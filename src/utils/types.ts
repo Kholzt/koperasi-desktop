@@ -3,7 +3,7 @@ export interface UserProps{
     username:string,
     password:string,
     complete_name:string,
-    role:"staff"|"controller"|"pusat",
+    role:"staff"|"controller"|"pusat"|"super admin",
     access_apps:"access"|"noAccess",
     position:string,
     status:"aktif"|"nonAktif",
@@ -24,7 +24,8 @@ export interface EmployeProps{
     name:string,
     job_title:string,
     status:"aktif"|"nonAktif",
-   pos_id:string,
+    pos_id:string,
+    group_name?:string,
     pos:PosProps,
     created_at:Date,
     updated_at:Date,
@@ -137,4 +138,28 @@ export interface PosProps{
     penanggung_jawab: string;
     penanggungJawab:UserProps,
     no_telepon: string,
+}
+export interface CategoryProps{
+    id:number,
+    name: string,
+    code: string,
+}
+
+export interface TransactionProps{
+    id:number,
+    code:string,
+    pos_id:string,
+    pos:PosProps,
+    category_id:string,
+    category:CategoryProps,
+    created_by:string,
+    created_user:UserProps,
+    updated_by:string,
+    amount:number,
+    transaction_type:"debit"|"credit",
+    updated_user:UserProps,
+    date:string,
+    description:string,
+    deleted_at:string,
+
 }
