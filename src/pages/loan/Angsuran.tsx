@@ -231,7 +231,7 @@ const Angsuran: React.FC = () => {
                             <div  >
                                 <Label>Penagih</Label>
                                 <MultiSelect
-                                    // readOnly={!!idAngsuran}
+                                    readOnly={!!idAngsuran}
                                     label=""
                                     placeholder="Pilih penagih"
                                     options={staffs}
@@ -246,7 +246,7 @@ const Angsuran: React.FC = () => {
                             <div>
                                 <Label>Status</Label>
                                 <Select
-                                    // readOnly={!!idAngsuran}
+                                    readOnly={!!idAngsuran}
                                     options={[
                                         { label: "Lunas", value: "lunas" },
                                         { label: "Menunggak", value: "menunggak" },
@@ -262,7 +262,7 @@ const Angsuran: React.FC = () => {
                             {isLunas && <div>
                                 <Label>Asal Pembayaran</Label>
                                 <Select
-                                    // readOnly={!!idAngsuran}
+                                    readOnly={!!idAngsuran}
                                     options={[
                                         { label: "Anggota", value: "anggota" },
                                         { label: "Penagih", value: "penagih" },
