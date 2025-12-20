@@ -62,8 +62,8 @@ class PosModel {
             db('groups').where('pos_id', id).whereNull('deleted_at').first(),
         ];
 
-        const [schedule] = await Promise.all(checks);
-        return schedule;
+        const [schedule, members, users, areas, groups] = await Promise.all(checks);
+        return schedule || members || users || areas || groups;
     }
 
     static async count() {

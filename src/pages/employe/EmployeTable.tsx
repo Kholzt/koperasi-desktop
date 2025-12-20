@@ -228,7 +228,7 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
     const deleteAction = async () => {
         try {
             let res = await axios.delete("/api/employees/" + id);
-            toast.success("Pengguna berhasil dihapus")
+            toast.success("Karyawan berhasil dihapus")
             setReload(!reload);
             closeModal();
         } catch (error: any) {

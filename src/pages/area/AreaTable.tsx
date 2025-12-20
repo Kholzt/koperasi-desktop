@@ -171,7 +171,7 @@ function Action({ id, area_name }: { id: number, area_name: string }) {
     const deleteAction = async () => {
         try {
             let res = await axios.delete("/api/areas/" + id);
-            toast.success("Area berhasil dihapus")
+            toast.success("Wilayah berhasil dihapus")
             setReload(!reload);
             closeModal();
         } catch (error: any) {

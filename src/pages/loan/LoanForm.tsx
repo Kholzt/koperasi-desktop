@@ -21,7 +21,7 @@ import { useUser } from "../../hooks/useUser";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { formatCurrency, toLocalDate, unformatCurrency } from "../../utils/helpers";
-import { MemberProps, UserProps } from "../../utils/types";
+import { EmployeProps, MemberProps, UserProps } from "../../utils/types";
 import SelectSearch from './../../components/form/SelectSearch';
 import MultiSelect from "../../components/form/MultiSelect";
 
@@ -73,11 +73,14 @@ const LoanForm: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [disabled, setDisabled] = useState(false);
     const [hasAngsuran, setHasAngsuran] = useState(false);
+    const [employes, setEmployes] = useState<EmployeProps[]>([]);
+    const [totalPinjamanLama, setTotalPinjamanLama] = useState(0);
+    const [memberNameEdit, setMemberNameEdit] = useState("halo");
     const [configLoan, setConfigLoan] = useState({
         totalBulan: 10,
         modalDo: 30
     });
-
+    const [originalData, setOriginalData] = useState<LoanFormInput>();
     const { user } = useUser();
     const { id } = useParams();
     const isUpdate = !!id;
@@ -90,7 +93,7 @@ const LoanForm: React.FC = () => {
         watch,
         setValue,
         getValues,
-        formState: { errors }
+        formState: { errors, dirtyFields }
     } = useForm<LoanFormInput>({
         resolver: yupResolver(schema),
         defaultValues: {
@@ -105,6 +108,7 @@ const LoanForm: React.FC = () => {
             tanggal_pinjam: new Date().toISOString(),
         }
     });
+
 
     const jumlah_pinjaman = watch("jumlah_pinjaman");
     const persen_bunga = watch("persen_bunga");
@@ -131,12 +135,12 @@ const LoanForm: React.FC = () => {
             const totalTerima = pinjaman - modalDo;
 
             // Set nilai hasil perhitungan ke form
-            setValue("total_pinjaman", formatCurrency(total, false));
-            setValue("jumlah_angsuran", formatCurrency(angsuran, false));
-            setValue("jumlah_pinjaman", formatCurrency(pinjaman, false));
-            setValue("total_bunga", formatCurrency(totalBunga, false));
-            setValue("total_pinjaman_diterima", formatCurrency(totalTerima, false));
-            setValue("modal_do", formatCurrency(modalDo, false));
+            setValue("total_pinjaman", formatCurrency(total, false), { shouldDirty: true });
+            setValue("jumlah_angsuran", formatCurrency(angsuran, false), { shouldDirty: true });
+            setValue("jumlah_pinjaman", formatCurrency(pinjaman, false), { shouldDirty: true });
+            setValue("total_bunga", formatCurrency(totalBunga, false), { shouldDirty: true });
+            setValue("total_pinjaman_diterima", formatCurrency(totalTerima, false), { shouldDirty: true });
+            setValue("modal_do", formatCurrency(modalDo, false), { shouldDirty: true });
 
 
 
@@ -166,7 +170,7 @@ const LoanForm: React.FC = () => {
     useEffect(() => {
         if (anggotaId && !isUpdate) {
             axios.get("/api/loans/" + anggotaId + "/code").then(res => {
-                setValue("kode", res.data.code);
+                setValue("kode", res.data.code, { shouldDirty: true });
             });
             axios.get("/api/loans/" + anggotaId + "/status-pinjaman").then(res => {
                 let pesan = "";
@@ -189,8 +193,12 @@ const LoanForm: React.FC = () => {
             setLoading(true);
             axios.get("/api/loans/" + id).then((res: any) => {
                 const loan = res.data.loan
-                reset({ ...loan, penanggung_jawab: JSON.parse(loan.penanggung_jawab), tanggal_pinjam: new Date(loan.tanggal_peminjaman as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() });
+                const initialData = { ...loan, penanggung_jawab: JSON.parse(loan.penanggung_jawab), tanggal_pinjam: new Date(loan.tanggal_peminjaman as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() };
+                setTotalPinjamanLama(loan.total_pinjaman)
+                reset(initialData);
                 setHasAngsuran(loan.hasAngsuran);
+                setMemberNameEdit(loan.anggota_nama)
+                setOriginalData(initialData)
                 setTimeout(() => {
                     setLoading(false)
                 }, 1000);
@@ -199,10 +207,8 @@ const LoanForm: React.FC = () => {
         axios.get("/api/configLoan").then(res => {
             setConfigLoan(res.data.config);
         });
-        axios.get("/api/members?limit=20000000").then(res => {
-            setAnggota(res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id })));
-        });
         axios.get("/api/employees?limit=20000000").then(res => {
+            setEmployes(res.data.employees);
             setUsers(res.data.employees.map((user: UserProps) => ({ text: user.complete_name, value: user.id })));
         });
     }, []);
@@ -217,19 +223,42 @@ const LoanForm: React.FC = () => {
             data.modal_do = unformatCurrency(data.modal_do).toString();
             data.total_bunga = unformatCurrency(data.total_bunga).toString();
             data.petugas_input = user?.id ?? 1;
+            let meta: any = {};
+            Object.keys(dirtyFields).forEach((key: string) => {
+                meta[key] = originalData
+                    ? { original: originalData[key], updated: data[key] }
+                    : { original: data[key], updated: "-" };
+            });
+
             let res;
             if (!id) {
                 res = await axios.post("/api/loans", data);
             } else {
                 res = await axios.put("/api/loans/" + id, data);
+
             }
+            const description = employes.find((e) => data.penanggung_jawab.includes(e.id.toString()))?.group_name
 
             if (res.status === 201 || res.status === 200) {
+                const nominal = totalPinjamanLama > parseInt(data.total_pinjaman) ? -(totalPinjamanLama - parseInt(data.total_pinjaman)) : parseInt(data.total_pinjaman) - totalPinjamanLama;
+                // await axios.post("/api/transactions", {
+                //     transaction_type: 'credit',
+                //     category_id: 1,
+                //     description: description ?? "Kelompok 0",
+                //     nominal: nominal,
+                //     pos_id: user?.pos_id,
+                //     user: user?.id ?? null,
+                //     resource: "pinjaman",
+                //     meta: JSON.stringify(meta),
+                //     status: id ? "edit" : "add",
+                //     reason: id ? "edit pinjaman" : "add pinjaman",
+
+
+                // });
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
                 navigate("/loan?isFromTransaction=true");
             }
         } catch (error: any) {
-            console.error(error);
             if (error.status === 400 && error.response.data.errors) {
                 Object.keys(error.response.data.errors).forEach((key: any) => {
                     setError(key as any, {
@@ -244,6 +273,7 @@ const LoanForm: React.FC = () => {
     };
 
     if (loading && isUpdate) return <Loading />;
+
 
     return (
         <>
@@ -267,9 +297,15 @@ const LoanForm: React.FC = () => {
                                     label=""
                                     placeholder="Pilih anggota"
                                     options={anggota}
+                                    fetchOptions={async (query) => {
+                                        const qr = query != getValues("anggota_id") ? query : memberNameEdit
+                                        const res = await axios.get(`/api/members?search=${qr}`);
+                                        return res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id }))
+
+                                    }}
                                     defaultValue={getValues("anggota_id")}
                                     {...register("anggota_id")}
-                                    onChange={(val: any) => setValue("anggota_id", val)}
+                                    onChange={(val: any) => setValue("anggota_id", val, { shouldDirty: true })}
                                 />
                                 {errors.anggota_id && <p className="text-sm text-red-500 mt-1">{errors.anggota_id.message}</p>}
                             </div>
@@ -368,7 +404,7 @@ const LoanForm: React.FC = () => {
                                     options={users}
                                     defaultSelected={getValues("penanggung_jawab")}
                                     {...register("penanggung_jawab")}
-                                    onChange={(val) => setValue("penanggung_jawab", val)}
+                                    onChange={(val) => setValue("penanggung_jawab", val, { shouldDirty: true })}
                                 />
                                 {errors.penanggung_jawab && typeof errors.penanggung_jawab?.message === 'string' && (
                                     <p className="mt-1 text-sm text-red-500">{errors.penanggung_jawab?.message}</p>
@@ -383,7 +419,7 @@ const LoanForm: React.FC = () => {
                                     placeholder="Tanggal peminjaman"
                                     defaultDate={getValues("tanggal_pinjam")}
                                     onChange={(date) => {
-                                        setValue("tanggal_pinjam", toLocalDate(date[0]));
+                                        setValue("tanggal_pinjam", toLocalDate(date[0]), { shouldDirty: true });
                                     }}
                                 />
                                 {errors.tanggal_pinjam && <p className="text-sm text-red-500 mt-1">{errors.tanggal_pinjam.message}</p>}

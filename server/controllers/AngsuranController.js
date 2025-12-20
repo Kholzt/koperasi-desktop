@@ -109,6 +109,7 @@ export default class AngsuranController {
                         status
                     });
                 } else {
+                    // ini untuk tambah angsuran di detail
                     angsuran_id = await Angsuran.createAngsuran({
                         idPinjaman: idPinjaman,
                         jumlah_bayar,
@@ -118,6 +119,7 @@ export default class AngsuranController {
                         status
                     });
                 }
+
                 await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
                     sisa_pembayaran: sisaPembayaran,
                     //  besar_tunggakan: totalTunggakan,
@@ -218,8 +220,6 @@ export default class AngsuranController {
         }
     }
 
-
-
     static async update(req, res) {
         await body('penagih').isArray({
             min: 1
@@ -313,8 +313,6 @@ export default class AngsuranController {
                     isAktifAdded = true;
                 }
             }
-
-
             await trx.commit();
             res.status(200).json({
                 angsuran,
@@ -347,13 +345,21 @@ export default class AngsuranController {
                 });
             }
             let sisaPembayaran = loan.sisa_pembayaran + (angsuran.jumlah_katrol ?? 0) + angsuran.jumlah_bayar;
-
+            let tunggakan = loan.besar_tunggakan;
             let statusPinjaman = "aktif";
-
-            await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
-                sisa_pembayaran: sisaPembayaran,
-                status: statusPinjaman
-            });
+            if (angsuran.status === 'menunggak') {
+                tunggakan = loan.besar_tunggakan - loan.jumlah_angsuran;
+                // if (tunggakan < 0) tunggakan = 0;
+                await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+                    besar_tunggakan: tunggakan,
+                    status: statusPinjaman
+                });
+            } else {
+                await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
+                    sisa_pembayaran: sisaPembayaran,
+                    status: statusPinjaman
+                });
+            }
 
             await Angsuran.softDeleteAngsuran(id);
             const formatDate = (date) => {

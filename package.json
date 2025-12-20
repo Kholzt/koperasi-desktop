@@ -1,7 +1,7 @@
 {
     "name": "koperasi-seferine-jaya-mandiri",
     "private": true,
-    "version": "1.0.9",
+    "version": "2.0.1",
     "type": "module",
     "icon": "build/icon",
     "scripts": {
@@ -33,7 +33,9 @@
         "express": "^5.1.0",
         "express-validator": "^7.2.1",
         "flatpickr": "^4.6.13",
+        "html2canvas": "^1.4.1",
         "ical": "^0.8.0",
+        "jspdf": "^3.0.1",
         "knex": "^3.1.0",
         "lucide-react": "^0.501.0",
         "mysql": "^2.18.1",

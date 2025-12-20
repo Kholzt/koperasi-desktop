@@ -1,21 +1,19 @@
 import React, { useEffect, useState } from "react";
 
 import { Link, useParams } from "react-router";
+import { toast } from "react-toastify";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
-import axios from "../../utils/axios";
-import { AngsuranProps, LoanProps } from "../../utils/types";
-import { formatCurrency, formatDate, formatLongDate } from "../../utils/helpers";
-import { ChevronLeftIcon, PencilIcon, TrashBinIcon } from "../../icons";
 import Button from "../../components/ui/button/Button";
 import { Modal } from "../../components/ui/modal";
-import AngsuranModal from './AngsuranModal';
-import { useUser } from "../../hooks/useUser";
-import Badge from "../../components/ui/badge/Badge";
-import { useModal } from "../../hooks/useModal";
-import { toast } from "react-toastify";
 import { useTheme } from "../../context/ThemeContext";
+import { useUser } from "../../hooks/useUser";
+import { ChevronLeftIcon, PencilIcon, TrashBinIcon } from "../../icons";
+import axios from "../../utils/axios";
+import { formatCurrency, formatDate, formatLongDate } from "../../utils/helpers";
+import { AngsuranProps, LoanProps } from "../../utils/types";
+import AngsuranModal from './AngsuranModal';
 const LoanDetail: React.FC = () => {
     const { id } = useParams();
     const [loan, setLoan] = useState<LoanProps | null>(null);
@@ -44,8 +42,8 @@ const LoanDetail: React.FC = () => {
     const deleteAction = async () => {
         try {
             await axios.put("/api/delete-angsuran/" + selectedId);
-            
-            
+
+
             toast.success("Angsuran berhasil dihapus")
             setReload(!reload);
             closeModal();

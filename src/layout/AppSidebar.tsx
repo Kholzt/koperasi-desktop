@@ -36,6 +36,7 @@ const navItems: NavItem[] = [
         path: "/loan",
         access: ["staff", "controller", "pusat", "super admin"]
     },
+
     {
         icon: <FolderIcon />,
         name: "Backup",
@@ -84,8 +85,34 @@ const masterDataItems: NavItem[] = [
         path: "/pos",
         access: ["pusat", "super admin"]
     },
+    {
+        icon: <LocationIcon />,
+        name: "Kategori transaksi",
+        path: "/category",
+        access: ["staff", "controller", "pusat", "super admin"]
+    },
 ];
 
+const posisiUsahaItems: NavItem[] = [
+    {
+        icon: <DollarLineIcon />,
+        name: "Transactions",
+        path: "/transactions",
+        access: ["staff", "controller", "pusat", "super admin"]
+    },
+    {
+        icon: <DollarLineIcon />,
+        name: "Posisi Usaha",
+        path: "/posisi-usaha",
+        access: ["staff", "controller", "pusat", "super admin"]
+    },
+    {
+        icon: <DollarLineIcon />,
+        name: "Laba Rugi",
+        path: "/laba-rugi",
+        access: ["pusat", "super admin"]
+    },
+];
 const othersItems: NavItem[] = [
     {
         icon: <CalenderIcon />,
@@ -164,7 +191,7 @@ const AppSidebar: React.FC = () => {
         });
     };
 
-    const renderMenuItems = (items: NavItem[], menuType: "main" | "Master Data" | "Laporan" | "others") => (
+    const renderMenuItems = (items: NavItem[], menuType: any) => (
         <ul className="flex flex-col gap-4">
             {items.map((nav, index) => (
                 nav.access.includes(user?.role ?? "") &&
@@ -343,6 +370,21 @@ const AppSidebar: React.FC = () => {
                                 )}
                             </h2>
                             {renderMenuItems(navItems, "main")}
+                        </div>
+                        <div>
+                            <h2
+                                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
+                                    ? "lg:justify-center"
+                                    : "justify-start"
+                                    }`}
+                            >
+                                {isExpanded || isHovered || isMobileOpen ? (
+                                    "Posisi Usaha"
+                                ) : (
+                                    <HorizontaLDots className="size-6" />
+                                )}
+                            </h2>
+                            {renderMenuItems(posisiUsahaItems, "posisi-usaha")}
                         </div>
                         <div>
                             <h2

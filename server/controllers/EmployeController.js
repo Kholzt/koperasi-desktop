@@ -10,14 +10,22 @@ export default class EmployeController {
             const limitInt = parseInt(limit);
             const offset = (pageInt - 1) * limitInt;
             const usersQuery = db('users')
-                .select("users.*", "nama_pos")
-                .whereNull('users.deleted_at')
-                .andWhere('complete_name', 'like', `%${search}%`)
-                .andWhere('access_apps', 'noAccess')
                 .leftJoin("pos", "users.pos_id", "pos.id")
+                .leftJoin("group_details", "users.id", "group_details.staff_id")
+                .leftJoin("groups", "group_details.group_id", "groups.id")
+                .select(
+                    "users.*",
+                    "pos.nama_pos",
+                    db.raw("MIN(groups.group_name) as group_name")
+                )
+                .whereNull('users.deleted_at')
+                .andWhere('users.complete_name', 'like', `%${search}%`)
+                .andWhere('users.access_apps', 'noAccess')
+                .groupBy("users.id")
                 .orderBy('users.id', 'desc')
                 .limit(limitInt)
                 .offset(offset);
+
             if (status != "all") usersQuery.where("status", status);
             const rows = await usersQuery;
 
@@ -25,6 +33,7 @@ export default class EmployeController {
                 .whereNull('deleted_at')
                 .andWhere('complete_name', 'like', `%${search}%`)
                 .andWhere('access_apps', 'noAccess')
+                .groupBy("users.id")
                 .count('id as total');
             if (status != "all") usersCount.where("status", status);
             const [{ total }] = await usersCount;

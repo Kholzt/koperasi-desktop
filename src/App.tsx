@@ -17,26 +17,33 @@ import NotFound from "./pages/OtherPage/NotFound";
 // import Buttons from "./pages/UiElements/Buttons";
 // import Images from "./pages/UiElements/Images";
 // import Videos from "./pages/UiElements/Videos";
+import UserProfiles from "./pages/UserProfiles";
 import Area from './pages/area/Area';
 import AreaForm from './pages/area/AreaForm';
+import Backup from './pages/backup-page/Backup';
+import Category from './pages/category/Category';
+import CategoryForm from './pages/category/CategoryForm';
 import Employe from "./pages/employe/Employe";
 import EmployeForm from './pages/employe/EmployeForm';
 import Group from './pages/group/Group';
 import GroupForm from './pages/group/GroupForm';
+import LabaRugi from './pages/laba-rugi/LabaRugi';
+import Angsuran from './pages/loan/Angsuran';
+import Loan from './pages/loan/Loan';
+import LoanDetail from './pages/loan/LoanDetail';
+import LoanForm from './pages/loan/LoanForm';
 import Member from './pages/member/Member';
 import MemberForm from './pages/member/MemberForm';
-import Schedule from './pages/schedule/Schedule';
-import ScheduleForm from './pages/schedule/ScheduleForm';
-import User from "./pages/user/User";
-import UserForm from './pages/user/UserForm';
-import Loan from './pages/loan/Loan';
-import LoanForm from './pages/loan/LoanForm';
-import LoanDetail from './pages/loan/LoanDetail';
-import Angsuran from './pages/loan/Angsuran';
-import UserProfiles from "./pages/UserProfiles";
-import Backup from './pages/backup-page/Backup';
 import Pos from './pages/pos/Pos';
 import PosForm from './pages/pos/PosForm';
+import Schedule from './pages/schedule/Schedule';
+import ScheduleForm from './pages/schedule/ScheduleForm';
+import Transaction from './pages/transactions/Transaction';
+import TransactionDetail from './pages/transactions/TransactionDetail';
+import TransactionForm from './pages/transactions/TransactionForm';
+import User from "./pages/user/User";
+import UserForm from './pages/user/UserForm';
+import PosisiUsaha from './pages/posisi-usaha/PosisiUsaha';
 
 export default function App() {
     return (
@@ -82,6 +89,20 @@ export default function App() {
                         <Route path="/loan/create" element={<LoanForm />} />
                         <Route path="/loan/:id/edit" element={<LoanForm />} />
                         <Route path="/loan/:id" element={<LoanDetail />} />
+
+                        <Route path="/transactions" element={<Transaction />} />
+                        <Route path="/transactions/create" element={<TransactionForm />} />
+                        <Route path="/transactions/:id/edit" element={<TransactionForm />} />
+                        <Route path="/transactions/:id" element={<TransactionDetail />} />
+
+                        <Route path="/laba-rugi" element={<LabaRugi />} />
+                        <Route path="/posisi-usaha" element={<PosisiUsaha />} />
+
+
+                        <Route path="/category" element={<Category />} />
+                        <Route path="/category/create" element={<CategoryForm />} />
+                        <Route path="/category/:id/edit" element={<CategoryForm />} />
+
 
                         <Route path="/loan/:id/angsuran" element={<Angsuran />} />
                         <Route path="/loan/:id/angsuran/:idAngsuran" element={<Angsuran />} />
