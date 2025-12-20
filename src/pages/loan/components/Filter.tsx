@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import DatePicker from '../../../components/form/date-picker';
 import Select from '../../../components/form/Select';
 import Button from '../../../components/ui/button/Button';
-import Dropdown from '../../../components/ui/dropdown/Dropdown';
+import { Dropdown } from '../../../components/ui/dropdown/Dropdown';
 import { toLocalDate } from '../../../utils/helpers';
 
 interface FilterProps {
