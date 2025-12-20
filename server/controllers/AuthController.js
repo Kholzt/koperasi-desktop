@@ -1,5 +1,4 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { body, validationResult } from 'express-validator';
 
@@ -18,9 +17,7 @@ export default class AuthController {
                 return res.status(404).json({ message: 'Pengguna tidak ditemukan' });
             }
 
-            const secret = process.env.VITE_APP_JWT_SECRET || process.env.JWT_SECRET || 'changeme';
-            const token = jwt.sign({ id: user.id }, secret, { expiresIn: '7d' });
-            return res.json({ message: 'Berhasil login', user, token });
+            return res.json({ message: 'Berhasil login', user });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Server error', error });
@@ -29,16 +26,14 @@ export default class AuthController {
 
     static async getUser(req, res) {
         try {
-            if (req.user) {
-                return res.json({ message: 'Pengguna berhasil didapatkan', user: req.user });
-            }
-
             const { id } = req.query;
             const user = await User.findById(id);
 
-            if (!user) return res.status(404).json({ message: 'Pengguna tidak ditemukan' });
+            if (!user) {
+                return res.status(404).json({ message: 'Pengguna tidak ditemukan' });
+            }
 
-            return res.json({ message: 'Pengguna berhasil didapatkan', user });
+            res.json({ message: 'Pengguna berhasil didapatkan', user });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Server error' });
