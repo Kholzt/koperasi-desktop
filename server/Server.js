@@ -16,6 +16,8 @@ import { getAllHoliday, getHolidayJson, isHoliday, saveHolidayJson } from "./con
 import CategoryController from "./controllers/CategoryController";
 import TransactionController from "./controllers/TransactionController";
 import PosisiUsaha from "./controllers/PosisiUsaha";
+import verifySecret from './middleware/verifySecret';
+import authenticate from './middleware/authenticate';
 
 
 dotenv.config();
@@ -26,127 +28,127 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-    const secret = req.headers['x-app-secret'];
-    if ("123412321123" == (import.meta.env.VITE_APP_SECRET || secret)) {
-        return next();;
-
-    }
-    return res.status(403).send("Forbidden");
-});
-
-//autentikasi
+// Keep login public
 app.post('/api/login', AuthController.login);
-app.get('/api/user', AuthController.getUser);
-app.put('/api/profile-update/:id', AuthController.updateUserProfil);
+
+// create router and apply verifySecret to all controller routes
+const apiRouter = express.Router();
+apiRouter.use(verifySecret);
+apiRouter.use(authenticate);
+
+// autentikasi
+apiRouter.get('/user', AuthController.getUser);
+apiRouter.put('/profile-update/:id', AuthController.updateUserProfil);
 
 // pengguna
-app.get('/api/users', UserController.index);
-app.post('/api/users', UserController.store);
-app.get('/api/users/:id', UserController.show);
-app.put('/api/users/:id', UserController.update);
-app.delete('/api/users/:id', UserController.delete);
+apiRouter.get('/users', UserController.index);
+apiRouter.post('/users', UserController.store);
+apiRouter.get('/users/:id', UserController.show);
+apiRouter.put('/users/:id', UserController.update);
+apiRouter.delete('/users/:id', UserController.delete);
 
 // karyawan
-app.get('/api/employees', EmployeController.index);
-app.get('/api/employees/count', EmployeController.count);
-app.get('/api/employees/getNip', EmployeController.generateNip);
-app.get('/api/employees/checkNip', EmployeController.checkNip);
-app.post('/api/employees', EmployeController.store);
-app.get('/api/employees/:id', EmployeController.show);
-app.put('/api/employees/:id', EmployeController.update);
-app.delete('/api/employees/:id', EmployeController.delete);
+apiRouter.get('/employees', EmployeController.index);
+apiRouter.get('/employees/count', EmployeController.count);
+apiRouter.get('/employees/getNip', EmployeController.generateNip);
+apiRouter.get('/employees/checkNip', EmployeController.checkNip);
+apiRouter.post('/employees', EmployeController.store);
+apiRouter.get('/employees/:id', EmployeController.show);
+apiRouter.put('/employees/:id', EmployeController.update);
+apiRouter.delete('/employees/:id', EmployeController.delete);
 
 // area
-app.get('/api/areas', AreaController.index);
-app.get('/api/areas/count', AreaController.count);
-app.post('/api/areas', AreaController.store);
-app.get('/api/areas/:id', AreaController.show);
-app.put('/api/areas/:id', AreaController.update);
-app.delete('/api/areas/:id', AreaController.delete);
+apiRouter.get('/areas', AreaController.index);
+apiRouter.get('/areas/count', AreaController.count);
+apiRouter.post('/areas', AreaController.store);
+apiRouter.get('/areas/:id', AreaController.show);
+apiRouter.put('/areas/:id', AreaController.update);
+apiRouter.delete('/areas/:id', AreaController.delete);
 
 // Group
-app.get('/api/groups', GroupController.index);
-app.get('/api/groups/count', GroupController.count);
-app.post('/api/groups', GroupController.store);
-app.get('/api/groups/:id', GroupController.show);
-app.put('/api/groups/:id', GroupController.update);
-app.delete('/api/groups/:id', GroupController.delete);
+apiRouter.get('/groups', GroupController.index);
+apiRouter.get('/groups/count', GroupController.count);
+apiRouter.post('/groups', GroupController.store);
+apiRouter.get('/groups/:id', GroupController.show);
+apiRouter.put('/groups/:id', GroupController.update);
+apiRouter.delete('/groups/:id', GroupController.delete);
 
 // Pos
-app.get('/api/pos', PosController.index);
-app.get('/api/pos/count', PosController.count);
-app.post('/api/pos', PosController.store);
-app.get('/api/pos/:id', PosController.show);
-app.put('/api/pos/:id', PosController.update);
-app.delete('/api/pos/:id', PosController.delete);
+apiRouter.get('/pos', PosController.index);
+apiRouter.get('/pos/count', PosController.count);
+apiRouter.post('/pos', PosController.store);
+apiRouter.get('/pos/:id', PosController.show);
+apiRouter.put('/pos/:id', PosController.update);
+apiRouter.delete('/pos/:id', PosController.delete);
 
-app.get('/api/categories', CategoryController.index);
-app.get('/api/categories/count', CategoryController.count);
-app.post('/api/categories', CategoryController.store);
-app.get('/api/categories/:id', CategoryController.show);
-app.put('/api/categories/:id', CategoryController.update);
-app.delete('/api/categories/:id', CategoryController.delete);
+apiRouter.get('/categories', CategoryController.index);
+apiRouter.get('/categories/count', CategoryController.count);
+apiRouter.post('/categories', CategoryController.store);
+apiRouter.get('/categories/:id', CategoryController.show);
+apiRouter.put('/categories/:id', CategoryController.update);
+apiRouter.delete('/categories/:id', CategoryController.delete);
 
-// Group
-app.get('/api/members', MemberController.index);
-app.get('/api/members/:nik/nik-check', MemberController.nixExist);
-app.get('/api/members/:no_kk/nokk-check', MemberController.nokkExist);
-app.get('/api/members/count', MemberController.count);
-app.post('/api/members', MemberController.store);
-app.get('/api/members/:id', MemberController.show);
-app.put('/api/members/:id', MemberController.update);
-app.delete('/api/members/:id', MemberController.delete);
+// Members
+apiRouter.get('/members', MemberController.index);
+apiRouter.get('/members/:nik/nik-check', MemberController.nixExist);
+apiRouter.get('/members/:no_kk/nokk-check', MemberController.nokkExist);
+apiRouter.get('/members/count', MemberController.count);
+apiRouter.post('/members', MemberController.store);
+apiRouter.get('/members/:id', MemberController.show);
+apiRouter.put('/members/:id', MemberController.update);
+apiRouter.delete('/members/:id', MemberController.delete);
 
 // Schedule
-app.get('/api/schedule', ScheduleController.index);
-app.post('/api/schedule', ScheduleController.store);
-app.get('/api/schedule/:id', ScheduleController.show);
-app.put('/api/schedule/:id', ScheduleController.update);
-app.delete('/api/schedule/:id', ScheduleController.delete);
+apiRouter.get('/schedule', ScheduleController.index);
+apiRouter.post('/schedule', ScheduleController.store);
+apiRouter.get('/schedule/:id', ScheduleController.show);
+apiRouter.put('/schedule/:id', ScheduleController.update);
+apiRouter.delete('/schedule/:id', ScheduleController.delete);
 
 
 // loans
-app.get('/api/loans', LoanController.index);
-app.post('/api/loans', LoanController.store);
-app.get('/api/loans/:id', LoanController.show);
-app.get('/api/loans/:id/status-pinjaman', LoanController.pinjamanAnggotaStatus);
-app.get('/api/loans/:id/code', LoanController.getCode);
-app.put('/api/loans/:id', LoanController.update);
-app.delete('/api/loans/:id', LoanController.delete);
+apiRouter.get('/loans', LoanController.index);
+apiRouter.post('/loans', LoanController.store);
+apiRouter.get('/loans/:id', LoanController.show);
+apiRouter.get('/loans/:id/status-pinjaman', LoanController.pinjamanAnggotaStatus);
+apiRouter.get('/loans/:id/code', LoanController.getCode);
+apiRouter.put('/loans/:id', LoanController.update);
+apiRouter.delete('/loans/:id', LoanController.delete);
 
-app.get('/api/angsuran/:id', AngsuranController.index);
-app.post('/api/angsuran/:idPinjaman', AngsuranController.store);
-app.put('/api/angsuran/:id', AngsuranController.update);
-app.put('/api/delete-angsuran/:id', AngsuranController.delete);
-app.get('/api/angsuran/aktif/:id', AngsuranController.lastAngsuran);
+apiRouter.get('/angsuran/:id', AngsuranController.index);
+apiRouter.post('/angsuran/:idPinjaman', AngsuranController.store);
+apiRouter.put('/angsuran/:id', AngsuranController.update);
+apiRouter.put('/delete-angsuran/:id', AngsuranController.delete);
+apiRouter.get('/angsuran/aktif/:id', AngsuranController.lastAngsuran);
 
-app.get('/api/transactions', TransactionController.index);
-app.get('/api/laba-rugi', TransactionController.labaRugi);
-app.post('/api/transactions', TransactionController.store);
-app.get('/api/transactions/:id', TransactionController.show);
-app.put('/api/transactions/:id', TransactionController.update);
-app.delete('/api/transactions/:id', TransactionController.delete);
-app.get('/api/getGroupsTransaction', TransactionController.getGroupTransaction);
+apiRouter.get('/transactions', TransactionController.index);
+apiRouter.get('/laba-rugi', TransactionController.labaRugi);
+apiRouter.post('/transactions', TransactionController.store);
+apiRouter.get('/transactions/:id', TransactionController.show);
+apiRouter.put('/transactions/:id', TransactionController.update);
+apiRouter.delete('/transactions/:id', TransactionController.delete);
+apiRouter.get('/getGroupsTransaction', TransactionController.getGroupTransaction);
 
-app.get('/api/configLoan', (req, res) => {
+apiRouter.get('/configLoan', (req, res) => {
     const totalBulan = process.env.VITE_APP_BULAN || 10;
     const modalDo = process.env.VITE_APP_MODAL_DO || 13;
     return res.json({ config: { totalBulan, modalDo } })
 });
 
-app.post('/api/export-db', async (req, res) => {
+apiRouter.post('/export-db', async (req, res) => {
     exportDB();
     await saveHolidayJson();
     return res.json({ message: "Berhasil export db" })
 });
-app.get('/api/list-backup', async (req, res) => {
+apiRouter.get('/list-backup', async (req, res) => {
     return res.json({ backups: listBackup() })
 });
 
 
-app.get("/api/posisi-usaha-angsuran", PosisiUsaha.getAngsuran)
-app.get("/api/posisi-usaha-modaldo", PosisiUsaha.getModalDo)
+apiRouter.get('/posisi-usaha-angsuran', PosisiUsaha.getAngsuran)
+apiRouter.get('/posisi-usaha-modaldo', PosisiUsaha.getModalDo)
+
+app.use('/api', apiRouter);
 app.listen(port, async () => {
 
     console.log(`Server running at http://localhost:${port}`);
