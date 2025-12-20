@@ -56,8 +56,8 @@ class CategoryModel {
             .orderBy("id", "desc")
             .first();
         let newNumber = 1;
-        if (last?.code) {
-            const match = last.code.match(/KTG-(\d+)/);
+        if (last.code) {
+            const match = last.code.match(/KTG(\d+)/);
             if (match) {
                 newNumber = parseInt(match[1], 10) + 1;
             }
@@ -92,7 +92,7 @@ class CategoryModel {
         return !!result;
     }
 
- 
+
 }
 
 export default CategoryModel; // instansiasi tunggal
