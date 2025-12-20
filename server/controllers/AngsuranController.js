@@ -220,10 +220,6 @@ export default class AngsuranController {
         }
     }
 
-
-
-
-
     static async update(req, res) {
         await body('penagih').isArray({
             min: 1
