@@ -229,7 +229,7 @@ const LoanForm: React.FC = () => {
                     ? { original: originalData[key], updated: data[key] }
                     : { original: data[key], updated: "-" };
             });
-            
+
             let res;
             if (!id) {
                 res = await axios.post("/api/loans", data);
@@ -241,20 +241,20 @@ const LoanForm: React.FC = () => {
 
             if (res.status === 201 || res.status === 200) {
                 const nominal = totalPinjamanLama > parseInt(data.total_pinjaman) ? -(totalPinjamanLama - parseInt(data.total_pinjaman)) : parseInt(data.total_pinjaman) - totalPinjamanLama;
-                await axios.post("/api/transactions", {
-                    transaction_type: 'credit',
-                    category_id: 1,
-                    description: description ?? "Kelompok 0",
-                    nominal: nominal,
-                    pos_id: user?.pos_id,
-                    user: user?.id ?? null,
-                    resource: "pinjaman",
-                    meta: JSON.stringify(meta),
-                    status: id ? "edit" : "add",
-                    reason: id ? "edit pinjaman" : "add pinjaman",
+                // await axios.post("/api/transactions", {
+                //     transaction_type: 'credit',
+                //     category_id: 1,
+                //     description: description ?? "Kelompok 0",
+                //     nominal: nominal,
+                //     pos_id: user?.pos_id,
+                //     user: user?.id ?? null,
+                //     resource: "pinjaman",
+                //     meta: JSON.stringify(meta),
+                //     status: id ? "edit" : "add",
+                //     reason: id ? "edit pinjaman" : "add pinjaman",
 
 
-                });
+                // });
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
                 navigate("/loan?isFromTransaction=true");
             }

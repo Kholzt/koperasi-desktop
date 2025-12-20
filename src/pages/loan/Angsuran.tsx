@@ -180,18 +180,18 @@ const Angsuran: React.FC = () => {
                 if (data.status != "Libur Operasional" && data.status != "libur") {
                     const jumlahBayar = unformatCurrency(data.jumlah_bayar ?? "0") + unformatCurrency(data.jumlah_katrol ?? "0");
                     const nominal = totalPinjamanLama > jumlahBayar ? -(totalPinjamanLama - jumlahBayar) : jumlahBayar - totalPinjamanLama;
-                    await axios.post("/api/transactions", {
-                        transaction_type: 'debit',
-                        category_id: 1,
-                        description: description ?? "Kelompok 0",
-                        nominal: nominal,
-                        pos_id: user?.pos_id,
-                        user: user?.id ?? null,
-                        resource: "angsuran",
-                        meta: JSON.stringify(meta),
-                        reason: reason,
-                        status: status
-                    });
+                    // await axios.post("/api/transactions", {
+                    //     transaction_type: 'debit',
+                    //     category_id: 1,
+                    //     description: description ?? "Kelompok 0",
+                    //     nominal: nominal,
+                    //     pos_id: user?.pos_id,
+                    //     user: user?.id ?? null,
+                    //     resource: "angsuran",
+                    //     meta: JSON.stringify(meta),
+                    //     reason: reason,
+                    //     status: status
+                    // });
 
                 }
                 toast.success("Angsuran berhasil diubah")

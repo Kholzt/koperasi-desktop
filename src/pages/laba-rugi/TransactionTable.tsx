@@ -17,6 +17,11 @@ interface TransactionTableProps {
 }
 
 const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) => {
+    const { user: userLogin } = useUser();
+    const isAdminAndPusat = (userLogin?.role == "pusat" || userLogin?.role == "super admin");
+    const isAdminPusatController = (userLogin?.role == "pusat" || userLogin?.role == "super admin" || userLogin?.role == "controller");
+
+    data = data.filter((d) => isAdminAndPusat && d.deleted_at == null)
     const debit = data
         .reduce((sum, t) => sum + t.total_debit, 0);
 
@@ -26,11 +31,6 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
 
     // Selisih debit dan credit
     const total = debit - credit;
-
-
-    const { user: userLogin } = useUser();
-    const isAdminAndPusat = (userLogin?.role == "pusat" || userLogin?.role == "super admin");
-    const isAdminPusatController = (userLogin?.role == "pusat" || userLogin?.role == "super admin" || userLogin?.role == "controller");
 
     return (
         <div className=" rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
