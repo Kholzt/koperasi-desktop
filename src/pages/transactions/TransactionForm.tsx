@@ -20,9 +20,10 @@ import Button from "../../components/ui/button/Button";
 import { useUser } from "../../hooks/useUser";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { formatCurrency, unformatCurrency } from "../../utils/helpers";
+import { formatCurrency, toLocalDate, unformatCurrency } from "../../utils/helpers";
 import { CategoryProps, MemberProps, UserProps } from "../../utils/types";
 import TextArea from "../../components/form/input/TextArea";
+import DatePicker from "../../components/form/date-picker";
 
 interface TransactionFormInput {
     transaction_type: 'credit' | 'debit';
@@ -34,6 +35,7 @@ interface TransactionFormInput {
     user?: number;
     reason?: string;
     resource?: string;
+    date?: string;
 }
 
 const schema: yup.SchemaOf<TransactionFormInput> = yup.object({
@@ -42,6 +44,7 @@ const schema: yup.SchemaOf<TransactionFormInput> = yup.object({
     pos_id: yup.string().required('Pos wajib diisi'),
     description: yup.string().required('Keterangan wajib diisi'),
     nominal: yup.string().required('Nominal wajib diisi'),
+    date: yup.string().required('Tanggal wajib diisi'),
 });
 
 const TransactionForm: React.FC = () => {
@@ -218,6 +221,19 @@ const TransactionForm: React.FC = () => {
                                     </span>
                                 </div>
                                 {errors.nominal && <p className="text-sm text-red-500 mt-1">{errors.nominal.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="penanggung_jawab">Tanggal Pinjam</Label>
+                                <DatePicker
+                                    id={"date"}
+                                    mode="single"
+                                    placeholder="Tanggal transaksi"
+                                    defaultDate={getValues("date")}
+                                    onChange={(date) => {
+                                        setValue("date", toLocalDate(date[0]), { shouldDirty: true });
+                                    }}
+                                />
+                                {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date.message}</p>}
                             </div>
                             {isUpdate && <div className="col-span-2">
                                 <Label htmlFor="reason">Alasan Perubahan</Label>

@@ -2,7 +2,15 @@ import { useCallback, useEffect, useState } from 'react';
 import { getLoans, getGroups } from '../services/loanService';
 import { GroupProps, LoanProps, PaginationProps } from '../../../utils/types';
 import { useTheme } from '../../../context/ThemeContext';
-
+const dayMap: any = {
+    all: 'all',
+    senin: 'monday',
+    selasa: 'tuesday',
+    rabu: 'wednesday',
+    kamis: 'thursday',
+    jumat: 'friday',
+    sabtu: 'saturday'
+};
 export function useLoan() {
   const [filter, setFilter] = useState<{ startDate: string | null; endDate: string | null; status: string | null }>({
     startDate: null,
@@ -47,7 +55,7 @@ export function useLoan() {
         status: filter.status,
         startDate: startDate || filter.startDate || '',
         endDate: endDate || filter.endDate || '',
-        day: dayFilter || '',
+        day:dayMap[dayFilter] || '',
         group: groupFilter || '',
         search: search || '',
       });

@@ -72,7 +72,7 @@ const Transaction: React.FC = () => {
                 console.log(res);
                 setGroups(res.data.groups.map((group: any) => ({ text: group.description, value: group.description })))
             });
-    }, [reload, filter]);
+    }, [reload, filter, userLogin]);
 
     const searchAction = (e: any) => {
         const value = e.target.value;
