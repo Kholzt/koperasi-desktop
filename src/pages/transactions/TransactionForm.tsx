@@ -158,7 +158,7 @@ const TransactionForm: React.FC = () => {
     return (
         <>
             <PageMeta title={`${!id ? "Tambah Transaksi" : "Ubah Transaksi"} | ${import.meta.env.VITE_APP_NAME}`} description="" />
-            <PageBreadcrumb pageTitle={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"} />
+            <PageBreadcrumb pageTitle={!id ? "Tambah Transaksi" : "Ubah Transaksi"} />
             <div className="w-full mx-auto mb-2">
                 <Link to="/transactions" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                     <ChevronLeftIcon className="size-5" />
@@ -168,9 +168,22 @@ const TransactionForm: React.FC = () => {
 
             <div className="space-y-6">
                 {alert && <Alert variant="error" title="Pemberitahuan" message={alert} />}
-                <ComponentCard title={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"}>
+                <ComponentCard title={!id ? "Tambah Transaksi" : "Ubah Transaksi"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
+                            <div>
+                                <Label htmlFor="penanggung_jawab">Tanggal Input</Label>
+                                <DatePicker
+                                    id={"date"}
+                                    mode="single"
+                                    placeholder="Tanggal transaksi"
+                                    defaultDate={getValues("date")}
+                                    onChange={(date) => {
+                                        setValue("date", toLocalDate(date[0]), { shouldDirty: true });
+                                    }}
+                                />
+                                {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date.message}</p>}
+                            </div>
                             <div>
                                 <Label htmlFor="pos_id">Pos</Label>
                                 <SelectSearch
@@ -195,11 +208,7 @@ const TransactionForm: React.FC = () => {
                                 />
                                 {errors.category_id && <p className="text-sm text-red-500 mt-1">{errors.category_id.message}</p>}
                             </div>
-                            <div>
-                                <Label htmlFor="description">Keterangan</Label>
-                                <Input id="description" type="text" {...register("description")} />
-                                {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>}
-                            </div>
+
                             <div>
                                 <Label htmlFor="transaction_type">Jenis Transaksi</Label>
                                 <Select
@@ -223,17 +232,9 @@ const TransactionForm: React.FC = () => {
                                 {errors.nominal && <p className="text-sm text-red-500 mt-1">{errors.nominal.message}</p>}
                             </div>
                             <div>
-                                <Label htmlFor="penanggung_jawab">Tanggal Pinjam</Label>
-                                <DatePicker
-                                    id={"date"}
-                                    mode="single"
-                                    placeholder="Tanggal transaksi"
-                                    defaultDate={getValues("date")}
-                                    onChange={(date) => {
-                                        setValue("date", toLocalDate(date[0]), { shouldDirty: true });
-                                    }}
-                                />
-                                {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date.message}</p>}
+                                <Label htmlFor="description">Keterangan</Label>
+                                <Input id="description" type="text" {...register("description")} />
+                                {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>}
                             </div>
                             {isUpdate && <div className="col-span-2">
                                 <Label htmlFor="reason">Alasan Perubahan</Label>
