@@ -69,7 +69,6 @@ const Transaction: React.FC = () => {
         axios
             .get(`/api/getGroupsTransaction`)
             .then((res: any) => {
-                console.log(res);
                 setGroups(res.data.groups.map((group: any) => ({ text: group.description, value: group.description })))
             });
     }, [reload, filter, userLogin]);

@@ -183,7 +183,6 @@ const SelectSearch: React.FC<SelectSearchProps> = ({
     // === Sinkronisasi defaultValue ketika prop berubah ===
     useEffect(() => {
         setSelected(defaultValue);
-        console.log(defaultValue, defaultLabel);
 
         if (!fetchOptions) {
             const found = options.find(opt => opt.value === defaultValue);

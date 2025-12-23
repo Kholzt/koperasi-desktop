@@ -3,10 +3,11 @@ import DatePicker from "../../components/form/date-picker";
 import {
     DollarLineIcon
 } from "../../icons";
-import { toLocalDate } from '../../utils/helpers';
+import { getPosisiUsaha, toLocalDate } from '../../utils/helpers';
 import { MetricItem } from './MetricItem';
 import { Modals } from './Modals';
 import { useAngsuran, useModalDo } from './hooks/usePosisiUsaha';
+import { posisiUsahaCode } from "../../utils/constanta"
 const Metrics: React.FC = () => {
 
     interface PaginationProps {
@@ -28,6 +29,7 @@ const Metrics: React.FC = () => {
     const [angsuranHistoryOpen, setAngsuranHistoryOpen] = useState<boolean>(false);
     const [modalDoHistoryOpen, setModalDoHistoryOpen] = useState<boolean>(false);
     useEffect(() => {
+        // const modalDoToday = getPosisiUsaha(posisiUsahaCode.MODALDO)
         // initial load
         fetchAngsuran(1, paginationAngsuran.limit, startDate || '', endDate || '');
         fetchModalDo(1, paginationModalDo.limit, startDate || '', endDate || '');
