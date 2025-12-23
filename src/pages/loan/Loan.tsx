@@ -17,15 +17,7 @@ import Table from './LoanTable';
 const days = [
     'all', "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"
 ]
-const dayMap: any = {
-    all: 'all',
-    senin: 'monday',
-    selasa: 'tuesday',
-    rabu: 'wednesday',
-    kamis: 'thursday',
-    jumat: 'friday',
-    sabtu: 'saturday'
-};
+
 
 const Loan: React.FC = () => {
     const {
