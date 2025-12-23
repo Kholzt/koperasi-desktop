@@ -155,7 +155,7 @@ const TransactionForm: React.FC = () => {
     return (
         <>
             <PageMeta title={`${!id ? "Tambah Transaksi" : "Ubah Transaksi"} | ${import.meta.env.VITE_APP_NAME}`} description="" />
-            <PageBreadcrumb pageTitle={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"} />
+            <PageBreadcrumb pageTitle={!id ? "Tambah Transaksi" : "Ubah Transaksi"} />
             <div className="w-full mx-auto mb-2">
                 <Link to="/transactions" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                     <ChevronLeftIcon className="size-5" />
@@ -165,7 +165,7 @@ const TransactionForm: React.FC = () => {
 
             <div className="space-y-6">
                 {alert && <Alert variant="error" title="Pemberitahuan" message={alert} />}
-                <ComponentCard title={!id ? "Tambah Peminjaman" : "Ubah Peminjaman"}>
+                <ComponentCard title={!id ? "Tambah Transaksi" : "Ubah Transaksi"}>
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
                             <div>
