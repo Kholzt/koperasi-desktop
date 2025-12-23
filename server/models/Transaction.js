@@ -31,9 +31,9 @@ export default class Transaction {
                 `transactions.date BETWEEN  '${startDate}' AND '${endDate}'`
             );
         } else if (startDate && startDate !== "null") {
-            query.andWhereRaw(`transactions.date >= '${startDate}'`);
+            query.andWhereRaw(`DATE(transactions.date) = '${startDate}'`);
         } else if (endDate && endDate !== "null") {
-            query.andWhereRaw(`transactions.date <= '${endDate}'`);
+            query.andWhereRaw(`DATE(transactions.date) = '${endDate}'`);
         }
 
         let transactions = await query
