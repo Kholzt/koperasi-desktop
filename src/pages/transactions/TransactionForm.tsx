@@ -172,6 +172,19 @@ const TransactionForm: React.FC = () => {
                     <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div className="grid md:grid-cols-2 grid-cols-1 gap-6">
                             <div>
+                                <Label htmlFor="penanggung_jawab">Tanggal Input</Label>
+                                <DatePicker
+                                    id={"date"}
+                                    mode="single"
+                                    placeholder="Tanggal transaksi"
+                                    defaultDate={getValues("date")}
+                                    onChange={(date) => {
+                                        setValue("date", toLocalDate(date[0]), { shouldDirty: true });
+                                    }}
+                                />
+                                {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date.message}</p>}
+                            </div>
+                            <div>
                                 <Label htmlFor="pos_id">Pos</Label>
                                 <SelectSearch
                                     label=""
@@ -195,11 +208,7 @@ const TransactionForm: React.FC = () => {
                                 />
                                 {errors.category_id && <p className="text-sm text-red-500 mt-1">{errors.category_id.message}</p>}
                             </div>
-                            <div>
-                                <Label htmlFor="description">Keterangan</Label>
-                                <Input id="description" type="text" {...register("description")} />
-                                {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>}
-                            </div>
+
                             <div>
                                 <Label htmlFor="transaction_type">Jenis Transaksi</Label>
                                 <Select
@@ -223,17 +232,9 @@ const TransactionForm: React.FC = () => {
                                 {errors.nominal && <p className="text-sm text-red-500 mt-1">{errors.nominal.message}</p>}
                             </div>
                             <div>
-                                <Label htmlFor="penanggung_jawab">Tanggal Pinjam</Label>
-                                <DatePicker
-                                    id={"date"}
-                                    mode="single"
-                                    placeholder="Tanggal transaksi"
-                                    defaultDate={getValues("date")}
-                                    onChange={(date) => {
-                                        setValue("date", toLocalDate(date[0]), { shouldDirty: true });
-                                    }}
-                                />
-                                {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date.message}</p>}
+                                <Label htmlFor="description">Keterangan</Label>
+                                <Input id="description" type="text" {...register("description")} />
+                                {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description.message}</p>}
                             </div>
                             {isUpdate && <div className="col-span-2">
                                 <Label htmlFor="reason">Alasan Perubahan</Label>
