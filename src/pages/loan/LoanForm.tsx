@@ -299,7 +299,7 @@ const LoanForm: React.FC = () => {
                                     options={anggota}
                                     fetchOptions={async (query) => {
                                         const qr = query != getValues("anggota_id") ? query : memberNameEdit
-                                        const res = await axios.get(`/api/members?search=${qr}`);
+                                        const res = await axios.get(`/api/members?search=${qr}&limit=20000000`);
                                         return res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id }))
 
                                     }}
