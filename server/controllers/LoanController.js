@@ -376,12 +376,12 @@ export default class LoanController {
                 return res.status(404).json({ error: 'Pinjaman tidak ditemukan' });
             }
 
-            const isUsed = pinjaman.total_pinjaman > pinjaman.sisa_pembayaran || pinjaman.besar_tunggakan > 0;
-            if (isUsed) {
-                return res.status(409).json({
-                    error: 'Pinjaman gagal dihapus, Data sedang digunakan dibagian lain sistem',
-                });
-            }
+            // const isUsed = pinjaman.total_pinjaman > pinjaman.sisa_pembayaran || pinjaman.besar_tunggakan > 0;
+            // if (isUsed) {
+            //     return res.status(409).json({
+            //         error: 'Pinjaman gagal dihapus, Data sedang digunakan dibagian lain sistem',
+            //     });
+            // }
             await Loan.softDelete(id);
             res.status(200).json({
                 pinjaman: pinjaman,
