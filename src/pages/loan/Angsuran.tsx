@@ -17,7 +17,7 @@ import Button from "../../components/ui/button/Button";
 import { useTheme } from "../../context/ThemeContext";
 import { useUser } from "../../hooks/useUser";
 import axios from "../../utils/axios";
-import { formatCurrency, unformatCurrency } from "../../utils/helpers";
+import { formatCurrency, insertToTransaction, toLocalDate, unformatCurrency } from "../../utils/helpers";
 import { AngsuranProps, EmployeProps, UserProps } from "../../utils/types";
 import { formatDate } from './../../utils/helpers';
 
@@ -140,6 +140,7 @@ const Angsuran: React.FC = () => {
                 : { original: data[key], updated: "-" };
         });
 
+
         let reason;
         let status;
         try {
@@ -180,18 +181,21 @@ const Angsuran: React.FC = () => {
                 if (data.status != "Libur Operasional" && data.status != "libur") {
                     const jumlahBayar = unformatCurrency(data.jumlah_bayar ?? "0") + unformatCurrency(data.jumlah_katrol ?? "0");
                     const nominal = totalPinjamanLama > jumlahBayar ? -(totalPinjamanLama - jumlahBayar) : jumlahBayar - totalPinjamanLama;
-                    // await axios.post("/api/transactions", {
-                    //     transaction_type: 'debit',
-                    //     category_id: 1,
-                    //     description: description ?? "Kelompok 0",
-                    //     nominal: nominal,
-                    //     pos_id: user?.pos_id,
-                    //     user: user?.id ?? null,
-                    //     resource: "angsuran",
-                    //     meta: JSON.stringify(meta),
-                    //     reason: reason,
-                    //     status: status
-                    // });
+                    const dataTransaction = {
+                        transaction_type: 'debit',
+                        category_id: 1,
+                        description: description ?? "Kelompok 0",
+                        nominal: nominal,
+                        pos_id: user?.pos_id,
+                        user: user?.id ?? null,
+                        resource: "angsuran",
+                        meta: JSON.stringify(meta),
+                        reason: reason,
+                        status: status,
+                        date: angsuran?.tanggal_pembayaran ? toLocalDate(new Date(angsuran?.tanggal_pembayaran)) : toLocalDate(new Date())
+                    }
+                    // await axios.post("/api/transactions", dataTransaction);
+
 
                 }
                 toast.success("Angsuran berhasil diubah")

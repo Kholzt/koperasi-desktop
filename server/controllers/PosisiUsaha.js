@@ -7,10 +7,11 @@ export default class PosisiUsaha {
             const today = db.raw('CURDATE()');
             const posisiUsaha = await db("type_variabel")
                 .join("posisi_usaha", "type_variabel.id", "posisi_usaha.type_id")
-                // .where("type_variabel.code", code)
+                .where("type_variabel.code", code)
                 .whereRaw('DATE(posisi_usaha.created_at) = CURDATE()')
-                .select(db.raw("SUM('posisi_usaha.amount') as amount"), "code")
-                .groupByRaw('DATE(posisi_usaha.created_at)');
+                .select(db.raw("SUM(posisi_usaha.amount) as amount"))
+                .groupByRaw('DATE(posisi_usaha.created_at)')
+                .first();
 
             return res.status(200).json({ posisiUsaha });
         } catch (error) {

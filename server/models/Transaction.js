@@ -2,15 +2,25 @@ import db from "../config/db";
 
 export default class Transaction {
     static async findAll({ startDate, endDate = null, transaction_type = null, categories = null, groups = null, pos = null, isPusatAdmin = false }) {
+
+        const lastDate = await db('transactions')
+            .whereNull('deleted_at')
+            .andWhere('date', '<', startDate)
+            .orderBy('date', 'desc')
+            .select('date')
+            .first();
+        const lastDateOnly = lastDate.date.toISOString().slice(0, 10);
+
         // 1. Hitung saldo awal
         const saldoQuery = await db('transactions')
             .whereNull('deleted_at')
-            .andWhere('date', '<', `${startDate}`)
+            .andWhereRaw(`DATE(date) = '${lastDateOnly}'`)
             .select(
                 db.raw(`SUM(CASE WHEN transaction_type = 'debit' THEN amount ELSE 0 END) as total_debit`),
                 db.raw(`SUM(CASE WHEN transaction_type = 'credit' THEN amount ELSE 0 END) as total_kredit`)
             )
             .first();
+
         const saldoAwal = (saldoQuery.total_debit || 0) - (saldoQuery.total_kredit || 0);
 
         // 2. Lanjutkan query utama Anda

@@ -108,6 +108,7 @@ export default class TransactionController {
 
 
     static async store(req, res) {
+        // Validasi input
         await body('pos_id').notEmpty().withMessage('Pos wajib diisi').run(req);
         await body('category_id').notEmpty().withMessage('Kategori wajib diisi').run(req);
         await body('description').notEmpty().withMessage('Keterangan wajib diisi').run(req);
@@ -115,7 +116,6 @@ export default class TransactionController {
         await body('nominal').notEmpty().withMessage('Nominal wajib diisi').run(req);
         await body('user').notEmpty().withMessage('User wajib diisi').run(req);
         await body('resource').notEmpty().withMessage('Resource wajib diisi').run(req);
-
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -128,21 +128,25 @@ export default class TransactionController {
 
         try {
             const { category_id, pos_id, description, transaction_type, nominal, date, user, resource, meta, reason, status } = req.body;
+            const now = new Date();
+            const transactionDate = date ?? now;
 
             const code = await Transaction.generateCode({ category_id, transaction_type });
+            const existingTransaction = await Transaction.getTransactionsByInfo({
+                category: category_id,
+                date: transactionDate,
+                desc: description,
+                type: transaction_type
+            });
 
-            const now = new Date();
-            const isUpdate = await Transaction.getTransactionsByInfo({ category: category_id, date: date ?? now, desc: description, type: transaction_type });
-
-            if (isUpdate) {
-                await Transaction.update({ amount: isUpdate.amount + nominal }, isUpdate.id);
+            if (existingTransaction) {
+                await Transaction.update({ amount: existingTransaction.amount + nominal }, existingTransaction.id);
                 await Transaction.createLog({
-                    id_transaksi: isUpdate.id,
+                    id_transaksi: existingTransaction.id,
                     updated_by: user,
-                    status: status ?? "edit",
-                    meta: meta,
-                    reason: reason ?? (resource == "angsuran" ? "edit angsuran" : (resource == "pinjaman" ? "edit pinjaman" : "edit transaksi"))
-
+                    status: status ?? 'edit',
+                    meta,
+                    reason: reason ?? this._getDefaultReason(resource, 'edit')
                 });
             } else {
                 const loanId = await Transaction.create({
@@ -153,26 +157,43 @@ export default class TransactionController {
                     amount: nominal,
                     code,
                     created_by: user,
-                    created_at: now, date: date ?? now,
+                    created_at: now,
+                    date: transactionDate,
                     resource
                 });
+
+                const isStandardResource = ['angsuran', 'pinjaman'].includes(resource);
+                const metas = {};
+                if (!isStandardResource) {
+                    metas['Nominal'] = { original: '', updated: nominal };
+                    metas['Pos'] = { original: '', updated: pos_id };
+                    metas['Kategori'] = { original: '', updated: category_id };
+                    metas['Keterangan'] = { original: '', updated: description };
+                    metas['Tipe Transaksi'] = { original: '', updated: transaction_type };
+                }
+
                 await Transaction.createLog({
                     id_transaksi: loanId,
                     updated_by: user,
-                    status: "add",
-                    meta: (resource != "angsuran" && resource != "pinjaman") ? JSON.stringify(["Nominal", "pos", "category", "description", "transaction_type", "amount", "created_by"]) : meta,
-                    reason: resource == "angsuran" ? "add angsuran" : (resource == "pinjaman" ? "add pinjaman" : "add transaksi")
-
+                    status: 'add',
+                    meta: JSON.stringify(metas),
+                    reason: reason ?? TransactionController._getDefaultReason(resource, 'add')
                 });
             }
 
-            res.status(200).json({
-                message: 'Transaksi berhasil dibuat',
-            });
-
+            res.status(200).json({ message: 'Transaksi berhasil dibuat' });
         } catch (error) {
-            res.status(500).json({ error: 'Terjadi kesalahan saat menyimpan transaksi: ' + error.message });
+            res.status(500).json({ error: `Terjadi kesalahan saat menyimpan transaksi: ${error.message}` });
         }
+    }
+
+    static _getDefaultReason(resource, action) {
+        const reasonMap = {
+            angsuran: `${action} angsuran`,
+            pinjaman: `${action} pinjaman`,
+            default: `${action} transaksi`
+        };
+        return reasonMap[resource] || reasonMap.default;
     }
 
 
@@ -185,7 +206,6 @@ export default class TransactionController {
         await body('nominal').notEmpty().withMessage('Nominal wajib diisi').run(req);
         await body('user').notEmpty().withMessage('User wajib diisi').run(req);
         await body('resource').notEmpty().withMessage('Resource wajib diisi').run(req);
-
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -212,46 +232,38 @@ export default class TransactionController {
                 amount: nominal,
                 date: now,
                 resource
-                // date: date ?? now
             }, id);
 
-            let metas = [];
-            const newPos = await PosModel.findById(pos_id);
-            const newCategory = await CategoryModel.findById(category_id);
+            const metas = {};
             if (transaction.pos_id != pos_id) {
-                metas.push("Pos");
+                metas['Pos'] = { original: transaction.pos_id, updated: pos_id };
             }
-
             if (transaction.category_id != category_id) {
-                metas.push("Kategori");
+                metas['Kategori'] = { original: transaction.category_id, updated: category_id };
             }
-
             if (transaction.description != description) {
-                metas.push("Keterangan");
+                metas['Keterangan'] = { original: transaction.description, updated: description };
             }
-
             if (transaction.amount != nominal) {
-                metas.push("Nominal");
+                metas['Nominal'] = { original: transaction.amount, updated: nominal };
+            }
+            if (transaction.transaction_type != transaction_type) {
+                metas['Tipe Transaksi'] = { original: transaction.transaction_type, updated: transaction_type };
             }
 
-            if (transaction.transaction_type != transaction_type) {
-                metas.push("Tipe Transaksi");
-            }
             await Transaction.createLog({
                 id_transaksi: id,
                 updated_by: user,
                 status: "edit",
                 meta: JSON.stringify(metas),
                 reason: reason
-
             });
 
             res.status(200).json({
-                message: 'Transaksi berhasil diubah',
+                message: 'Transaksi berhasil diubah'
             });
-
         } catch (error) {
-            res.status(500).json({ error: 'Terjadi kesalahan saat menyimpan transaksi: ' + error.message });
+            res.status(500).json({ error: `Terjadi kesalahan saat menyimpan transaksi: ${error.message}` });
         }
     }
 

@@ -1,12 +1,16 @@
-type ConstMap = Record<string, string>;
+interface PosisiUsahaMap {
+  readonly MODALDO: string;
+  readonly STORTING: string;
+  readonly TARGET: string;
+}
 
-// Nilai default lokal (fallback jika API gagal)
-const posisiUsahaCode: ConstMap = {
-	MODALDO: "modaldo",
-	STORTING: "storting",
-	TARGET: "target",
-};
+// 2. Implementasikan dengan 'as const' untuk keamanan maksimal
+const posisiUsahaCode: PosisiUsahaMap = {
+  MODALDO: "modaldo",
+  STORTING: "storting",
+  TARGET: "target",
+} as const;
 
-export default {
+export  {
     posisiUsahaCode
 };

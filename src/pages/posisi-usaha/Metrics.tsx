@@ -3,21 +3,12 @@ import DatePicker from "../../components/form/date-picker";
 import {
     DollarLineIcon
 } from "../../icons";
-import { getPosisiUsaha, toLocalDate } from '../../utils/helpers';
+import { toLocalDate } from '../../utils/helpers';
+import { posisiUsahaCode } from '../../utils/constanta';
 import { MetricItem } from './MetricItem';
 import { Modals } from './Modals';
-import { useAngsuran, useModalDo } from './hooks/usePosisiUsaha';
-import { posisiUsahaCode } from "../../utils/constanta"
+import { useAngsuran, useModalDo, usePosisiUsaha } from './hooks/usePosisiUsaha';
 const Metrics: React.FC = () => {
-
-    interface PaginationProps {
-        page: number;
-        totalPages: number;
-        limit: number;
-        total: number;
-    }
-
-
 
     const [startDate, setStartDate] = useState<string | null>(null);
     const [endDate, setEndDate] = useState<string | null>(null);

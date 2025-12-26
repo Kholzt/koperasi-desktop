@@ -41,9 +41,9 @@ const Loan: React.FC = () => {
 
     useEffect(() => {
         fetchLoans(pagination.page);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search]);
-
 
     useEffect(() => {
 

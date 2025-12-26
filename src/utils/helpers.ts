@@ -76,3 +76,7 @@ export async function getPosisiUsaha(code:string) {
     const res = await axios(`/api/posisi-usaha?code=${code}`)
     return res.data.amount
 }
+
+export async function insertToTransaction(data:any) {
+        return await axios.post("/api/transactions", data);
+}

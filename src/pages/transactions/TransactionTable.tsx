@@ -30,10 +30,11 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
     const { user: userLogin } = useUser();
     const isAdminAndPusat = (userLogin?.role == "pusat" || userLogin?.role == "super admin");
     const isAdminPusatController = (userLogin?.role == "pusat" || userLogin?.role == "super admin" || userLogin?.role == "controller");
+    const isStaffController = (userLogin?.role == "staff" || userLogin?.role == "controller");
 
-    data = data.filter((d) => isAdminAndPusat && d.deleted_at == null)
+    data = data.filter((d) => (isStaffController && d.deleted_at == null) || (isAdminAndPusat))
     const debit = data
-        .filter(t => t.transaction_type === "debit" && t.category.name != "Kas" && !t.deleted_at)
+        .filter(t => t.transaction_type === "debit" && !t.deleted_at)
         .reduce((sum, t) => sum + t.amount, 0);
 
     // Hitung total credit
