@@ -4,9 +4,6 @@ import axios from "../../utils/axios";
 import Metrics from './Metrics';
 export default function PosisiUsaha() {
 
-    useEffect(() => {
-        axios.post("/api/export-db")
-    }, []);
     return (
         <>
             <PageMeta

@@ -11,8 +11,9 @@ interface ExportPDFProps {
 }
 
 const ExportPDF: React.FC<ExportPDFProps> = ({ data, tableRef, date }) => {
+
     const debit = data
-        .filter(t => t.transaction_type === "debit" && t.category.name != "Kas" && !t.deleted_at)
+        .filter(t => t.transaction_type === "debit" && !t.deleted_at)
         .reduce((sum, t) => sum + t.amount, 0);
 
     // Hitung total credit
@@ -21,8 +22,6 @@ const ExportPDF: React.FC<ExportPDFProps> = ({ data, tableRef, date }) => {
         .reduce((sum, t) => sum + t.amount, 0);
 
     const total = debit - credit;
-
-    console.log(data.filter((user: TransactionProps) => !user.deleted_at));
     return (
         <div>
             <div style={{ textAlign: "center", marginBottom: "20px" }}>

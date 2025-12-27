@@ -1,7 +1,23 @@
 import db from "../config/db";
 
 export default class PosisiUsaha {
+    static async getPosisiUsahaAll(req, res) {
+        const { code } = req.query
+        try {
+            const today = db.raw('CURDATE()');
+            const posisiUsaha = await db("type_variabel")
+                .join("posisi_usaha", "type_variabel.id", "posisi_usaha.type_id")
+                .where("type_variabel.code", code)
+                .whereRaw('DATE(posisi_usaha.created_at) = CURDATE()')
+                .select(db.raw("SUM(posisi_usaha.amount) as amount"))
+                .groupByRaw('DATE(posisi_usaha.created_at)')
+                .first();
 
+            return res.status(200).json({ posisiUsaha });
+        } catch (error) {
+            return res.status(500).json({ error: 'Failed to fetch posisi usaha', errors: error });
+        }
+    }
     static async getAngsuran(req, res) {
         try {
             const { page = 1, limit = 10, search = "", status = "aktif", startDate, endDate } = req.query;

@@ -20,7 +20,7 @@ import Button from "../../components/ui/button/Button";
 import { useUser } from "../../hooks/useUser";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { formatCurrency, toLocalDate, unformatCurrency } from "../../utils/helpers";
+import { formatCurrency, insertToTransaction, toLocalDate, unformatCurrency } from "../../utils/helpers";
 import { EmployeProps, MemberProps, UserProps } from "../../utils/types";
 import SelectSearch from './../../components/form/SelectSearch';
 import MultiSelect from "../../components/form/MultiSelect";
@@ -241,20 +241,20 @@ const LoanForm: React.FC = () => {
 
             if (res.status === 201 || res.status === 200) {
                 const nominal = totalPinjamanLama > parseInt(data.total_pinjaman) ? -(totalPinjamanLama - parseInt(data.total_pinjaman)) : parseInt(data.total_pinjaman) - totalPinjamanLama;
-                // await axios.post("/api/transactions", {
-                //     transaction_type: 'credit',
-                //     category_id: 1,
-                //     description: description ?? "Kelompok 0",
-                //     nominal: nominal,
-                //     pos_id: user?.pos_id,
-                //     user: user?.id ?? null,
-                //     resource: "pinjaman",
-                //     meta: JSON.stringify(meta),
-                //     status: id ? "edit" : "add",
-                //     reason: id ? "edit pinjaman" : "add pinjaman",
+                const dataTransaction = {
+                    transaction_type: 'credit',
+                    category_id: 1,
+                    description: description ?? "Kelompok 0",
+                    nominal: nominal,
+                    pos_id: user?.pos_id,
+                    user: user?.id ?? null,
+                    resource: "pinjaman",
+                    meta: JSON.stringify(meta),
+                    status: id ? "edit" : "add",
+                    reason: id ? "edit pinjaman" : "add pinjaman",
+                }
 
-
-                // });
+                // await axios.post("/api/transactions", dataTransaction);
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
                 navigate("/loan?isFromTransaction=true");
             }
@@ -299,7 +299,7 @@ const LoanForm: React.FC = () => {
                                     options={anggota}
                                     fetchOptions={async (query) => {
                                         const qr = query != getValues("anggota_id") ? query : memberNameEdit
-                                        const res = await axios.get(`/api/members?search=${qr}`);
+                                        const res = await axios.get(`/api/members?search=${qr}&limit=20000000`);
                                         return res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id }))
 
                                     }}

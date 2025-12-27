@@ -4,19 +4,11 @@ import {
     DollarLineIcon
 } from "../../icons";
 import { toLocalDate } from '../../utils/helpers';
+import { posisiUsahaCode } from '../../utils/constanta';
 import { MetricItem } from './MetricItem';
 import { Modals } from './Modals';
-import { useAngsuran, useModalDo } from './hooks/usePosisiUsaha';
+import { useAngsuran, useModalDo, usePosisiUsaha } from './hooks/usePosisiUsaha';
 const Metrics: React.FC = () => {
-
-    interface PaginationProps {
-        page: number;
-        totalPages: number;
-        limit: number;
-        total: number;
-    }
-
-
 
     const [startDate, setStartDate] = useState<string | null>(null);
     const [endDate, setEndDate] = useState<string | null>(null);
@@ -28,6 +20,7 @@ const Metrics: React.FC = () => {
     const [angsuranHistoryOpen, setAngsuranHistoryOpen] = useState<boolean>(false);
     const [modalDoHistoryOpen, setModalDoHistoryOpen] = useState<boolean>(false);
     useEffect(() => {
+        // const modalDoToday = getPosisiUsaha(posisiUsahaCode.MODALDO)
         // initial load
         fetchAngsuran(1, paginationAngsuran.limit, startDate || '', endDate || '');
         fetchModalDo(1, paginationModalDo.limit, startDate || '', endDate || '');

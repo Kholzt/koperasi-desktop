@@ -69,7 +69,6 @@ const Transaction: React.FC = () => {
         axios
             .get(`/api/getGroupsTransaction`)
             .then((res: any) => {
-                console.log(res);
                 setGroups(res.data.groups.map((group: any) => ({ text: group.description, value: group.description })))
             });
     }, [reload, filter, userLogin]);
@@ -81,7 +80,7 @@ const Transaction: React.FC = () => {
     const tableRef = useRef<HTMLDivElement>(null);
 
     const handleExportPDF = async () => {
-        console.log(transactions.filter((user: TransactionProps) => !user.deleted_at));
+
         const formatDate = filter.date.endDate ? filter.date.startDate + " - " + filter.date.endDate : filter.date.startDate;
         const htmlString = ReactDOMServer.renderToStaticMarkup(<ExportPDF date={formatDate ?? toLocalDate(new Date())} data={transactions.filter((user: TransactionProps) => !user.deleted_at)} />);
         await window.ipcRenderer.savePDF("Laporan Keuangan - " + formatDate, htmlString);

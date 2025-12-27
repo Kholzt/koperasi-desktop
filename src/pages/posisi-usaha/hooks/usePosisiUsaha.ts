@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from '../../../utils/axios';
 
 export interface PaginationProps {
@@ -71,4 +71,12 @@ export function useAngsuran() {
 
 export function useModalDo() {
     return usePaginatedResource('/api/posisi-usaha-modaldo', 'modaldo');
+}
+export  function usePosisiUsaha(code :string) {
+    const [amount, setAmount] = useState<number>(0);
+    useEffect(() => {
+        axios(`/api/posisi-usaha?code=${code}`).then((d)=>setAmount(d.data?.posisiUsaha?.amount ?? 0))
+    }, []);
+
+    return  amount;
 }

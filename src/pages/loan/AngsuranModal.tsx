@@ -15,7 +15,7 @@ import Button from "../../components/ui/button/Button";
 import { useTheme } from "../../context/ThemeContext";
 import { useUser } from "../../hooks/useUser";
 import axios from "../../utils/axios";
-import { formatCurrency, toLocalDate, unformatCurrency } from "../../utils/helpers";
+import { formatCurrency, insertToTransaction, toLocalDate, unformatCurrency } from "../../utils/helpers";
 import { AngsuranProps, EmployeProps, LoanProps, PaginationProps, UserProps } from "../../utils/types";
 
 
@@ -157,18 +157,21 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                 if (data.status != "Libur Operasional" && data.status != "libur") {
                     const jumlahBayar = unformatCurrency(data.jumlah_bayar ?? "0") + unformatCurrency(data.jumlah_katrol ?? "0");
 
-                    // await axios.post("/api/transactions", {
-                    //     transaction_type: 'debit',
-                    //     category_id: 1,
-                    //     description: description ?? "Kelompok 0",
-                    //     nominal: jumlahBayar,
-                    //     pos_id: user?.pos_id,
-                    //     user: user?.id ?? null,
-                    //     resource: "angsuran",
-                    //     meta: JSON.stringify(meta),
-                    //     reason: reason,
-                    //     status: status
-                    // });
+                    const dataTransaction = {
+                        transaction_type: 'debit',
+                        category_id: 1,
+                        description: description ?? "Kelompok 0",
+                        nominal: jumlahBayar,
+                        pos_id: user?.pos_id,
+                        user: user?.id ?? null,
+                        resource: "angsuran",
+                        meta: JSON.stringify(meta),
+                        reason: reason,
+                        status: status,
+                        date: angsuran?.tanggal_pembayaran ? toLocalDate(new Date(angsuran?.tanggal_pembayaran)) : toLocalDate(new Date())
+                    }
+                    // await axios.post("/api/transactions", dataTransaction);
+
                 }
                 onClose()
             }

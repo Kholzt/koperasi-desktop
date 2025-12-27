@@ -145,10 +145,11 @@ apiRouter.get('/list-backup', async (req, res) => {
 });
 
 
-apiRouter.get('/posisi-usaha-angsuran', PosisiUsaha.getAngsuran)
-apiRouter.get('/posisi-usaha-modaldo', PosisiUsaha.getModalDo)
-
+app.get("/api/posisi-usaha-angsuran", PosisiUsaha.getAngsuran)
+app.get("/api/posisi-usaha-modaldo", PosisiUsaha.getModalDo)
+app.get("/api/posisi-usaha", PosisiUsaha.getPosisiUsahaAll)
 app.use('/api', apiRouter);
+
 app.listen(port, async () => {
 
     console.log(`Server running at http://localhost:${port}`);
