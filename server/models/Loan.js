@@ -207,6 +207,18 @@ export default class Loan {
         return total > 0;
     }
 
+    static async getGroupNameByIdPinjaman(idPinjaman) {
+
+        return await db("pinjaman")
+            .select("group_name")
+            .where("pinjaman.id", idPinjaman)
+            .joinRaw(
+                `JOIN JSON_TABLE(pinjaman.penanggung_jawab, '$[*]'
+              COLUMNS (staff_id INT PATH '$')) pj ON TRUE`
+            )
+            .join("group_details", "pj.staff_id", "group_details.staff_id")
+            .join("groups", "group_details.group_id", "groups.id")
+    }
 
     static async updateSisaPembayaran(idPinjaman) {
         const pinjaman = await db("pinjaman").where("id", idPinjaman).first();
@@ -223,4 +235,20 @@ export default class Loan {
         });
     }
 
+    static async getListAngsuranByIdPinjaman(idPinjaman) {
+        return await db("angsuran")
+            .select("jumlah_bayar", "jumlah_katrol", "group_name", "tanggal_pembayaran")
+            .where("id_pinjaman", idPinjaman)
+            .whereNull("angsuran.deleted_at")
+            .join("penagih_angsuran", "angsuran.id", "penagih_angsuran.id_angsuran")
+            .leftJoin("group_details", "penagih_angsuran.id_karyawan", "group_details.staff_id")
+            .leftJoin("groups", "group_details.group_id", "groups.id")
+            .groupBy(
+                "angsuran.id",
+                "angsuran.jumlah_bayar",
+                "angsuran.jumlah_katrol",
+                "groups.group_name",
+                "angsuran.tanggal_pembayaran"
+            )
+    }
 }

@@ -1,4 +1,5 @@
 import db from "../config/db";
+import { formatDateLocal } from "../helpers/helpers";
 
 export default class Transaction {
     static async findAll({ startDate, endDate = null, transaction_type = null, categories = null, groups = null, pos = null, isPusatAdmin = false }) {
@@ -9,7 +10,7 @@ export default class Transaction {
             .orderBy('date', 'desc')
             .select('date')
             .first();
-        const lastDateOnly = lastDate.date.toISOString().slice(0, 10);
+        const lastDateOnly = lastDate?.date?.toISOString()?.slice(0, 10) ?? "1100-10-01";
 
         // 1. Hitung saldo awal
         const saldoQuery = await db('transactions')
@@ -208,23 +209,18 @@ export default class Transaction {
     static async softDelete(id) {
         return db('transactions').where({ id }).update({ deleted_at: new Date() });
     }
-    static formatDateLocal(date) {
-        const d = new Date(date);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-    }
 
-    static async getTransactionsByInfo({ desc, date, type, category }) {
+
+    static async getTransactionsByInfo({ desc, date, type, category, resource }) {
         // ubah ke format YYYY-MM-DD
-        const formattedDate = this.formatDateLocal(date);
+        const formattedDate = formatDateLocal(date);
 
         return await db("transactions as t")
             .where("category_id", category)
             .where("description", desc)
             .whereRaw("DATE(`date`) = '" + formattedDate + "'")
             .where("transaction_type", type)
+            .where("resource", resource)
             .first();
     }
 

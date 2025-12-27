@@ -106,4 +106,21 @@ export default class Angsuran {
         return db('angsuran').where({ id }).update({ deleted_at: new Date() });
     }
 
+    static async getGroupNameByIdAngsuran(idAngsuran) {
+        return await db("angsuran")
+            .select(
+                "angsuran.jumlah_bayar",
+                "angsuran.jumlah_katrol",
+                "angsuran.tanggal_pembayaran"
+            )
+            .select(db.raw("MIN(groups.group_name) as group_name"))
+            .where("angsuran.id", idAngsuran)
+            .whereNull("angsuran.deleted_at")
+            .join("penagih_angsuran", "angsuran.id", "penagih_angsuran.id_angsuran")
+            .leftJoin("group_details", "penagih_angsuran.id_karyawan", "group_details.staff_id")
+            .leftJoin("groups", "group_details.group_id", "groups.id")
+            .groupBy("angsuran.id", "angsuran.jumlah_bayar", "angsuran.jumlah_katrol", "angsuran.tanggal_pembayaran")
+            .first();
+    }
+
 }

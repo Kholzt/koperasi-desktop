@@ -136,7 +136,8 @@ export default class TransactionController {
                 category: category_id,
                 date: transactionDate,
                 desc: description,
-                type: transaction_type
+                type: transaction_type,
+                resource
             });
 
             if (existingTransaction) {

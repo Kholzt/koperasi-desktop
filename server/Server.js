@@ -1,21 +1,21 @@
 import cors from "cors";
 import dotenv from 'dotenv';
 import express from 'express';
+import { exportDB, listBackup } from "./config/db";
+import { saveHolidayJson } from "./config/holidays";
 import AngsuranController from './controllers/AngsuranController';
 import AreaController from './controllers/AreaController';
 import AuthController from './controllers/AuthController';
+import CategoryController from "./controllers/CategoryController";
 import EmployeController from './controllers/EmployeController';
 import GroupController from './controllers/GroupController';
-import PosController from './controllers/PosController';
 import LoanController from './controllers/LoanController';
 import MemberController from './controllers/MemberController';
+import PosController from './controllers/PosController';
+import PosisiUsahaController from "./controllers/PosisiUsahaController";
 import ScheduleController from './controllers/ScheduleController';
-import UserController from './controllers/UserController';
-import { exportDB, listBackup } from "./config/db";
-import { getAllHoliday, getHolidayJson, isHoliday, saveHolidayJson } from "./config/holidays";
-import CategoryController from "./controllers/CategoryController";
 import TransactionController from "./controllers/TransactionController";
-import PosisiUsaha from "./controllers/PosisiUsaha";
+import UserController from './controllers/UserController';
 
 
 dotenv.config();
@@ -144,10 +144,8 @@ app.get('/api/list-backup', async (req, res) => {
     return res.json({ backups: listBackup() })
 });
 
-
-app.get("/api/posisi-usaha-angsuran", PosisiUsaha.getAngsuran)
-app.get("/api/posisi-usaha-modaldo", PosisiUsaha.getModalDo)
-app.get("/api/posisi-usaha", PosisiUsaha.getPosisiUsahaAll)
+app.get("/api/posisi-usaha-today", PosisiUsahaController.getPosisiUsahaToday)
+app.get("/api/posisi-usaha", PosisiUsahaController.getPosisiUsaha)
 app.listen(port, async () => {
 
     console.log(`Server running at http://localhost:${port}`);

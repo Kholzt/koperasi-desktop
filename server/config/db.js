@@ -6,6 +6,7 @@ import path from 'path';
 import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { AsyncLocalStorage } from "node:async_hooks";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -45,7 +46,34 @@ if (!globalThis.__knexInstance) {
         console.log('Bindings:', queryData.bindings);
     });
 }
+const als = new AsyncLocalStorage();
 
+const knexInstance = globalThis.__knexInstance;
+
+db = new Proxy(knexInstance, {
+    get(target, prop) {
+        const trx = als.getStore();
+        const actual = trx ?? target;
+        const value = actual[prop];
+        console.log('USE TRX?', !!trx);
+
+        // bind function ke instance yang benar
+        if (typeof value === "function") {
+            return value.bind(actual);
+        }
+        return value;
+    },
+});
+
+export async function transaction(callback) {
+    return knexInstance.transaction(async (trx) => {
+
+        return als.run(trx, async () => {
+            return callback(db);
+
+        });
+    });
+}
 
 export function listBackup() {
     const backupDir = path.join(process.cwd(), 'backups');
@@ -124,5 +152,5 @@ export function exportDB() {
 }
 
 
-db = globalThis.__knexInstance;
+// db = globalThis.__knexInstance;
 export default db;

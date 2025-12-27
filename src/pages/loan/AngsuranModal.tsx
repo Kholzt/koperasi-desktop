@@ -168,7 +168,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                         meta: JSON.stringify(meta),
                         reason: reason,
                         status: status,
-                        date: angsuran?.tanggal_pembayaran ? toLocalDate(new Date(angsuran?.tanggal_pembayaran)) : toLocalDate(new Date())
+                        date: data?.tanggal_bayar ? toLocalDate(new Date(data?.tanggal_bayar)) : toLocalDate(new Date())
                     }
                     // await axios.post("/api/transactions", dataTransaction);
 

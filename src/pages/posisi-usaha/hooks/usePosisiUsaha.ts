@@ -8,7 +8,7 @@ export interface PaginationProps {
     total: number;
 }
 
-function usePaginatedResource(endpoint: string, itemsKey: string) {
+function usePaginatedResource(endpoint: string, itemsKey: string,code:string) {
     const [items, setItems] = useState<any[]>([]);
     const [sum, setSum] = useState<number>(0);
     const [pagination, setPagination] = useState<PaginationProps>({
@@ -20,7 +20,7 @@ function usePaginatedResource(endpoint: string, itemsKey: string) {
 
     const fetchPage = useCallback(async (page = 1, limit = pagination.limit, startDate = '', endDate = '') => {
         try {
-            let url = `${endpoint}?page=${page}&limit=${limit}`;
+            let url = `${endpoint}?page=${page}&limit=${limit}&code=${code}`;
             if (startDate) url += `&startDate=${startDate}`;
             if (endDate) url += `&endDate=${endDate}`;
             const res: any = await axios.get(url);
@@ -65,17 +65,13 @@ function usePaginatedResource(endpoint: string, itemsKey: string) {
     } as const;
 }
 
-export function useAngsuran() {
-    return usePaginatedResource('/api/posisi-usaha-angsuran', 'angsuran');
+export function usePosisiUsaha(code:string) {
+    return usePaginatedResource('/api/posisi-usaha', 'history',code);
 }
-
-export function useModalDo() {
-    return usePaginatedResource('/api/posisi-usaha-modaldo', 'modaldo');
-}
-export  function usePosisiUsaha(code :string) {
+export  function usePosisiUsahaToday(code :string) {
     const [amount, setAmount] = useState<number>(0);
     useEffect(() => {
-        axios(`/api/posisi-usaha?code=${code}`).then((d)=>setAmount(d.data?.posisiUsaha?.amount ?? 0))
+        axios(`/api/posisi-usaha-today?code=${code}`).then((d)=>setAmount(d.data?.posisiUsaha?.amount ?? 0))
     }, []);
 
     return  amount;

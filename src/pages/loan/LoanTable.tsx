@@ -29,7 +29,6 @@ interface LoanTableProps {
 
 const LoanTable: React.FC<LoanTableProps> = ({ data, pagination, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
-
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
 
@@ -214,6 +213,9 @@ function Action({ id, status, kode, completeName }: { id: number, kode: string, 
                 closeModal();
                 // if (error.response.data.errors) {
                 // }
+            } else if (error.status == 500) {
+                toast.error("Pinjaman gagal dihapus, Terjadi kesalahan dengan sistem");
+
             }
         }
     }

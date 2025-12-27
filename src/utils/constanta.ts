@@ -1,4 +1,4 @@
-interface PosisiUsahaMap {
+export interface PosisiUsahaMap {
   readonly MODALDO: string;
   readonly STORTING: string;
   readonly TARGET: string;
@@ -12,5 +12,6 @@ const posisiUsahaCode: PosisiUsahaMap = {
 } as const;
 
 export  {
-    posisiUsahaCode
+    posisiUsahaCode,
+
 };
