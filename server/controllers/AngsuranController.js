@@ -8,6 +8,7 @@ import {
     validationResult
 } from 'express-validator';
 import Loan from "../models/Loan";
+import { decreseTransaksi } from "../helpers/helpers";
 
 export default class AngsuranController {
     static async index(req, res) {
@@ -208,6 +209,9 @@ export default class AngsuranController {
                     id_angsuran: angsuran_id
                 });
             }
+
+            
+
             await trx.commit();
             res.status(200).json({
                 angsuran,
@@ -360,6 +364,7 @@ export default class AngsuranController {
                     status: statusPinjaman
                 });
             }
+            const ag = await Angsuran.getGroupNameByIdAngsuran(id)
 
             await Angsuran.softDeleteAngsuran(id);
             const formatDate = (date) => {
@@ -389,6 +394,14 @@ export default class AngsuranController {
                     isAktifAdded = true;
                 }
             }
+
+            await decreseTransaksi({
+                transaction_type: "debit",
+                transactionDate: ag.tanggal_pembayaran,
+                amount: ag.jumlah_bayar + ag.jumlah_katrol,
+                description: ag.group_name ?? "Kelompok 0",
+                resource: "angsuran"
+            });
             await trx.commit();
             res.status(200).json({
                 angsuran,

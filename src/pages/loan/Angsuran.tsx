@@ -200,7 +200,7 @@ const Angsuran: React.FC = () => {
                         status: status,
                         date: angsuran?.tanggal_pembayaran ? toLocalDate(new Date(angsuran?.tanggal_pembayaran)) : toLocalDate(new Date())
                     }
-                    // await axios.post("/api/transactions", dataTransaction);
+                    await axios.post("/api/transactions", dataTransaction);
 
 
                 }
