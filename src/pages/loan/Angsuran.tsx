@@ -102,7 +102,7 @@ const Angsuran: React.FC = () => {
         resolver: yupResolver(schema),
         defaultValues: {
             jumlah_katrol: formatCurrency(0),
-            asal_pembayaran: "anggota"
+            // asal_pembayaran: "anggota"
         }
     });
 
