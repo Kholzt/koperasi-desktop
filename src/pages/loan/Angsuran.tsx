@@ -76,11 +76,17 @@ const Angsuran: React.FC = () => {
                 const { data: { angsuran } } = res;
                 setAngsuran(angsuran)
                 setTotalPinjamanLama(angsuran.jumlah_bayar + angsuran.jumlah_katrol)
-                const initialData = { jumlah_katrol: formatCurrency(angsuran.jumlah_katrol), jumlah_bayar: formatCurrency(angsuran.jumlah_bayar), asal_pembayaran: angsuran.asal_pembayaran, status: angsuran.status, penagih: angsuran.penagih.map((p: any) => p.id) }
+                const initialData = {
+                    jumlah_katrol: formatCurrency(angsuran.jumlah_katrol),
+                    jumlah_bayar: formatCurrency(angsuran.jumlah_bayar),
+                    asal_pembayaran: angsuran.asal_pembayaran,
+                    status: angsuran.status,
+                    penagih: angsuran.penagih.map((p: any) => p.id)
+                }
                 reset(initialData);
                 setIsLoading(false)
                 setOriginalData(initialData)
-                setTotalAngsuranLama(angsuran.jumlah_katrol + angsuran.jumlah_bayar)
+                // setTotalAngsuranLama(angsuran.jumlah_katrol + angsuran.jumlah_bayar)
 
             });
         } else {
@@ -96,7 +102,7 @@ const Angsuran: React.FC = () => {
         resolver: yupResolver(schema),
         defaultValues: {
             jumlah_katrol: formatCurrency(0),
-            asal_pembayaran: "anggota"
+            // asal_pembayaran: "anggota"
         }
     });
 
