@@ -182,6 +182,7 @@ export default class TransactionController {
                 });
             }
 
+
             res.status(200).json({ message: 'Transaksi berhasil dibuat' });
         } catch (error) {
             res.status(500).json({ error: `Terjadi kesalahan saat menyimpan transaksi: ${error.message}` });

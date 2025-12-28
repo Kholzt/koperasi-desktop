@@ -10,9 +10,9 @@ export default class PosisiUsaha {
                     [startDate, endDate]
                 );
             } else if (startDate) {
-                qb.whereRaw('DATE(posisi_usaha.created_at) >= ?', [startDate]);
+                qb.whereRaw('DATE(posisi_usaha.created_at) = ?', [startDate]);
             } else if (endDate) {
-                qb.whereRaw('DATE(posisi_usaha.created_at) <= ?', [endDate]);
+                qb.whereRaw('DATE(posisi_usaha.created_at) = ?', [endDate]);
             }
         };
     }
@@ -45,5 +45,32 @@ export default class PosisiUsaha {
             .offset(offset);
         const total = totalRes.total
         return { history, total }
+    }
+
+    static async insertTransaksi({ code, amount, user_id, created_at }) {
+        const typeVar = await db("type_variabel").where("code", code).first()
+        const data = {
+            type_id: typeVar.id,
+            amount: amount,
+            created_by: user_id,
+            created_at
+        }
+        return await db("posisi_usaha").insert(data)
+    }
+    static async updateTransaksi({ code, amount, user_id, created_at, updated_at }) {
+        const typeVar = await db("type_variabel").where("code", code).first()
+        const posisiUsaha = await db("posisi_usaha")
+            .where("type_id", typeVar.id)
+            .whereRaw(`DATE(created_at) = '${created_at}'`)
+            .first()
+        const data = {
+            amount: Math.max(posisiUsaha.amount + amount, 0),
+            updated_by: user_id,
+            updated_at
+        }
+        return await db("posisi_usaha")
+            .where("type_id", typeVar.id)
+            .whereRaw(`DATE(created_at) = '${created_at}'`)
+            .update(data)
     }
 }

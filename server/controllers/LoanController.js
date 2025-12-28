@@ -2,7 +2,8 @@ import { body, validationResult } from 'express-validator';
 import db, { transaction } from "../config/db.js";
 import Loan from '../models/Loan.js';
 import { isHoliday } from '../config/holidays.js';
-import { decreseTransaksi } from '../helpers/helpers.js';
+import { decreseTransaksi, formatDateLocal } from '../helpers/helpers.js';
+import PosisiUsaha from '../models/PosisiUsaha.js';
 
 export default class LoanController {
     // Menampilkan daftar area dengan pagination
@@ -200,7 +201,7 @@ export default class LoanController {
                     total_bunga,
                     tanggal_pinjam
                 } = req.body;
-
+                const user = req.user
                 const loanExist = await Loan.existLoan(anggota_id, kode);
                 if (loanExist) {
                     return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
@@ -272,7 +273,13 @@ export default class LoanController {
                     }
                 }
 
-
+                const dataTransaksi = {
+                    amount: modal_do,
+                    code: "modaldo",
+                    user_id: user.id,
+                    created_at: formatDateLocal(tanggal_pinjam)
+                }
+                await PosisiUsaha.insertTransaksi(dataTransaksi)
 
                 return await Loan.findById(loanId);
             });
@@ -324,10 +331,11 @@ export default class LoanController {
                     penanggung_jawab, modal_do, jumlah_angsuran, total_pinjaman,
                     persen_bunga, status, petugas_input, total_bunga
                 } = req.body;
-
+                const user = req.user
                 // Cek apakah pinjaman dengan ID tersebut ada
-                const existing = await Loan.findById(id);
-                if (!existing) {
+                const pinjaman = await Loan.findByIdOnlyOne(id);
+
+                if (!pinjaman) {
                     return res.status(404).json({ error: 'Data pinjaman tidak ditemukan.' });
                 }
 
@@ -353,7 +361,25 @@ export default class LoanController {
                 // Update data
                 await Loan.update(data, id)
                 await Loan.updateSisaPembayaran(id);
+                const oldTotalBayar =
+                    (pinjaman.modal_do ?? 0)
 
+                const newTotalBayar =
+                    (modal_do ?? 0)
+
+                const jumlahBayarTotal = newTotalBayar - oldTotalBayar
+                const tanggal = new Date(pinjaman.tanggal_angsuran_pertama);
+                tanggal.setDate(tanggal.getDate() - 7);
+                const dataTransaksi = {
+                    amount: jumlahBayarTotal,
+                    code: "modaldo",
+                    user_id: user.id,
+                    created_at: formatDateLocal(tanggal),
+                    updated_at: formatDateLocal(new Date())
+                }
+
+                await PosisiUsaha.updateTransaksi(dataTransaksi)
+                debugger
                 return await Loan.findById(id);
             });
 
@@ -376,7 +402,7 @@ export default class LoanController {
             const result = await transaction(async () => {
 
                 const { id } = req.params;
-
+                const user = req.user
                 const pinjaman = await Loan.findByIdOnlyOne(id);
                 if (!pinjaman) {
                     throw new Error('Pinjaman tidak ditemukan'); // 🔥 rollback
@@ -411,6 +437,16 @@ export default class LoanController {
                     });
                 }
 
+
+                const dataTransaksi = {
+                    amount: -(pinjaman.total_pinjaman),
+                    code: "modaldo",
+                    user_id: user.id,
+                    created_at: formatDateLocal(tanggal),
+                    updated_at: formatDateLocal(new Date())
+                }
+
+                await PosisiUsaha.updateTransaksi(dataTransaksi)
                 return pinjaman; // 🔥 return data ke luar
             });
 

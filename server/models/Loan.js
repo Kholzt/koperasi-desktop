@@ -210,14 +210,14 @@ export default class Loan {
     static async getGroupNameByIdPinjaman(idPinjaman) {
 
         return await db("pinjaman")
-            .select("group_name")
+            .select(db.raw("MIN(groups.group_name) as group_name"))
             .where("pinjaman.id", idPinjaman)
             .joinRaw(
                 `JOIN JSON_TABLE(pinjaman.penanggung_jawab, '$[*]'
               COLUMNS (staff_id INT PATH '$')) pj ON TRUE`
             )
             .join("group_details", "pj.staff_id", "group_details.staff_id")
-            .join("groups", "group_details.group_id", "groups.id")
+            .join("groups", "group_details.group_id", "groups.id").first()
     }
 
     static async updateSisaPembayaran(idPinjaman) {

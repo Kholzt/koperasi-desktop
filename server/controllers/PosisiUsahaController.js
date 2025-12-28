@@ -48,8 +48,6 @@ export default class PosisiUsahaController {
         }
     }
 
-    static async insertTransaksi({ code, amount }) {
-
-    }
+    
 
 }

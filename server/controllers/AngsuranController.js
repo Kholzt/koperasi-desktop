@@ -8,7 +8,8 @@ import {
     validationResult
 } from 'express-validator';
 import Loan from "../models/Loan";
-import { decreseTransaksi } from "../helpers/helpers";
+import { decreseTransaksi, formatDateLocal } from "../helpers/helpers";
+import PosisiUsaha from './../models/PosisiUsaha';
 
 export default class AngsuranController {
     static async index(req, res) {
@@ -77,6 +78,7 @@ export default class AngsuranController {
                 tanggal_bayar,
                 jumlah_katrol
             } = req.body
+            const user = req.user
             const angsuran = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman);
             if (!angsuran) {
                 res.status(404).json({
@@ -210,7 +212,16 @@ export default class AngsuranController {
                 });
             }
 
-            
+            const notHoliday = (status != "menunggak" && (status != 'Libur Operasional' || status != 'Libur Operasional'))
+            const dataTransaksi = {
+                amount: jumlahBayarTotal,
+                code: "storting",
+                user_id: user.id,
+                created_at: tanggal_bayar ? formatDateLocal(tanggal_bayar) : formatDateLocal(angsuran.tanggal_pembayaran)
+            }
+            if (notHoliday) {
+                await PosisiUsaha.insertTransaksi(dataTransaksi)
+            }
 
             await trx.commit();
             res.status(200).json({
@@ -267,6 +278,8 @@ export default class AngsuranController {
                 jumlah_bayar,
                 jumlah_katrol
             } = req.body
+            const user = req.user
+
             const angsuran = await Angsuran.findById(id);
             if (!angsuran) {
                 res.status(404).json({
@@ -317,6 +330,26 @@ export default class AngsuranController {
                     isAktifAdded = true;
                 }
             }
+
+            const oldTotalBayar =
+                (angsuran.jumlah_bayar ?? 0) +
+                (angsuran.jumlah_katrol ?? 0)
+
+            const newTotalBayar =
+                (jumlah_bayar ?? 0) +
+                (jumlah_katrol ?? 0)
+
+            const jumlahBayarTotal = newTotalBayar - oldTotalBayar
+
+            const dataTransaksi = {
+                amount: jumlahBayarTotal,
+                code: "storting",
+                user_id: user.id,
+                created_at: formatDateLocal(angsuran.tanggal_pembayaran),
+                updated_at: formatDateLocal(new Date())
+            }
+
+            await PosisiUsaha.updateTransaksi(dataTransaksi)
             await trx.commit();
             res.status(200).json({
                 angsuran,
@@ -324,6 +357,7 @@ export default class AngsuranController {
             });
         } catch (error) {
             await trx.rollback();
+            console.log(error)
             res.status(500).json({
                 error: error.message
             });
@@ -336,6 +370,7 @@ export default class AngsuranController {
             const {
                 id
             } = req.params
+            const user = req.user
             const angsuran = await Angsuran.findById(id);
             if (!angsuran) {
                 return res.status(404).json({
@@ -402,6 +437,16 @@ export default class AngsuranController {
                 description: ag.group_name ?? "Kelompok 0",
                 resource: "angsuran"
             });
+
+
+            const dataTransaksi = {
+                amount: -(angsuran.jumlah_bayar + angsuran.jumlah_katrol),
+                code: "storting",
+                user_id: user.id,
+                created_at: formatDateLocal(angsuran.tanggal_pembayaran),
+                updated_at: formatDateLocal(new Date())
+            }
+            await PosisiUsaha.updateTransaksi(dataTransaksi)
             await trx.commit();
             res.status(200).json({
                 angsuran,
@@ -409,6 +454,7 @@ export default class AngsuranController {
             });
         } catch (error) {
             await trx.rollback();
+            console.log(error)
             res.status(500).json({
                 error: error.message
             });

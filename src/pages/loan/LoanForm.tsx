@@ -241,7 +241,8 @@ const LoanForm: React.FC = () => {
             const description = employes.find((e) => data.penanggung_jawab.includes(e.id.toString()))?.group_name
 
             if (res.status === 201 || res.status === 200) {
-                const nominal = totalPinjamanLama > parseInt(data.total_pinjaman) ? -(totalPinjamanLama - parseInt(data.total_pinjaman)) : parseInt(data.total_pinjaman) - totalPinjamanLama;
+                const nominal = Number(data.total_pinjaman) - totalPinjamanLama;
+
                 const dataTransaction = {
                     transaction_type: 'credit',
                     category_id: 1,

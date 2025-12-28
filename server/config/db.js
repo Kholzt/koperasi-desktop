@@ -42,8 +42,10 @@ if (!globalThis.__knexInstance) {
 
 
     globalThis.__knexInstance.on('query', (queryData) => {
-        console.log('SQL:', queryData.sql);
-        console.log('Bindings:', queryData.bindings);
+        // if (queryData.sql.includes("posisi_usaha")) {
+            console.log('SQL:', queryData.sql);
+            console.log('Bindings:', queryData.bindings);
+        // }
     });
 }
 const als = new AsyncLocalStorage();

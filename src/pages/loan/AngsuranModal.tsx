@@ -170,7 +170,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                         status: status,
                         date: data?.tanggal_bayar ? toLocalDate(new Date(data?.tanggal_bayar)) : toLocalDate(new Date())
                     }
-                    // await axios.post("/api/transactions", dataTransaction);
+                    await axios.post("/api/transactions", dataTransaction);
 
                 }
                 onClose()
