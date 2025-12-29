@@ -2,8 +2,9 @@ import { body, validationResult } from 'express-validator';
 import db, { transaction } from "../config/db.js";
 import Loan from '../models/Loan.js';
 import { isHoliday } from '../config/holidays.js';
-import { decreseTransaksi, formatDateLocal } from '../helpers/helpers.js';
+import { formatDateLocal } from '../helpers/helpers.js';
 import PosisiUsaha from '../models/PosisiUsaha.js';
+import Transaction from '../models/Transaction.js';
 
 export default class LoanController {
     // Menampilkan daftar area dengan pagination
@@ -272,14 +273,16 @@ export default class LoanController {
                         }
                     }
                 }
+                const group = await Loan.getGroupNameByIdPinjaman(loanId);
 
                 const dataTransaksi = {
                     amount: modal_do,
                     code: "modaldo",
                     user_id: user.id,
-                    created_at: formatDateLocal(tanggal_pinjam)
+                    tanggal_input: formatDateLocal(tanggal_pinjam),
+                    group_id: group.group_id
                 }
-                await PosisiUsaha.insertTransaksi(dataTransaksi)
+                await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
 
                 return await Loan.findById(loanId);
             });
@@ -361,6 +364,10 @@ export default class LoanController {
                 // Update data
                 await Loan.update(data, id)
                 await Loan.updateSisaPembayaran(id);
+
+
+                const group = await Loan.getGroupNameByIdPinjaman(id);
+
                 const oldTotalBayar =
                     (pinjaman.modal_do ?? 0)
 
@@ -374,11 +381,11 @@ export default class LoanController {
                     amount: jumlahBayarTotal,
                     code: "modaldo",
                     user_id: user.id,
-                    created_at: formatDateLocal(tanggal),
-                    updated_at: formatDateLocal(new Date())
+                    tanggal_input: formatDateLocal(tanggal),
+                    group_id: group.group_id
                 }
 
-                await PosisiUsaha.updateTransaksi(dataTransaksi)
+                await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
                 debugger
                 return await Loan.findById(id);
             });
@@ -416,7 +423,7 @@ export default class LoanController {
                 const tanggal = new Date(pinjaman.tanggal_angsuran_pertama);
                 tanggal.setDate(tanggal.getDate() - 7);
 
-                await decreseTransaksi({
+                await Transaction.decreseTransaksi({
                     transaction_type: "credit",
                     transactionDate: tanggal,
                     amount: pinjaman.total_pinjaman,
@@ -428,7 +435,7 @@ export default class LoanController {
                 const angsuran = await Loan.getListAngsuranByIdPinjaman(id);
 
                 for (const ang of angsuran) {
-                    await decreseTransaksi({
+                    await Transaction.decreseTransaksi({
                         transaction_type: "debit",
                         transactionDate: ang.tanggal_pembayaran,
                         amount: ang.jumlah_bayar + ang.jumlah_katrol,
@@ -442,11 +449,11 @@ export default class LoanController {
                     amount: -(pinjaman.total_pinjaman),
                     code: "modaldo",
                     user_id: user.id,
-                    created_at: formatDateLocal(tanggal),
-                    updated_at: formatDateLocal(new Date())
+                    tanggal_input: formatDateLocal(tanggal),
+                    group_id: group.group_id
                 }
 
-                await PosisiUsaha.updateTransaksi(dataTransaksi)
+                await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
                 return pinjaman; // 🔥 return data ke luar
             });
 

@@ -1,18 +1,18 @@
 import db from "../config/db";
 
 export default class PosisiUsaha {
-    static filter({ startDate, endDate, code }) {
+    static filter({ startDate, endDate, code, group_id }) {
         return (qb) => {
             qb.where("type_variabel.code", code)
             if (startDate && endDate) {
                 qb.whereBetween(
-                    qb.client.raw('DATE(posisi_usaha.created_at)'),
+                    qb.client.raw('DATE(posisi_usaha.tanggal_input)'),
                     [startDate, endDate]
                 );
             } else if (startDate) {
-                qb.whereRaw('DATE(posisi_usaha.created_at) = ?', [startDate]);
+                qb.whereRaw('DATE(posisi_usaha.tanggal_input) = ?', [startDate]);
             } else if (endDate) {
-                qb.whereRaw('DATE(posisi_usaha.created_at) = ?', [endDate]);
+                qb.whereRaw('DATE(posisi_usaha.tanggal_input) = ?', [endDate]);
             }
         };
     }
@@ -26,20 +26,20 @@ export default class PosisiUsaha {
         const jumlah = posisiUsaha.jumlah
         return jumlah
     }
-    static async getHistory({ startDate, endDate, offset, limit, code }) {
+    static async getHistory({ startDate, endDate, offset, limit, code, group_id }) {
         const totalRes = await db('posisi_usaha')
-            .where(PosisiUsaha.filter({ startDate, endDate, code }))
+            .where(PosisiUsaha.filter({ startDate, endDate, code, group_id }))
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .select(db.raw('COUNT(DISTINCT DATE(posisi_usaha.created_at)) as total'))
+            .select(db.raw('COUNT(DISTINCT DATE(posisi_usaha.tanggal_input)) as total'))
             .first();
         const history = await db("posisi_usaha")
             .select(
-                db.raw("DATE(posisi_usaha.created_at) AS tanggal"),
+                db.raw("DATE(posisi_usaha.tanggal_input) AS tanggal"),
                 db.raw("SUM(amount) AS jumlah")
             )
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .where(PosisiUsaha.filter({ startDate, endDate, code }))
-            .groupByRaw("DATE(posisi_usaha.created_at)")
+            .where(PosisiUsaha.filter({ startDate, endDate, code, group_id }))
+            .groupByRaw("DATE(posisi_usaha.tanggal_input)")
             .orderBy("tanggal", "desc")
             .limit(limit)
             .offset(offset);
@@ -47,30 +47,37 @@ export default class PosisiUsaha {
         return { history, total }
     }
 
-    static async insertTransaksi({ code, amount, user_id, created_at }) {
-        const typeVar = await db("type_variabel").where("code", code).first()
-        const data = {
-            type_id: typeVar.id,
-            amount: amount,
-            created_by: user_id,
-            created_at
+    static async insertUpdatePosisiUsaha({ code, amount, user_id, group_id, tanggal_input }) {
+        const typeVar = await db("type_variabel").where("code", code).first();
+        const isModalDo = code == "modaldo"
+
+        const baseQuery = () => {
+            let query = db("posisi_usaha")
+                .where("type_id", typeVar.id)
+                .whereRaw(`DATE(tanggal_input) = '${tanggal_input}'`);
+            if (!isModalDo) {
+                query.where("group_id", group_id);
+            }
+
+            return query;
+        };
+
+        const posisiUsaha = await baseQuery().first();
+
+        if (!posisiUsaha) {
+            return await baseQuery().insert({
+                type_id: typeVar.id,
+                amount,
+                created_by: user_id,
+                tanggal_input: tanggal_input,
+                group_id: isModalDo ? null : group_id
+            });
         }
-        return await db("posisi_usaha").insert(data)
+
+        return await baseQuery().update({
+            amount: Math.max(parseInt(posisiUsaha.amount) + parseInt(amount), 0),
+            updated_by: user_id
+        });
     }
-    static async updateTransaksi({ code, amount, user_id, created_at, updated_at }) {
-        const typeVar = await db("type_variabel").where("code", code).first()
-        const posisiUsaha = await db("posisi_usaha")
-            .where("type_id", typeVar.id)
-            .whereRaw(`DATE(created_at) = '${created_at}'`)
-            .first()
-        const data = {
-            amount: Math.max(posisiUsaha.amount + amount, 0),
-            updated_by: user_id,
-            updated_at
-        }
-        return await db("posisi_usaha")
-            .where("type_id", typeVar.id)
-            .whereRaw(`DATE(created_at) = '${created_at}'`)
-            .update(data)
-    }
+
 }

@@ -224,6 +224,18 @@ export default class Transaction {
             .first();
     }
 
-
+    static async decreseTransaksi({ transaction_type, transactionDate, description, amount = 0, resource }) {
+        const existingTransaction = await Transaction.getTransactionsByInfo({
+            category: 1,
+            date: transactionDate,
+            desc: description,
+            type: transaction_type,
+            resource
+        });
+        if (existingTransaction) {
+            const amountTransaksi = existingTransaction.amount - amount
+            await Transaction.update({ amount: amountTransaksi <= 0 ? 0 : amountTransaksi }, existingTransaction.id);
+        }
+    }
 
 }

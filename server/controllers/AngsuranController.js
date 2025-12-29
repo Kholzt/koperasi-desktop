@@ -8,8 +8,9 @@ import {
     validationResult
 } from 'express-validator';
 import Loan from "../models/Loan";
-import { decreseTransaksi, formatDateLocal } from "../helpers/helpers";
+import { formatDateLocal } from "../helpers/helpers";
 import PosisiUsaha from './../models/PosisiUsaha';
+import Transaction from "../models/Transaction";
 
 export default class AngsuranController {
     static async index(req, res) {
@@ -211,16 +212,18 @@ export default class AngsuranController {
                     id_angsuran: angsuran_id
                 });
             }
+            const ag = await Angsuran.getGroupNameByIdAngsuran(angsuran_id)
 
             const notHoliday = (status != "menunggak" && (status != 'Libur Operasional' || status != 'Libur Operasional'))
             const dataTransaksi = {
                 amount: jumlahBayarTotal,
                 code: "storting",
                 user_id: user.id,
-                created_at: tanggal_bayar ? formatDateLocal(tanggal_bayar) : formatDateLocal(angsuran.tanggal_pembayaran)
+                tanggal_input: tanggal_bayar ? formatDateLocal(tanggal_bayar) : formatDateLocal(angsuran.tanggal_pembayaran),
+                group_id: ag.group_id
             }
             if (notHoliday) {
-                await PosisiUsaha.insertTransaksi(dataTransaksi)
+                await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
             }
 
             await trx.commit();
@@ -330,6 +333,7 @@ export default class AngsuranController {
                     isAktifAdded = true;
                 }
             }
+            const ag = await Angsuran.getGroupNameByIdAngsuran(id)
 
             const oldTotalBayar =
                 (angsuran.jumlah_bayar ?? 0) +
@@ -345,11 +349,11 @@ export default class AngsuranController {
                 amount: jumlahBayarTotal,
                 code: "storting",
                 user_id: user.id,
-                created_at: formatDateLocal(angsuran.tanggal_pembayaran),
-                updated_at: formatDateLocal(new Date())
+                tanggal_input: formatDateLocal(angsuran.tanggal_pembayaran),
+                group_id: ag.group_id
             }
 
-            await PosisiUsaha.updateTransaksi(dataTransaksi)
+            await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
             await trx.commit();
             res.status(200).json({
                 angsuran,
@@ -430,7 +434,7 @@ export default class AngsuranController {
                 }
             }
 
-            await decreseTransaksi({
+            await Transaction.decreseTransaksi({
                 transaction_type: "debit",
                 transactionDate: ag.tanggal_pembayaran,
                 amount: ag.jumlah_bayar + ag.jumlah_katrol,
@@ -443,10 +447,10 @@ export default class AngsuranController {
                 amount: -(angsuran.jumlah_bayar + angsuran.jumlah_katrol),
                 code: "storting",
                 user_id: user.id,
-                created_at: formatDateLocal(angsuran.tanggal_pembayaran),
-                updated_at: formatDateLocal(new Date())
+                tanggal_input: formatDateLocal(angsuran.tanggal_pembayaran),
+                group_id: ag.group_id
             }
-            await PosisiUsaha.updateTransaksi(dataTransaksi)
+            await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
             await trx.commit();
             res.status(200).json({
                 angsuran,

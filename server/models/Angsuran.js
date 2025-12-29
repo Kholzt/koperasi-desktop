@@ -114,6 +114,7 @@ export default class Angsuran {
                 "angsuran.tanggal_pembayaran"
             )
             .select(db.raw("MIN(groups.group_name) as group_name"))
+            .select(db.raw("MIN(groups.id) as group_id"))
             .where("angsuran.id", idAngsuran)
             .whereNull("angsuran.deleted_at")
             .join("penagih_angsuran", "angsuran.id", "penagih_angsuran.id_angsuran")

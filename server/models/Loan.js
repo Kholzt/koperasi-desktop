@@ -210,6 +210,7 @@ export default class Loan {
     static async getGroupNameByIdPinjaman(idPinjaman) {
 
         return await db("pinjaman")
+            .select(db.raw("MIN(groups.id) as group_id"))
             .select(db.raw("MIN(groups.group_name) as group_name"))
             .where("pinjaman.id", idPinjaman)
             .joinRaw(
