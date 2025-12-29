@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { formatCurrency, formatDate } from '../../utils/helpers';
 import { Modal } from '../../components/ui/modal';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../components/ui/table';
@@ -18,7 +18,7 @@ interface ModalsProps {
     title: string;
     titleHeader: string;
     pagination?: any; // Ganti dengan tipe PaginationProps Anda
-    onPageChange?: (page: number) => void;
+    onPageChange?: (filter: any) => void;
     onFilter: (filter: any) => void;
     groups?: any[];
 }
@@ -34,6 +34,9 @@ export default function Modals({
     onFilter,
     groups
 }: ModalsProps) {
+    const [startDate, setStartDate] = useState<string | null>(null);
+    const [endDate, setEndDate] = useState<string | null>(null);
+    const [group, setGroup] = useState<string | number | null>(null);
     return <Modal
         showCloseButton
         // isFullscreen
@@ -43,10 +46,12 @@ export default function Modals({
         <div className="">
             <ModalFilter onFilter={(filter) => {
                 onFilter({ ...filter, page: pagination.page })
-                console.log({ ...filter, page: pagination.page })
+                setStartDate(filter.startDate)
+                setEndDate(filter.endDate)
+                setGroup(filter.group)
             }} groups={groups} />
         </div>
-        <div className=" h-[70vh] overflow-auto mt-5">
+        <div className=" h-[60vh] overflow-auto mt-5">
             <Table className='relative'>
                 {/* Table Header */}
                 <TableHeader className="border-b sticky top-0 bg-white dark:bg-gray-900 border-gray-100 dark:border-white/[0.05]">
@@ -113,14 +118,14 @@ export default function Modals({
                 <div className="flex gap-2">
                     <button
                         disabled={pagination.page <= 1}
-                        onClick={() => onPageChange(Math.max(1, pagination.page - 1))}
+                        onClick={() => onPageChange({ page: Math.max(1, pagination.page - 1), startDate, endDate, group })}
                         className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50"
                     >
                         Prev
                     </button>
                     <button
                         disabled={pagination.page >= pagination.totalPages}
-                        onClick={() => onPageChange(Math.min(pagination.totalPages, pagination.page + 1))}
+                        onClick={() => onPageChange({ page: Math.min(pagination.totalPages, pagination.page + 1), startDate, endDate, group })}
                         className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50"
                     >
                         Next

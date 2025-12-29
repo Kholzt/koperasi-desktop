@@ -25,7 +25,7 @@ const Metrics: React.FC = () => {
         fetchAngsuran(1, paginationAngsuran.limit, startDate || '', endDate || '');
         fetchModalDo(1, paginationModalDo.limit, startDate || '', endDate || '');
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [startDate, endDate]);
+    }, [startDate, endDate, angsuranHistoryOpen, modalDoHistoryOpen]);
     return (
         <>
             <div className="md:w-[50%] w-full">
@@ -72,8 +72,8 @@ const Metrics: React.FC = () => {
                 setOpen={setAngsuranHistoryOpen}
                 items={angsuranHistory}
                 pagination={paginationAngsuran}
-                onPageChange={(page) => fetchAngsuran(page, paginationAngsuran.limit, startDate || '', endDate || '')}
-                onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '')}
+                onPageChange={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || startDate || '', filter.endDate || endDate || '')}
+                onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || startDate || '', filter.endDate || endDate || '')}
             />
 
             <Modals
@@ -83,8 +83,8 @@ const Metrics: React.FC = () => {
                 setOpen={setModalDoHistoryOpen}
                 items={modalDoHistory}
                 pagination={paginationModalDo}
-                onPageChange={(page) => fetchModalDo(page, paginationModalDo.limit, startDate || '', endDate || '')}
-                onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '')}
+                onPageChange={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || startDate || '', filter.endDate || endDate || '')}
+                onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || startDate || '', filter.endDate || endDate || '')}
             />
         </>
     )
