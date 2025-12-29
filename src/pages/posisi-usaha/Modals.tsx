@@ -2,6 +2,7 @@ import React from 'react';
 import { formatCurrency, formatDate } from '../../utils/helpers';
 import { Modal } from '../../components/ui/modal';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../components/ui/table';
+import ModalFilter from './ModalFilter';
 
 interface PaginationProps {
     page: number;
@@ -10,21 +11,41 @@ interface PaginationProps {
     total: number;
 }
 
-export function Modals(
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>,
-    isOpen: boolean,
-    items: any[],
-    title: string,
-    titleHeader: string,
-    pagination?: PaginationProps,
-    onPageChange?: (page: number) => void
-) {
+interface ModalsProps {
+    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    isOpen: boolean;
+    items: any[];
+    title: string;
+    titleHeader: string;
+    pagination?: any; // Ganti dengan tipe PaginationProps Anda
+    onPageChange?: (page: number) => void;
+    onFilter: (filter: any) => void;
+    groups?: any[];
+}
+
+export default function Modals({
+    setOpen,
+    isOpen,
+    items,
+    title,
+    titleHeader,
+    pagination,
+    onPageChange,
+    onFilter,
+    groups
+}: ModalsProps) {
     return <Modal
         showCloseButton
         // isFullscreen
         className="max-w-[800px] max-h-[90vh] p-6 lg:p-10"
         onClose={() => setOpen(!isOpen)} isOpen={isOpen}>
-        <h1>{title}</h1>
+        <h1 className='text-xl'>{title}</h1>
+        <div className="">
+            <ModalFilter onFilter={(filter) => {
+                onFilter({ ...filter, page: pagination.page })
+                console.log({ ...filter, page: pagination.page })
+            }} groups={groups} />
+        </div>
         <div className=" h-[70vh] overflow-auto mt-5">
             <Table className='relative'>
                 {/* Table Header */}

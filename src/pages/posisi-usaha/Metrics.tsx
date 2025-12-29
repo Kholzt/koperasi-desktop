@@ -3,11 +3,11 @@ import DatePicker from "../../components/form/date-picker";
 import {
     DollarLineIcon
 } from "../../icons";
-import { toLocalDate } from '../../utils/helpers';
 import { posisiUsahaCode } from '../../utils/constanta';
+import { toLocalDate } from '../../utils/helpers';
 import { MetricItem } from './MetricItem';
-import { Modals } from './Modals';
-import { usePosisiUsahaToday, usePosisiUsaha } from './hooks/usePosisiUsaha';
+import Modals from './Modals';
+import { usePosisiUsaha } from './hooks/usePosisiUsaha';
 const Metrics: React.FC = () => {
 
     const [startDate, setStartDate] = useState<string | null>(null);
@@ -64,8 +64,28 @@ const Metrics: React.FC = () => {
                 <MetricItem Icon={DollarLineIcon} title='PD' count={0} />
                 <MetricItem Icon={DollarLineIcon} title='SU' count={0} />
             </div>
-            {Modals(setAngsuranHistoryOpen, angsuranHistoryOpen, angsuranHistory, "History Angsuran", "Jumlah Angsuran", paginationAngsuran, (page: number) => fetchAngsuran(page, paginationAngsuran.limit, startDate || '', endDate || ''))}
-            {Modals(setModalDoHistoryOpen, modalDoHistoryOpen, modalDoHistory, "History Modal DO", "Jumlah Modal Do", paginationModalDo, (page: number) => fetchModalDo(page, paginationModalDo.limit, startDate || '', endDate || ''))}
+
+            <Modals
+                title="History Angsuran"
+                titleHeader="Jumlah Angsuran"
+                isOpen={angsuranHistoryOpen}
+                setOpen={setAngsuranHistoryOpen}
+                items={angsuranHistory}
+                pagination={paginationAngsuran}
+                onPageChange={(page) => fetchAngsuran(page, paginationAngsuran.limit, startDate || '', endDate || '')}
+                onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '')}
+            />
+
+            <Modals
+                title="History Modal DO"
+                titleHeader="Jumlah Modal Do"
+                isOpen={modalDoHistoryOpen}
+                setOpen={setModalDoHistoryOpen}
+                items={modalDoHistory}
+                pagination={paginationModalDo}
+                onPageChange={(page) => fetchModalDo(page, paginationModalDo.limit, startDate || '', endDate || '')}
+                onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '')}
+            />
         </>
     )
 
