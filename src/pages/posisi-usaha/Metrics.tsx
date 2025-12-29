@@ -78,8 +78,8 @@ const Metrics: React.FC = () => {
                 setOpen={(status) => setModalActive(status ? "storting" : null)}
                 items={angsuranHistory}
                 pagination={paginationAngsuran}
-                onPageChange={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || startDate || '', filter.endDate || endDate || '')}
-                onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || startDate || '', filter.endDate || endDate || '')}
+                onPageChange={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '')}
+                onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '')}
             />
 
             <Modals
@@ -89,8 +89,8 @@ const Metrics: React.FC = () => {
                 setOpen={(status) => setModalActive(status ? "modaldo" : null)}
                 items={modalDoHistory}
                 pagination={paginationModalDo}
-                onPageChange={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || startDate || '', filter.endDate || endDate || '')}
-                onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || startDate || '', filter.endDate || endDate || '')}
+                onPageChange={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '')}
+                onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '')}
             />
         </>
     )
