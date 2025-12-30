@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { formatCurrency, formatDate } from '../../utils/helpers';
+import Button from '../../components/ui/button/Button';
 import { Modal } from '../../components/ui/modal';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../components/ui/table';
+import { formatCurrency, formatDate } from '../../utils/helpers';
 import ModalFilter from './ModalFilter';
 
 interface PaginationProps {
@@ -20,7 +21,9 @@ interface ModalsProps {
     pagination?: any; // Ganti dengan tipe PaginationProps Anda
     onPageChange?: (filter: any) => void;
     onFilter: (filter: any) => void;
-    groups?: any[];
+    groups: any[];
+    Form?: React.ElementType;
+    hasGroup?: boolean
 }
 
 export default function Modals({
@@ -32,24 +35,29 @@ export default function Modals({
     pagination,
     onPageChange,
     onFilter,
-    groups
+    groups,
+    Form,
+    hasGroup
 }: ModalsProps) {
     const [startDate, setStartDate] = useState<string | null>(null);
     const [endDate, setEndDate] = useState<string | null>(null);
     const [group, setGroup] = useState<string | number | null>(null);
+    const [isOpenForm, setIsOpenForm] = useState(false);
     return <Modal
         showCloseButton
         // isFullscreen
         className="max-w-[800px] max-h-[90vh] p-6 lg:p-10"
         onClose={() => setOpen(!isOpen)} isOpen={isOpen}>
         <h1 className='text-xl'>{title}</h1>
-        <div className="">
+        <div className="flex justify-between ">
             <ModalFilter onFilter={(filter) => {
                 onFilter({ ...filter, page: pagination.page })
                 setStartDate(filter.startDate)
                 setEndDate(filter.endDate)
                 setGroup(filter.group)
-            }} groups={groups} />
+            }} groups={groups} hasGroup={hasGroup} />
+            {Form && <Button onClick={() => setIsOpenForm(true)}>Tambah</Button>}
+
         </div>
         <div className=" h-[60vh] overflow-auto mt-5">
             <Table className='relative'>
@@ -133,5 +141,13 @@ export default function Modals({
                 </div>
             </div>
         )}
+
+        {Form && <Modal isOpen={isOpenForm} onClose={() => setIsOpenForm(!isOpenForm)}
+            className="max-w-[800px] max-h-[90vh] p-6 lg:p-10"
+        >
+            <Form dataEdit={{}} />
+        </Modal>}
+
+
     </Modal>;
 }

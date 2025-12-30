@@ -4,6 +4,9 @@ export default class PosisiUsaha {
     static filter({ startDate, endDate, code, group_id }) {
         return (qb) => {
             qb.where("type_variabel.code", code)
+            if (group_id) {
+                qb.where("group_id", group_id)
+            }
             if (startDate && endDate) {
                 qb.whereBetween(
                     qb.client.raw('DATE(posisi_usaha.tanggal_input)'),

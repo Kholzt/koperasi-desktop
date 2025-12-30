@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import axios from '../../../utils/axios';
+import { GroupProps } from '../../../utils/types';
 
 export interface PaginationProps {
     page: number;
@@ -18,11 +19,14 @@ function usePaginatedResource(endpoint: string, itemsKey: string,code:string) {
         total: 0,
     });
 
-    const fetchPage = useCallback(async (page = 1, limit = pagination.limit, startDate = '', endDate = '') => {
+    const fetchPage = useCallback(async (page = 1, limit = pagination.limit, startDate = '', endDate = '',group='') => {
         try {
             let url = `${endpoint}?page=${page}&limit=${limit}&code=${code}`;
+            if (group) url += `&group_id=${group}`;
             if (startDate) url += `&startDate=${startDate}`;
             if (endDate) url += `&endDate=${endDate}`;
+            console.log(url);
+
             const res: any = await axios.get(url);
             const data = res.data || {};
             const body = data.data || data;
@@ -75,4 +79,13 @@ export  function usePosisiUsahaToday(code :string) {
     }, []);
 
     return  amount;
+}
+export  function usePosisiUsahaGroup() {
+    const [groups, setGroups] = useState<{ label: string, value: string }[]>([]);
+    useEffect(() => {
+        axios.get("/api/groups?limit=20000000").then(res => {
+            setGroups(res.data.groups.map((group: GroupProps) => ({ label: group.group_name, value: group.id })))
+    });    }, []);
+
+    return  {groups};
 }
