@@ -3,8 +3,8 @@ import Button from '../../components/ui/button/Button';
 import { Modal } from '../../components/ui/modal';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../components/ui/table';
 import { formatCurrency, formatDate } from '../../utils/helpers';
-import ModalFilter from './ModalFilter';
 import Action from './Action';
+import ModalFilter from './ModalFilter';
 
 
 interface PaginationProps {
@@ -26,6 +26,7 @@ interface ModalsProps {
     groups: any[];
     Form?: React.ElementType;
     hasGroup?: boolean
+    isCurrency?: boolean
 }
 
 export default function Modals({
@@ -39,7 +40,8 @@ export default function Modals({
     onFilter,
     groups,
     Form,
-    hasGroup
+    hasGroup,
+    isCurrency
 }: ModalsProps) {
     const [startDate, setStartDate] = useState<string | null>(null);
     const [endDate, setEndDate] = useState<string | null>(null);
@@ -110,7 +112,7 @@ export default function Modals({
                                 </div>
                             </TableCell>
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                {formatCurrency(item.jumlah) ?? "-"}
+                                {isCurrency ? formatCurrency(item.jumlah) : item.jumlah ?? "-"}
                             </TableCell>
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {formatDate(item.tanggal)}

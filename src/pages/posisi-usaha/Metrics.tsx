@@ -79,6 +79,7 @@ const Metrics: React.FC = () => {
 
             {/* MODAL */}
             <Modals
+                isCurrency
                 title="History Angsuran"
                 titleHeader="Jumlah Angsuran"
                 isOpen={modalActive === "storting"}
@@ -92,6 +93,7 @@ const Metrics: React.FC = () => {
             />
 
             <Modals
+                isCurrency
                 title="History Modal DO"
                 titleHeader="Jumlah Modal Do"
                 isOpen={modalActive === "modaldo"}
