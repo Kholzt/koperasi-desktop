@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import axios from '../../../utils/axios';
 import { posisiUsahaCode } from '../../../utils/constanta';
 interface Props {
-    anggota_drop: number;
-    anggota_lunas: number;
+    drop: number;
+    lunas: number;
     group_id: number;
     target_minggu_lalu: number;
     tanggal_input: string;
@@ -17,7 +17,7 @@ function useTargetAnggota(date?: string | null, group?: number | null, id?: numb
     useEffect(() => {
         const hasDateAndGroup = date && group
         if (hasDateAndGroup) {
-            axios.get(`api/posisi-usaha/data-minggu-lalu?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.TARGET_ANGGOTA}`)
+            axios.get(`api/posisi-usaha/data-minggu-lalu?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.TARGET}`)
                 .then((d) => {
                     setTargetMingguLalu(d.data.target_minggu_lalu || 0)
                 })
@@ -32,11 +32,11 @@ function useTargetAnggota(date?: string | null, group?: number | null, id?: numb
     }, [id]);
 
     const onsubmit = async (data: Props) => {
-        const result = (Number(data.anggota_drop)) - (Number(data.anggota_lunas)) + (Number(data.target_minggu_lalu))
+        const result = ((Number(data.drop) - Number(data.lunas)) * 0.13) + (Number(data.target_minggu_lalu))
         data.total = result
         data.raw_formula = JSON.stringify({
-            anggota_drop:data.anggota_drop,
-            anggota_lunas:data.anggota_lunas,
+            drop:data.drop,
+            lunas:data.lunas,
         })
 
         try {

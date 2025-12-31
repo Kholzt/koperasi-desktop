@@ -1,21 +1,21 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useForm } from 'react-hook-form';
-import * as yup from 'yup';
-import DatePicker from '../../../components/form/date-picker';
-import { toLocalDate } from '../../../utils/helpers';
-import Label from './../../../components/form/Label';
-import Select from './../../../components/form/Select';
-import Input from './../../../components/form/input/InputField';
-import useTargetAnggota from './../hooks/useTargetAnggota';
 import React from 'react';
-import Button from '../../../components/ui/button/Button';
+import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import * as yup from 'yup';
+import Label from '../../../components/form/Label';
+import Select from '../../../components/form/Select';
+import DatePicker from '../../../components/form/date-picker';
+import Input from '../../../components/form/input/InputField';
+import Button from '../../../components/ui/button/Button';
 import { posisiUsahaCode } from '../../../utils/constanta';
+import { toLocalDate } from '../../../utils/helpers';
+import useTargetAnggota from '../hooks/useTarget';
 
 
 interface Props {
-    anggota_drop: number;
-    anggota_lunas: number;
+    drop: number;
+    lunas: number;
     group_id: number;
     target_minggu_lalu: number;
     tanggal_input: string;
@@ -25,10 +25,10 @@ interface Props {
 
 }
 const schema: yup.SchemaOf<Props> = yup.object({
-    anggota_drop: yup.string()
-        .required('Anggota drop wajib diisi'),
-    anggota_lunas: yup.string()
-        .required('Anggota lunas wajib diisi'),
+    drop: yup.string()
+        .required('Drop wajib diisi'),
+    lunas: yup.string()
+        .required('Lunas wajib diisi'),
     group_id: yup.string()
         .required('Kelompok  wajib diisi'),
     target_minggu_lalu: yup.string()
@@ -41,11 +41,11 @@ interface PropsForm {
     onClose: (status: boolean) => void,
     groups: any[]
 }
-export default function TargetAnggotaForm({ id, onClose, groups }: PropsForm) {
+export default function TargetForm({ id, onClose, groups }: PropsForm) {
     const { handleSubmit, register, setValue, watch, getValues, formState: { errors } } = useForm<Props>({
         resolver: yupResolver(schema),
         defaultValues: {
-            code: posisiUsahaCode.TARGET_ANGGOTA
+            code: posisiUsahaCode.TARGET
         }
     });
 
@@ -57,8 +57,8 @@ export default function TargetAnggotaForm({ id, onClose, groups }: PropsForm) {
         setValue("target_minggu_lalu", targetMingguLalu || 0, { shouldDirty: true });
         if (data) {
             const rawFormula = data.raw_formula;
-            setValue("anggota_drop", rawFormula?.anggota_drop || 0, { shouldDirty: true })
-            setValue("anggota_lunas", rawFormula?.anggota_lunas || 0, { shouldDirty: true })
+            setValue("drop", rawFormula?.drop || 0, { shouldDirty: true })
+            setValue("lunas", rawFormula?.lunas || 0, { shouldDirty: true })
             setValue("group_id", data.group_id, { shouldDirty: true })
             setValue("tanggal_input", toLocalDate(new Date(data.tanggal_input)), { shouldDirty: true })
         }
@@ -70,10 +70,10 @@ export default function TargetAnggotaForm({ id, onClose, groups }: PropsForm) {
     const onSubmitForm = async (data: Props) => {
         const status = await onsubmit(data)
         if (status == 200) {
-            toast.success("Target anggota berhasil disimpan")
+            toast.success("Target  berhasil disimpan")
             onClose(false)
         } else {
-            toast.error("Target anggota gagal disimpan")
+            toast.error("Target  gagal disimpan")
         }
     }
     return (
@@ -112,27 +112,27 @@ export default function TargetAnggotaForm({ id, onClose, groups }: PropsForm) {
 
                 {/* Kolom 3: Anggota Drop */}
                 <div className="flex flex-col">
-                    <Label>Anggota Drop <span className="text-error-500">*</span></Label>
+                    <Label>Drop <span className="text-error-500">*</span></Label>
                     <Input
                         type="number"
                         placeholder="0"
-                        {...register("anggota_drop")}
+                        {...register("drop")}
                     />
-                    {errors.anggota_drop && (
-                        <p className="mt-1 text-xs text-red-500">{errors.anggota_drop.message}</p>
+                    {errors.drop && (
+                        <p className="mt-1 text-xs text-red-500">{errors.drop.message}</p>
                     )}
                 </div>
 
                 {/* Kolom 4: Anggota Lunas */}
                 <div className="flex flex-col">
-                    <Label>Anggota Lunas <span className="text-error-500">*</span></Label>
+                    <Label>Lunas <span className="text-error-500">*</span></Label>
                     <Input
                         type="number"
                         placeholder="0"
-                        {...register("anggota_lunas")}
+                        {...register("lunas")}
                     />
-                    {errors.anggota_lunas && (
-                        <p className="mt-1 text-xs text-red-500">{errors.anggota_lunas.message}</p>
+                    {errors.lunas && (
+                        <p className="mt-1 text-xs text-red-500">{errors.lunas.message}</p>
                     )}
                 </div>
 

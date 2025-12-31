@@ -9,6 +9,7 @@ import { MetricItem } from './MetricItem';
 import Modals from './Modals';
 import TargetAnggotaForm from './forms/TargetAnggotaForm';
 import { usePosisiUsaha, usePosisiUsahaGroup } from './hooks/usePosisiUsaha';
+import TargetForm from './forms/TargetForm';
 
 const Metrics: React.FC = () => {
     const [startDate, setStartDate] = useState<string | null>(null);
@@ -31,6 +32,11 @@ const Metrics: React.FC = () => {
         items: modalTargetAnggota, sum: modalTargetAnggotaSum,
         pagination: paginationTargetAnggota, fetchPage: fetchTargetAnggota
     } = usePosisiUsaha(posisiUsahaCode.TARGET_ANGGOTA);
+
+    const {
+        items: modalTarget, sum: modalTargetSum,
+        pagination: paginationTarget, fetchPage: fetchTarget
+    } = usePosisiUsaha(posisiUsahaCode.TARGET);
     // --- Handlers (Memoized) ---
     const loadAllData = useCallback((sDate: string | null, eDate: string | null) => {
         const start = sDate || '';
@@ -69,7 +75,7 @@ const Metrics: React.FC = () => {
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("storting")} Icon={DollarLineIcon} title='Storting' count={angsuranSum} />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("modaldo")} Icon={DollarLineIcon} title='Modal DO' count={modalDoSum} />
                 <MetricItem Icon={DollarLineIcon} title='IP' count={0} />
-                <MetricItem Icon={DollarLineIcon} title='Target' count={0} />
+                <MetricItem hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />
                 <MetricItem hasPointer onClick={() => setModalActive("targetanggota")} Icon={DollarLineIcon} title='Target Anggota' count={modalTargetAnggotaSum} />
                 <MetricItem isCurrency Icon={DollarLineIcon} title='Sirkulasi' count={0} />
                 <MetricItem isCurrency Icon={DollarLineIcon} title='Naik/Turun' count={0} />
@@ -117,6 +123,19 @@ const Metrics: React.FC = () => {
                 groups={groups}
                 hasGroup
                 Form={TargetAnggotaForm}
+            />
+            <Modals
+                title="History Target "
+                titleHeader="Jumlah Target "
+                isOpen={modalActive === "target"}
+                setOpen={(status) => setModalActive(status ? "target" : null)}
+                items={modalTarget}
+                pagination={paginationTarget}
+                onPageChange={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onFilter={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                groups={groups}
+                hasGroup
+                Form={TargetForm}
             />
         </>
     );
