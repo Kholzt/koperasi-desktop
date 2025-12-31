@@ -144,9 +144,9 @@ apiRouter.get('/list-backup', async (req, res) => {
     return res.json({ backups: listBackup() })
 });
 
-apiRouter.post("/posisi-usaha/target-anggota", PosisiUsahaController.saveTargetAnggota)
-apiRouter.put("/posisi-usaha/target-anggota/:id", PosisiUsahaController.saveTargetAnggota)
-apiRouter.get("/posisi-usaha/target-anggota-minggu-lalu", PosisiUsahaController.getTargetAnggotaMingguLalu)
+apiRouter.post("/posisi-usaha/save", PosisiUsahaController.savePosisiUsaha)
+apiRouter.put("/posisi-usaha/save/:id", PosisiUsahaController.savePosisiUsaha)
+apiRouter.get("/posisi-usaha/data-minggu-lalu", PosisiUsahaController.getDataMingguLalu)
 apiRouter.get("/posisi-usaha-today", PosisiUsahaController.getPosisiUsahaToday)
 apiRouter.get("/posisi-usaha", PosisiUsahaController.getPosisiUsaha)
 apiRouter.get("/posisi-usaha/:id", PosisiUsahaController.getPosisiUsahaById)

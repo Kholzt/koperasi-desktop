@@ -48,7 +48,6 @@ function usePaginatedResource(endpoint: string, itemsKey: string,code:string) {
                 const last = body.last_page || Math.max(1, Math.ceil((total || 0) / per_page));
                 setPagination({ page: current, totalPages: last, limit: per_page, total: total });
             }
-            console.log(list);
             setItems(list);
             setSum(jumlah);
         } catch (err) {

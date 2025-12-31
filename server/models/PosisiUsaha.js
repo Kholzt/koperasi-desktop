@@ -117,8 +117,8 @@ export default class PosisiUsaha {
         });
     }
 
-    static async getTargetAnggotaMingguLalu(date, group_id) {
-        const typeVar = await db("type_variabel").where("code", "targetanggota").first();
+    static async getDataMingguLalu(date, group_id, code) {
+        const typeVar = await db("type_variabel").where("code", code).first();
         return await db("posisi_usaha")
             .select("amount")
             .where("type_id", typeVar.id)
@@ -127,6 +127,7 @@ export default class PosisiUsaha {
             .whereRaw(`posisi_usaha.tanggal_input = DATE_SUB('${date}', INTERVAL 7 DAY)`)
             .first()
     }
+
 
     static async getPosisiUsaha(id) {
         return db('posisi_usaha')

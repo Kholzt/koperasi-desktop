@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from '../../../utils/axios';
+import { posisiUsahaCode } from '../../../utils/constanta';
 interface Props {
     anggota_drop: number;
     anggota_lunas: number;
@@ -7,6 +8,8 @@ interface Props {
     target_minggu_lalu: number;
     tanggal_input: string;
     code: string;
+    raw_formula: string;
+    total:number;
 }
 function useTargetAnggota(date?: string | null, group?: number | null, id?: number) {
     const [targetMingguLalu, setTargetMingguLalu] = useState(0);
@@ -14,10 +17,9 @@ function useTargetAnggota(date?: string | null, group?: number | null, id?: numb
     useEffect(() => {
         const hasDateAndGroup = date && group
         if (hasDateAndGroup) {
-            axios.get(`api/posisi-usaha/target-anggota-minggu-lalu?tanggal_input=${date}&group_id=${group}`)
+            axios.get(`api/posisi-usaha/data-minggu-lalu?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.TARGET_ANGGOTA}`)
                 .then((d) => {
                     setTargetMingguLalu(d.data.target_minggu_lalu || 0)
-                    console.log(d);
                 })
         }
     }, [date, group]);
@@ -30,14 +32,20 @@ function useTargetAnggota(date?: string | null, group?: number | null, id?: numb
     }, [id]);
 
     const onsubmit = async (data: Props) => {
+        const result = (data.anggota_drop) - (data.anggota_lunas) + (data.target_minggu_lalu)
+        data.total = result
+        data.raw_formula = JSON.stringify({
+            anggota_drop:data.anggota_drop,
+            anggota_lunas:data.anggota_lunas,
+        })
 
         try {
             const isEdit = id
             let res;
             if (isEdit) {
-                res = await axios.put(`api/posisi-usaha/target-anggota/${id}`, data)
+                res = await axios.put(`api/posisi-usaha/save/${id}`, data)
             } else {
-                res = await axios.post("api/posisi-usaha/target-anggota", data)
+                res = await axios.post("api/posisi-usaha/save", data)
             }
 
             return res.status

@@ -1,7 +1,7 @@
 import React, { SVGProps } from 'react';
 import { formatCurrency } from '../../utils/helpers';
 
-export function MetricItem({ title, count, Icon, onClick, hasPointer = false }: { hasPointer?: boolean; title: string; count: number; Icon: React.FC<SVGProps<SVGSVGElement>>; onClick?: () => void; }) {
+export function MetricItem({ title, count, Icon, onClick, hasPointer = false, isCurrency = false }: { hasPointer?: boolean; title: string; count: number; Icon: React.FC<SVGProps<SVGSVGElement>>; onClick?: () => void; isCurrency?: boolean }) {
     return <div onClick={onClick} className={`${hasPointer ? "cursor-pointer" : "cursor-auto"} rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6`}>
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
             <Icon className="text-gray-800 size-6 dark:text-white/90" />
@@ -13,7 +13,7 @@ export function MetricItem({ title, count, Icon, onClick, hasPointer = false }: 
                     {title}
                 </span>
                 <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-                    {formatCurrency(count)}
+                    {isCurrency ? formatCurrency(count) : count}
                 </h4>
             </div>
         </div>

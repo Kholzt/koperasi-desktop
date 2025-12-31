@@ -66,15 +66,15 @@ const Metrics: React.FC = () => {
 
             {/* CARD */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
-                <MetricItem hasPointer onClick={() => setModalActive("storting")} Icon={DollarLineIcon} title='Storting' count={angsuranSum} />
-                <MetricItem hasPointer onClick={() => setModalActive("modaldo")} Icon={DollarLineIcon} title='Modal DO' count={modalDoSum} />
+                <MetricItem isCurrency hasPointer onClick={() => setModalActive("storting")} Icon={DollarLineIcon} title='Storting' count={angsuranSum} />
+                <MetricItem isCurrency hasPointer onClick={() => setModalActive("modaldo")} Icon={DollarLineIcon} title='Modal DO' count={modalDoSum} />
                 <MetricItem Icon={DollarLineIcon} title='IP' count={0} />
                 <MetricItem Icon={DollarLineIcon} title='Target' count={0} />
                 <MetricItem hasPointer onClick={() => setModalActive("targetanggota")} Icon={DollarLineIcon} title='Target Anggota' count={modalTargetAnggotaSum} />
-                <MetricItem Icon={DollarLineIcon} title='Sirkulasi' count={0} />
-                <MetricItem Icon={DollarLineIcon} title='Naik/Turun' count={0} />
-                <MetricItem Icon={DollarLineIcon} title='PD' count={0} />
-                <MetricItem Icon={DollarLineIcon} title='SU' count={0} />
+                <MetricItem isCurrency Icon={DollarLineIcon} title='Sirkulasi' count={0} />
+                <MetricItem isCurrency Icon={DollarLineIcon} title='Naik/Turun' count={0} />
+                <MetricItem isCurrency Icon={DollarLineIcon} title='PD' count={0} />
+                <MetricItem isCurrency Icon={DollarLineIcon} title='SU' count={0} />
             </div>
 
             {/* MODAL */}

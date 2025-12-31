@@ -51,8 +51,8 @@ export default function TargetAnggotaForm({ id, onClose, groups }: PropsForm) {
     const { targetMingguLalu, onsubmit, data } = useTargetAnggota(watchTanggal, watchGroup, id);
 
     React.useEffect(() => {
-        if (data || targetMingguLalu) {
-            setValue("target_minggu_lalu", targetMingguLalu, { shouldDirty: true });
+        setValue("target_minggu_lalu", targetMingguLalu || 0, { shouldDirty: true });
+        if (data) {
             const rawFormula = data.raw_formula;
             setValue("anggota_drop", rawFormula?.anggota_drop || 0, { shouldDirty: true })
             setValue("anggota_lunas", rawFormula?.anggota_lunas || 0, { shouldDirty: true })

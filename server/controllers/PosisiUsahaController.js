@@ -48,16 +48,51 @@ export default class PosisiUsahaController {
         }
     }
 
-    static async saveTargetAnggota(req, res) {
-        const { anggota_drop, anggota_lunas, tanggal_input, group_id, target_minggu_lalu, code } = req.body
+    static async savePosisiUsaha(req, res) {
+        const { tanggal_input, group_id, code, total, raw_formula } = req.body
+        const id = req.params?.id || null
+        const user = req.user
+        try {
+            const data = {
+                code,
+                amount: total,
+                user_id: user.id || null,
+                group_id,
+                tanggal_input,
+                raw_formula: raw_formula,
+                posisi_usaha_id: id || null
+            }
+            await PosisiUsaha.insertUpdatePosisiUsahaById(data)
+            return res.status(200).json({
+                message: "success"
+            })
+        } catch (error) {
+            return res.status(500).json({ error: 'Failed to save target anggota', errors: error.message, user });
+        }
+    }
+
+    static async getDataMingguLalu(req, res) {
+        try {
+            const { tanggal_input, group_id, code } = req.query
+            const result = await PosisiUsaha.getDataMingguLalu(tanggal_input, group_id, code)
+            return res.status(200).json({
+                target_minggu_lalu: result?.amount || 0
+            })
+        } catch (error) {
+            return res.status(500).json({ error: 'Failed to fetch target anggota', errors: error.message });
+        }
+    }
+
+    static async saveTarget(req, res) {
+        const { drop, lunas, tanggal_input, group_id, target_minggu_lalu, code } = req.body
         const id = req.params?.id || null
         const user = req.user
         try {
 
-            const result = parseInt(anggota_drop) - parseInt(anggota_lunas) + parseInt(target_minggu_lalu)
+            const result = parseInt(drop) - parseInt(lunas) + parseInt(target_minggu_lalu)
             const raw_formula = {
-                anggota_drop,
-                anggota_lunas
+                drop,
+                lunas
             }
             const data = {
                 code,
@@ -77,17 +112,7 @@ export default class PosisiUsahaController {
         }
     }
 
-    static async getTargetAnggotaMingguLalu(req, res) {
-        try {
-            const { tanggal_input, group_id } = req.query
-            const result = await PosisiUsaha.getTargetAnggotaMingguLalu(tanggal_input, group_id)
-            return res.status(200).json({
-                target_minggu_lalu: result.amount || 0
-            })
-        } catch (error) {
-            return res.status(500).json({ error: 'Failed to fetch target anggota', errors: error.message });
-        }
-    }
+
 
     static async getPosisiUsahaById(req, res) {
         try {
