@@ -227,6 +227,7 @@ function Action({ id, schedule }: { id: number, schedule: string }) {
                     >
                         Tutup
                     </button>
+
                     <button
                         onClick={deleteAction}
                         type="button"

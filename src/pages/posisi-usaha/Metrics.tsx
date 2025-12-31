@@ -31,7 +31,6 @@ const Metrics: React.FC = () => {
         items: modalTargetAnggota, sum: modalTargetAnggotaSum,
         pagination: paginationTargetAnggota, fetchPage: fetchTargetAnggota
     } = usePosisiUsaha(posisiUsahaCode.TARGET_ANGGOTA);
-
     // --- Handlers (Memoized) ---
     const loadAllData = useCallback((sDate: string | null, eDate: string | null) => {
         const start = sDate || '';

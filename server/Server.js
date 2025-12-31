@@ -144,8 +144,14 @@ apiRouter.get('/list-backup', async (req, res) => {
     return res.json({ backups: listBackup() })
 });
 
-app.get("/api/posisi-usaha-today", PosisiUsahaController.getPosisiUsahaToday)
-app.get("/api/posisi-usaha", PosisiUsahaController.getPosisiUsaha)
+apiRouter.post("/posisi-usaha/target-anggota", PosisiUsahaController.saveTargetAnggota)
+apiRouter.put("/posisi-usaha/target-anggota/:id", PosisiUsahaController.saveTargetAnggota)
+apiRouter.get("/posisi-usaha/target-anggota-minggu-lalu", PosisiUsahaController.getTargetAnggotaMingguLalu)
+apiRouter.get("/posisi-usaha-today", PosisiUsahaController.getPosisiUsahaToday)
+apiRouter.get("/posisi-usaha", PosisiUsahaController.getPosisiUsaha)
+apiRouter.get("/posisi-usaha/:id", PosisiUsahaController.getPosisiUsahaById)
+apiRouter.delete("/posisi-usaha/:id", PosisiUsahaController.deletePosisiUsaha)
+
 app.use('/api', apiRouter);
 app.listen(port, async () => {
 

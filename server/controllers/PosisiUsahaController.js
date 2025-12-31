@@ -16,7 +16,7 @@ export default class PosisiUsahaController {
 
             return res.status(200).json({ posisiUsaha });
         } catch (error) {
-            return res.status(500).json({ error: 'Failed to fetch posisi usaha', errors: error });
+            return res.status(500).json({ error: 'Failed to fetch posisi usaha', errors: error.message });
         }
     }
 
@@ -44,10 +44,74 @@ export default class PosisiUsahaController {
             });
         } catch (err) {
             console.error(err);
-            return res.status(500).json({ error: 'Failed to fetch angsuran', errors: err });
+            return res.status(500).json({ error: 'Failed to fetch angsuran', errors: err.message });
         }
     }
 
+    static async saveTargetAnggota(req, res) {
+        const { anggota_drop, anggota_lunas, tanggal_input, group_id, target_minggu_lalu, code } = req.body
+        const id = req.params?.id || null
+        const user = req.user
+        try {
 
+            const result = parseInt(anggota_drop) - parseInt(anggota_lunas) + parseInt(target_minggu_lalu)
+            const raw_formula = {
+                anggota_drop,
+                anggota_lunas
+            }
+            const data = {
+                code,
+                amount: result,
+                user_id: user.id || null,
+                group_id,
+                tanggal_input,
+                raw_formula: JSON.stringify(raw_formula),
+                posisi_usaha_id: id || null
+            }
+            await PosisiUsaha.insertUpdatePosisiUsahaById(data)
+            return res.status(200).json({
+                message: "success"
+            })
+        } catch (error) {
+            return res.status(500).json({ error: 'Failed to save target anggota', errors: error.message, user });
+        }
+    }
 
+    static async getTargetAnggotaMingguLalu(req, res) {
+        try {
+            const { tanggal_input, group_id } = req.query
+            const result = await PosisiUsaha.getTargetAnggotaMingguLalu(tanggal_input, group_id)
+            return res.status(200).json({
+                target_minggu_lalu: result.amount || 0
+            })
+        } catch (error) {
+            return res.status(500).json({ error: 'Failed to fetch target anggota', errors: error.message });
+        }
+    }
+
+    static async getPosisiUsahaById(req, res) {
+        try {
+            const id = req.params?.id || null
+
+            const result = await PosisiUsaha.getPosisiUsaha(id)
+            return res.status(200).json({
+                posisi_usaha: result,
+                message: "Posisi usaha berhasil diambil"
+            })
+        } catch (error) {
+            return res.status(500).json({ error: 'Posisi usaha gagal diambil', errors: error.message });
+        }
+    }
+    static async deletePosisiUsaha(req, res) {
+        try {
+            const id = req.params?.id || null
+
+            const result = await PosisiUsaha.deletePosisiUsaha(id)
+            return res.status(200).json({
+                message: "Posisi usaha berhasil dihapus"
+            })
+        } catch (error) {
+            return res.status(500).json({ error: 'Posisi usaha gagal dihapus', errors: error.message });
+        }
+    }
 }
