@@ -10,6 +10,7 @@ import Modals from './Modals';
 import TargetAnggotaForm from './forms/TargetAnggotaForm';
 import { usePosisiUsaha, usePosisiUsahaGroup } from './hooks/usePosisiUsaha';
 import TargetForm from './forms/TargetForm';
+import SirkulasiForm from './forms/SirkulasiForm';
 
 const Metrics: React.FC = () => {
     const [startDate, setStartDate] = useState<string | null>(null);
@@ -77,7 +78,7 @@ const Metrics: React.FC = () => {
                 <MetricItem Icon={DollarLineIcon} title='IP' count={0} />
                 <MetricItem hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />
                 <MetricItem hasPointer onClick={() => setModalActive("targetanggota")} Icon={DollarLineIcon} title='Target Anggota' count={modalTargetAnggotaSum} />
-                <MetricItem isCurrency Icon={DollarLineIcon} title='Sirkulasi' count={0} />
+                <MetricItem isCurrency hasPointer onClick={() => setModalActive("sirkulasi")} Icon={DollarLineIcon} title='Sirkulasi' count={0} />
                 <MetricItem isCurrency Icon={DollarLineIcon} title='Naik/Turun' count={0} />
                 <MetricItem isCurrency Icon={DollarLineIcon} title='PD' count={0} />
                 <MetricItem isCurrency Icon={DollarLineIcon} title='SU' count={0} />
@@ -136,6 +137,19 @@ const Metrics: React.FC = () => {
                 groups={groups}
                 hasGroup
                 Form={TargetForm}
+            />
+            <Modals
+                title="History Sirkulasi"
+                titleHeader="Jumlah Sirkulasi"
+                isOpen={modalActive === "sirkulasi"}
+                setOpen={(status) => setModalActive(status ? "sirkulasi" : null)}
+                items={modalTarget}
+                pagination={paginationTarget}
+                onPageChange={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onFilter={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                groups={groups}
+                hasGroup
+                Form={SirkulasiForm}
             />
         </>
     );
