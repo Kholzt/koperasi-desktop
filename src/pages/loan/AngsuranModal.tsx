@@ -20,7 +20,7 @@ import { AngsuranProps, EmployeProps, LoanProps, PaginationProps, UserProps } fr
 
 
 interface FormInputs {
-    asal_pembayaran: string;
+    asal_pembayaran: string | null;
     jumlah_bayar: string;
     jumlah_katrol: string;
     tanggal_bayar?: string;
@@ -38,8 +38,8 @@ const schema: yup.SchemaOf<FormInputs> = yup.object({
         .required('Silahkan pilih penagih'))
         .min(1, "Minimal pilih satu penagih")
         .required('Penagih wajib dipilih'),
-    status: yup.mixed<"lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional'>()
-        .oneOf(["lunas", "menunggak", "kurang", "lebih", 'Libur Operasional'], "Status tidak valid")
+    status: yup.mixed<"lunas" | "menunggak" | "kurang" | "lebih" | 'Libur Operasional' | "libur">()
+        .oneOf(["lunas", "menunggak", "kurang", "lebih", 'Libur Operasional', "libur"], "Status tidak valid")
         .required("Status wajib diisi"),
 });
 
@@ -107,7 +107,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
 
             // hanya reset asal_pembayaran jika memang tidak relevan
             if (!isLunasValue) {
-                setValue("asal_pembayaran", "", { shouldDirty: true });
+                setValue("asal_pembayaran", null, { shouldDirty: true });
             }
         }
     }, [lunasUpdate]);
@@ -135,7 +135,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
         }); let reason;
         let status;
         try {
-            if (!data.asal_pembayaran && (data.status != "menunggak" && data.status != "Libur Operasional")) return setError("asal_pembayaran", {
+            if (!data.asal_pembayaran && (data.status != "menunggak" && (data.status != "Libur Operasional" && data.status !="libur"))) return setError("asal_pembayaran", {
                 type: "required",
                 message: "Asal pembayaran wajib diisi"
             })
