@@ -4,25 +4,48 @@ import { formatDateLocal } from "../helpers/helpers";
 export default class Transaction {
     static async findAll({ startDate, endDate = null, transaction_type = null, categories = null, groups = null, pos = null, isPusatAdmin = false }) {
 
-        const lastDate = await db('transactions')
-            .whereNull('deleted_at')
-            .andWhere('date', '<', startDate)
-            .orderBy('date', 'desc')
-            .select('date')
-            .first();
-        const lastDateOnly = lastDate?.date?.toISOString()?.slice(0, 10) ?? "1100-10-01";
+        // const lastDate = await db('transactions')
+        //     .whereNull('deleted_at')
+        //     .andWhere('date', '<', startDate)
+        //     .orderBy('date', 'desc')
+        //     .select('date')
+        //     .first();
 
-        // 1. Hitung saldo awal
+        // let lastDateOnly = startDate;
+        // if (lastDate && lastDate.date) {
+        //     const d = new Date(lastDate.date);
+        //     lastDateOnly = [
+        //         d.getFullYear(),
+        //         String(d.getMonth() + 1).padStart(2, '0'),
+        //         String(d.getDate()).padStart(2, '0'),
+        //     ].join('-');
+        // }
+
+        // // 1. Hitung saldo awal
+        // const saldoQuery = await db('transactions')
+        //     .whereNull('deleted_at')
+        //     .andWhereRaw(`DATE(date) = '${lastDateOnly}'`)
+        //     .select(
+        //         db.raw(`SUM(CASE WHEN transaction_type = 'debit' THEN amount ELSE 0 END) as total_debit`),
+        //         db.raw(`SUM(CASE WHEN transaction_type = 'credit' THEN amount ELSE 0 END) as total_kredit`)
+        //     )
+        //     .first();
         const saldoQuery = await db('transactions')
             .whereNull('deleted_at')
-            .andWhereRaw(`DATE(date) = '${lastDateOnly}'`)
+            .where('date', '<', startDate) // Mengambil semua record sebelum tanggal mulai
+            .modify((queryBuilder) => {
+                // Jika saldo awal harus spesifik per POS, tambahkan filter pos di sini
+                if (pos) queryBuilder.where('pos_id', pos);
+            })
             .select(
                 db.raw(`SUM(CASE WHEN transaction_type = 'debit' THEN amount ELSE 0 END) as total_debit`),
                 db.raw(`SUM(CASE WHEN transaction_type = 'credit' THEN amount ELSE 0 END) as total_kredit`)
             )
             .first();
 
-        const saldoAwal = (saldoQuery.total_debit || 0) - (saldoQuery.total_kredit || 0);
+        const saldoAwal = (Number(saldoQuery.total_debit) || 0) - (Number(saldoQuery.total_kredit) || 0);
+
+        // const saldoAwal = (saldoQuery.total_debit || 0) - (saldoQuery.total_kredit || 0);
 
         // 2. Lanjutkan query utama Anda
         const query = db('transactions')
