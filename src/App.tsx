@@ -1,22 +1,14 @@
 import { Route, HashRouter as Router, Routes } from "react-router";
+import CheckUpdate from './CheckUpdate';
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import AppLayout from "./layout/AppLayout";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import Blank from "./pages/Blank";
 import Calendar from "./pages/Calendar";
-// import BarChart from "./pages/Charts/BarChart";
-// import LineChart from "./pages/Charts/LineChart";
 import Home from "./pages/Dashboard/Home";
 import FormElements from "./pages/Forms/FormElements";
 import NotFound from "./pages/OtherPage/NotFound";
-// import BasicTables from "./pages/Tables/BasicTables";
-// import Alerts from "./pages/UiElements/Alerts";
-// import Avatars from "./pages/UiElements/Avatars";
-// import Badges from "./pages/UiElements/Badges";
-// import Buttons from "./pages/UiElements/Buttons";
-// import Images from "./pages/UiElements/Images";
-// import Videos from "./pages/UiElements/Videos";
 import UserProfiles from "./pages/UserProfiles";
 import Area from './pages/area/Area';
 import AreaForm from './pages/area/AreaForm';
@@ -36,6 +28,7 @@ import Member from './pages/member/Member';
 import MemberForm from './pages/member/MemberForm';
 import Pos from './pages/pos/Pos';
 import PosForm from './pages/pos/PosForm';
+import PosisiUsaha from './pages/posisi-usaha/PosisiUsaha';
 import Schedule from './pages/schedule/Schedule';
 import ScheduleForm from './pages/schedule/ScheduleForm';
 import Transaction from './pages/transactions/Transaction';
@@ -43,11 +36,12 @@ import TransactionDetail from './pages/transactions/TransactionDetail';
 import TransactionForm from './pages/transactions/TransactionForm';
 import User from "./pages/user/User";
 import UserForm from './pages/user/UserForm';
-import PosisiUsaha from './pages/posisi-usaha/PosisiUsaha';
 
 export default function App() {
+
     return (
         <>
+            <CheckUpdate />
             <Router>
                 <ScrollToTop />
                 <Routes>
@@ -139,6 +133,7 @@ export default function App() {
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </Router>
+
         </>
     );
 }

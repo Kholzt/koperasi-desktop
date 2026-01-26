@@ -488,10 +488,6 @@
     "date": "2026-12-31"
   },
   {
-    "title": "Isra Mikraj Nabi Muhammad (belum pasti)",
-    "date": "2026-01-16"
-  },
-  {
     "title": "Hari Suci Nyepi (Tahun Baru Saka)",
     "date": "2026-03-19"
   },
@@ -514,5 +510,9 @@
   {
     "title": "Maulid Nabi Muhammad (belum pasti)",
     "date": "2026-08-25"
+  },
+  {
+    "title": "Isra Mikraj Nabi Muhammad",
+    "date": "2026-01-16"
   }
 ]

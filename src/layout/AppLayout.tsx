@@ -4,6 +4,7 @@ import { useUser } from "../hooks/useUser";
 import AppHeader from "./AppHeader";
 import AppSidebar from "./AppSidebar";
 import Backdrop from "./Backdrop";
+import AppVersion from './AppVersion';
 
 const LayoutContent: React.FC = () => {
     const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -24,6 +25,7 @@ const LayoutContent: React.FC = () => {
                     <AppHeader />
                     <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
                         <Outlet />
+                        <AppVersion />
                     </div>
                 </div>
             </div>

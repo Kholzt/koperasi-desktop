@@ -1,0 +1,74 @@
+{
+    "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+    "appId": "com.seferine.koperasi",
+    "productName": "Koperasi Seferine Jaya Mandiri",
+    "asar": true,
+    "directories": {
+        "output": "release/${version}"
+    },
+    "files": [
+        "./public/**/*",
+        "dist",
+        "dist-electron",
+        {
+            "from": "dist-electron/server",
+            "to": "server"
+        },
+        "!*.env"
+    ],
+    "extraFiles": [
+        {
+            "from": ".env",
+            "to": "."
+        },
+        {
+            "from": "backups",
+            "to": "."
+        },
+        {
+            "from": "extras",
+            "to": "."
+        }
+    ],
+    "publish": [
+        {
+            "provider": "github",
+            "owner": "kholzt",
+            "repo": "koperasi-desktop",
+            "private": true
+        }
+    ],
+    "mac": {
+        "icon": "./build/icon.png",
+        "target": [
+            "dmg"
+        ],
+        "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
+    },
+    "win": {
+        "icon": "./build/icon.png",
+        "target": [
+            {
+                "target": "nsis",
+                "arch": [
+                    "x64"
+                ]
+            }
+        ],
+        "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
+    },
+    "nsis": {
+        "oneClick": false,
+        "perMachine": false,
+        "allowToChangeInstallationDirectory": true,
+        "deleteAppDataOnUninstall": false,
+        "runAfterFinish": true
+    },
+    "linux": {
+        "icon": "./build/icon.png",
+        "target": [
+            "AppImage"
+        ],
+        "artifactName": "${productName}-Linux-${version}.${ext}"
+    }
+}

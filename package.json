@@ -1,7 +1,7 @@
 {
     "name": "koperasi-seferine-jaya-mandiri",
     "private": true,
-    "version": "2.0.1",
+    "version": "2.0.0",
     "type": "module",
     "icon": "build/icon",
     "scripts": {
@@ -30,6 +30,7 @@
         "cors": "^2.8.5",
         "date-holidays": "^3.24.3",
         "dotenv": "^16.5.0",
+        "electron-updater": "^6.7.3",
         "express": "^5.1.0",
         "express-validator": "^7.2.1",
         "flatpickr": "^4.6.13",

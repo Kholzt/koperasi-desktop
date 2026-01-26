@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, shell ,dialog  } from 'electron'
 import { spawn } from 'child_process';
 import fs from 'fs';
+import { autoUpdater } from 'electron-updater';
 
 // import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -8,7 +9,8 @@ import path from 'node:path'
 import '../server/Server.js';
 import log from 'electron-log/main';
 log.initialize();
-
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
 
 // const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -102,35 +104,82 @@ function startExpressServer() {
     });
 
     log.info('Express server started');
-  }
-  app.whenReady().then(() => {
+}
+app.whenReady().then(() => {
     startExpressServer();
 
-ipcMain.handle('save-pdf', async (_,judul, htmlString) => {
-    console.log(htmlString);
-  const { filePath } = await dialog.showSaveDialog({
-    title: 'Simpan Laporan Kas',
-    defaultPath: judul,
-    filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
-  });
+    ipcMain.handle('save-pdf', async (_,judul, htmlString) => {
+        const { filePath } = await dialog.showSaveDialog({
+            title: 'Simpan Laporan Kas',
+            defaultPath: judul,
+            filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+        });
 
-  if (!filePath) return { success: false };
+        if (!filePath) return { success: false };
 
-  const win = new BrowserWindow({ show: false });
+        const win = new BrowserWindow({ show: false });
 
-  // Load HTML string
-  await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlString)}`);
+        // Load HTML string
+        await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(htmlString)}`);
 
-  const pdfBuffer = await win.webContents.printToPDF({
-    printBackground: true,
-    pageSize: 'A4',
-  });
+        const pdfBuffer = await win.webContents.printToPDF({
+            printBackground: true,
+            pageSize: 'A4',
+        });
 
-  fs.writeFileSync(filePath, pdfBuffer);
-  win.close();
+        fs.writeFileSync(filePath, pdfBuffer);
+        win.close();
 
-  return { success: true, path: filePath };
-});
+        return { success: true, path: filePath };
+    });
 
     createWindow();
+    autoUpdater.setFeedURL({
+        provider: "github",
+        owner: "kholzt",
+        repo: "koperasi-desktop",
+        private: true,
+        token: process.env.GH_TOKEN
+    });
+    autoUpdater.checkForUpdates();
+
+    ipcMain.handle('check-update', async () => {
+        return autoUpdater.checkForUpdates();
+    });
+
+    ipcMain.handle('install-update', () => {
+        autoUpdater.quitAndInstall();
+    });
+    ipcMain.handle("get-app-version", () => {
+        return app.getVersion();
+    });
+
+    /* =========================
+        AUTO UPDATER EVENTS
+    ========================= */
+    autoUpdater.on('checking-for-update', () => {
+        win?.webContents.send('update-status', 'checking');
+    });
+
+    autoUpdater.on('update-available', () => {
+        win?.webContents.send('update-status', 'available');
+    });
+
+    autoUpdater.on('update-not-available', () => {
+        win?.webContents.send('update-status', 'none');
+    });
+
+    autoUpdater.on('error', (err) => {
+        win?.webContents.send('update-status', 'error');
+        log.error('Updater error:', err);
+    });
+
+    autoUpdater.on('download-progress', (progress) => {
+        win?.webContents.send('update-progress', Math.round(progress.percent));
+    });
+
+    autoUpdater.on('update-downloaded', () => {
+        win?.webContents.send('update-status', 'downloaded');
+    });
+
   });
