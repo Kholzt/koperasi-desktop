@@ -134,7 +134,7 @@ const LoanDetail: React.FC = () => {
 
                 </ComponentCard>
                 <ComponentCard title="Detail Angsuran" option={
-                    loan?.status != "lunas" && user?.role != "staff" && <Button type="button" onClick={() => setShowModal(true)}>Tambah angsuran</Button>
+                    <Button type="button" onClick={() => setShowModal(true)}>Tambah angsuran</Button>
                 }>
                     <table className="min-w-full text-sm border rounded-md overflow-hidden bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
                         <thead className=" text-gray-700">
@@ -151,7 +151,7 @@ const LoanDetail: React.FC = () => {
                             {(loan?.angsuran?.length ?? 0) > 0 ? (
                                 loan?.angsuran?.map((angsuran: AngsuranProps, index: number) => {
                                     const canEdit = (angsuran.status != "menunggak" && angsuran.status != "Libur Operasional" && angsuran.status != "libur" && angsuran.status != "aktif") && user?.role != "staff";
-                                    const canDelete =  angsuran.status != "aktif" && user?.role != "staff";
+                                    const canDelete = angsuran.status != "aktif" && user?.role != "staff";
 
                                     return <tr key={index} className={getRowClass(angsuran)}>
 
