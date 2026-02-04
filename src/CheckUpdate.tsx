@@ -8,6 +8,8 @@ export default function CheckUpdate() {
     useEffect(() => {
         window?.updater?.onStatus(setStatus);
         window?.updater?.onProgress(setProgress);
+        console.log(status);
+        window.updater.check();
     }, []);
 
 
