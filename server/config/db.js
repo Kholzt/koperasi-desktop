@@ -43,8 +43,8 @@ if (!globalThis.__knexInstance) {
 
     globalThis.__knexInstance.on('query', (queryData) => {
         // if (queryData.sql.includes("posisi_usaha")) {
-            console.log('SQL:', queryData.sql);
-            console.log('Bindings:', queryData.bindings);
+            // console.log('SQL:', queryData.sql);
+            // console.log('Bindings:', queryData.bindings);
         // }
     });
 }
@@ -57,7 +57,7 @@ db = new Proxy(knexInstance, {
         const trx = als.getStore();
         const actual = trx ?? target;
         const value = actual[prop];
-        console.log('USE TRX?', !!trx);
+        // console.log('USE TRX?', !!trx);
 
         // bind function ke instance yang benar
         if (typeof value === "function") {

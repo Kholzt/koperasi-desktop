@@ -1,7 +1,12 @@
 import db from "../config/db";
 
 export default class PosisiUsaha {
-    static filter({ startDate, endDate, code, group_id }) {
+    static filter({
+        startDate,
+        endDate,
+        code,
+        group_id
+    }) {
         return (qb) => {
             qb.whereNull("posisi_usaha.deleted_at")
 
@@ -22,18 +27,38 @@ export default class PosisiUsaha {
         };
     }
 
-    static async getTotalAmount({ startDate, endDate, code }) {
+    static async getTotalAmount({
+        startDate,
+        endDate,
+        code
+    }) {
         const posisiUsaha = await db('posisi_usaha')
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .where(PosisiUsaha.filter({ startDate, endDate, code }))
+            .where(PosisiUsaha.filter({
+                startDate,
+                endDate,
+                code
+            }))
             .select(db.raw('SUM(amount) as jumlah'))
             .first();
         const jumlah = posisiUsaha.jumlah
         return jumlah
     }
-    static async getHistory({ startDate, endDate, offset, limit, code, group_id }) {
+    static async getHistory({
+        startDate,
+        endDate,
+        offset,
+        limit,
+        code,
+        group_id
+    }) {
         const totalRes = await db('posisi_usaha')
-            .where(PosisiUsaha.filter({ startDate, endDate, code, group_id }))
+            .where(PosisiUsaha.filter({
+                startDate,
+                endDate,
+                code,
+                group_id
+            }))
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
             .select(db.raw('COUNT(DISTINCT DATE(posisi_usaha.tanggal_input)) as total'))
             .first();
@@ -44,16 +69,30 @@ export default class PosisiUsaha {
                 db.raw("max(posisi_usaha.id) as id")
             )
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .where(PosisiUsaha.filter({ startDate, endDate, code, group_id }))
+            .where(PosisiUsaha.filter({
+                startDate,
+                endDate,
+                code,
+                group_id
+            }))
             .groupByRaw("DATE(posisi_usaha.tanggal_input)")
             .orderBy("tanggal", "desc")
             .limit(limit)
             .offset(offset);
         const total = totalRes.total
-        return { history, total }
+        return {
+            history,
+            total
+        }
     }
 
-    static async insertUpdatePosisiUsaha({ code, amount, user_id, group_id, tanggal_input }) {
+    static async insertUpdatePosisiUsaha({
+        code,
+        amount,
+        user_id,
+        group_id,
+        tanggal_input
+    }) {
         const typeVar = await db("type_variabel").where("code", code).first();
         const isModalDo = code == "modaldo"
 
@@ -61,8 +100,7 @@ export default class PosisiUsaha {
             let query = db("posisi_usaha")
                 .where("type_id", typeVar.id)
                 .whereRaw(`DATE(tanggal_input) = '${tanggal_input}'`)
-                .whereNull("deleted_at")
-                ;
+                .whereNull("deleted_at");
             if (!isModalDo) {
                 query.where("group_id", group_id);
             }
@@ -87,7 +125,15 @@ export default class PosisiUsaha {
             updated_by: user_id,
         });
     }
-    static async insertUpdatePosisiUsahaById({ code, amount, user_id, group_id, tanggal_input, raw_formula, posisi_usaha_id }) {
+    static async insertUpdatePosisiUsahaById({
+        code,
+        amount,
+        user_id,
+        group_id,
+        tanggal_input,
+        raw_formula,
+        posisi_usaha_id
+    }) {
         const typeVar = await db("type_variabel").where("code", code).first();
 
         let posisiUsaha = null;
@@ -128,14 +174,37 @@ export default class PosisiUsaha {
             .first()
     }
 
+    static async getDataThisWeek(date, code) {
+        try {
+            const typeVar = await db("type_variabel").where("code", code).first();
+            
+            if (!typeVar) return null;
+            return await db("posisi_usaha")
+                .select(
+                    db.raw("COALESCE(SUM(amount), 0) as amount")
+                )
+                .where("type_id", typeVar.id)
+                .where("tanggal_input", date)
+                .whereNull("deleted_at")
+                .first();
+        } catch (error) {
+            return error;
+        }
+    }
 
     static async getPosisiUsaha(id) {
         return db('posisi_usaha')
-            .where({ id })
+            .where({
+                id
+            })
             .whereNull("deleted_at")
             .first();
     }
     static async deletePosisiUsaha(id) {
-        return db('posisi_usaha').where({ id }).update({ deleted_at: new Date() });
+        return db('posisi_usaha').where({
+            id
+        }).update({
+            deleted_at: new Date()
+        });
     }
 }

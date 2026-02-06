@@ -15,7 +15,7 @@ import useSirkulasi from '../hooks/useSirkulasi';
 
 interface Props {
     drop: number;
-    lunas: number;
+    storting: number;
     group_id: number;
     target_minggu_lalu: number;
     tanggal_input: string;
@@ -27,8 +27,8 @@ interface Props {
 const schema: yup.SchemaOf<Props> = yup.object({
     drop: yup.string()
         .required('Drop wajib diisi'),
-    lunas: yup.string()
-        .required('Lunas wajib diisi'),
+    storting: yup.string()
+        .required('Storting wajib diisi'),
     group_id: yup.string()
         .required('Kelompok  wajib diisi'),
     target_minggu_lalu: yup.string()
@@ -45,7 +45,7 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
     const { handleSubmit, register, setValue, watch, getValues, formState: { errors } } = useForm<Props>({
         resolver: yupResolver(schema),
         defaultValues: {
-            code: posisiUsahaCode.TARGET
+            code: posisiUsahaCode.SIRKULASI
         }
     });
 
@@ -58,7 +58,7 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
         if (data) {
             const rawFormula = data.raw_formula;
             setValue("drop", rawFormula?.drop || 0, { shouldDirty: true })
-            setValue("lunas", rawFormula?.lunas || 0, { shouldDirty: true })
+            setValue("storting", rawFormula?.storting || 0, { shouldDirty: true })
             setValue("group_id", data.group_id, { shouldDirty: true })
             setValue("tanggal_input", toLocalDate(new Date(data.tanggal_input)), { shouldDirty: true })
         }
@@ -129,7 +129,7 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
                     <Label className="text-gray-600">Storting (Terisi Otomatis)</Label>
                     <Input
                         className="font-bold text-lg bg-transparent border-none"
-                        {...register("target_minggu_lalu")}
+                        {...register("storting")}
                         readOnly
 
                     />
