@@ -8,6 +8,7 @@ const JWT_SECRET = process.env.VITE_APP_JWT_SECRET || process.env.JWT_SECRET || 
 
 export default async function authenticate(req, res, next) {
     const auth = req.headers['authorization'] || req.headers['Authorization'];
+    // console.log(auth);
     if (!auth) return res.status(401).json({ message: 'Token required' });
 
     const parts = auth.split(' ');
@@ -22,7 +23,7 @@ export default async function authenticate(req, res, next) {
 
         const user = await User.findById(payload.id);
         if (!user) return res.status(401).json({ message: 'User not found' });
-
+        // console.log(user)
         req.user = user;
         next();
     } catch (err) {

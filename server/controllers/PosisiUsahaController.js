@@ -1,6 +1,6 @@
 import db from "../config/db";
 import PosisiUsaha from "../models/PosisiUsaha";
-import { posisiUsahaCode } from "../utils/constant";
+// import { posisiUsahaCode } from "../utils/constant";
 
 export default class PosisiUsahaController {
     static async getPosisiUsahaToday(req, res) {
@@ -76,8 +76,8 @@ export default class PosisiUsahaController {
         try {
             const { tanggal_input, group_id, code } = req.query
             const result = await PosisiUsaha.getDataMingguLalu(tanggal_input, group_id, code)
-            console.log(`result`,result);
-            
+            console.log(`result`, result);
+
             return res.status(200).json({
                 target_minggu_lalu: result?.amount || 0
             })
@@ -90,10 +90,10 @@ export default class PosisiUsahaController {
         try {
             const { tanggal_input, code } = req.query
             console.log(`tanggal_input`, tanggal_input, code);
-            
+
             const result = await PosisiUsaha.getDataThisWeek(tanggal_input, code)
-            console.log(`resultt`,result);
-            
+            console.log(`resultt`, result);
+
             return res.status(200).json({
                 amount: result?.amount || 0
             })

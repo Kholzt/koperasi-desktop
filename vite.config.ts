@@ -32,7 +32,7 @@ export default defineConfig({
         vite: {
             build: {
               rollupOptions: {
-                external: ['knex']
+                external: ['knex','jsonwebtoken']
               }
             }
           }
