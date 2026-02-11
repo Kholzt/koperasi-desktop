@@ -140,6 +140,7 @@ const TransactionForm: React.FC = () => {
             }
         } catch (error: any) {
             console.error(error);
+            console.log(error)
             if (error.status === 400 && error.response.data.errors) {
                 Object.keys(error.response.data.errors).forEach((key: any) => {
                     setError(key as any, {

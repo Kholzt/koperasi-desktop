@@ -139,8 +139,8 @@ export default class TransactionController {
                 type: transaction_type
             });
 
-            if (existingTransaction) {
-                await Transaction.update({ amount: existingTransaction.amount + nominal }, existingTransaction.id);
+            if (existingTransaction && resource != "transaksi") {
+                await Transaction.update({ amount: Number(existingTransaction.amount) + Number(nominal)}, existingTransaction.id);
                 await Transaction.createLog({
                     id_transaksi: existingTransaction.id,
                     updated_by: user,
