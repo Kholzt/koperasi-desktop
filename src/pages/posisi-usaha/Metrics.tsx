@@ -11,6 +11,7 @@ import TargetAnggotaForm from './forms/TargetAnggotaForm';
 import { usePosisiUsaha, usePosisiUsahaGroup } from './hooks/usePosisiUsaha';
 import TargetForm from './forms/TargetForm';
 import SirkulasiForm from './forms/SirkulasiForm';
+import IPForm from './forms/IPForm';
 
 const Metrics: React.FC = () => {
     const [startDate, setStartDate] = useState<string | null>(null);
@@ -38,6 +39,11 @@ const Metrics: React.FC = () => {
         items: modalTarget, sum: modalTargetSum,
         pagination: paginationTarget, fetchPage: fetchTarget
     } = usePosisiUsaha(posisiUsahaCode.TARGET);
+
+    const {
+        items: modalIp, sum: modalIpSum,
+        pagination: paginationIp, fetchPage: fetchIp
+    } = usePosisiUsaha(posisiUsahaCode.IP);
     // --- Handlers (Memoized) ---
     const loadAllData = useCallback((sDate: string | null, eDate: string | null) => {
         const start = sDate || '';
@@ -45,6 +51,8 @@ const Metrics: React.FC = () => {
         fetchAngsuran(1, paginationAngsuran.limit, start, end);
         fetchModalDo(1, paginationModalDo.limit, start, end);
         fetchTargetAnggota(1, paginationTargetAnggota.limit, start, end);
+        fetchTarget(1, paginationTarget.limit, start, end);
+        fetchIp(1, paginationIp.limit, start, end);
     }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit]);
 
     // --- Effects ---
@@ -75,8 +83,8 @@ const Metrics: React.FC = () => {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("storting")} Icon={DollarLineIcon} title='Storting' count={angsuranSum} />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("modaldo")} Icon={DollarLineIcon} title='Modal DO' count={modalDoSum} />
-                <MetricItem Icon={DollarLineIcon} title='IP' count={0} />
-                <MetricItem hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />
+                <MetricItem hasPointer onClick={() => setModalActive("ip")} Icon={DollarLineIcon} title='IP' count={modalIpSum} />
+                <MetricItem isCurrency hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />
                 <MetricItem hasPointer onClick={() => setModalActive("targetanggota")} Icon={DollarLineIcon} title='Target Anggota' count={modalTargetAnggotaSum} />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("sirkulasi")} Icon={DollarLineIcon} title='Sirkulasi' count={0} />
                 <MetricItem isCurrency Icon={DollarLineIcon} title='Naik/Turun' count={0} />
@@ -150,6 +158,19 @@ const Metrics: React.FC = () => {
                 groups={groups}
                 hasGroup
                 Form={SirkulasiForm}
+            />
+            <Modals
+                title="History IP"
+                titleHeader="Jumlah IP"
+                isOpen={modalActive === "ip"}
+                setOpen={(status) => setModalActive(status ? "ip" : null)}
+                items={modalIp}
+                pagination={paginationIp}
+                onPageChange={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onFilter={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                groups={groups}
+                hasGroup
+                Form={IPForm}
             />
         </>
     );

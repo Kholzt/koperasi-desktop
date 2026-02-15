@@ -61,7 +61,10 @@ export default function Modals({
                 setEndDate(filter.endDate)
                 setGroup(filter.group)
             }} groups={groups} hasGroup={hasGroup} />
-            {Form && <div className='ms-auto'><Button className='mt-8 ' onClick={() => setIsOpenForm(true)}>Tambah</Button></div>}
+            {Form && <div className='ms-auto'><Button className='mt-8 ' onClick={() => {
+                setIsOpenForm(true)
+                setIdEdit(null)
+            }}>Tambah</Button></div>}
         </div>
         <div className=" h-[60vh] overflow-auto mt-5">
             <Table className='relative'>
