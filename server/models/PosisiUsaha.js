@@ -52,6 +52,7 @@ export default class PosisiUsaha {
         code,
         group_id
     }) {
+        const isModalDo = code === "modaldo"
         const totalRes = await db('posisi_usaha')
             .where(PosisiUsaha.filter({
                 startDate,
@@ -60,13 +61,16 @@ export default class PosisiUsaha {
                 group_id
             }))
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .select(db.raw('COUNT(DISTINCT DATE(posisi_usaha.tanggal_input)) as total'))
+            .select(db.raw(isModalDo ? 'COUNT(DISTINCT DATE(posisi_usaha.tanggal_input)) as total' : 'COUNT(DISTINCT DATE(posisi_usaha.tanggal_input), group_id) as total'))
             .first();
-        const history = await db("posisi_usaha")
+
+        const historyQuery = db("posisi_usaha")
             .select(
                 db.raw("DATE(posisi_usaha.tanggal_input) AS tanggal"),
                 db.raw("SUM(amount) AS jumlah"),
-                db.raw("max(posisi_usaha.id) as id")
+                db.raw("max(posisi_usaha.id) as id"),
+                db.raw("max(raw_formula) as raw_formula"),
+                db.raw("max(posisi_usaha.group_id) as group_id"),
             )
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
             .where(PosisiUsaha.filter({
@@ -74,12 +78,22 @@ export default class PosisiUsaha {
                 endDate,
                 code,
                 group_id
-            }))
-            .groupByRaw("DATE(posisi_usaha.tanggal_input)")
+            }));
+
+        if (!isModalDo) {
+            historyQuery.leftJoin("groups", "posisi_usaha.group_id", "groups.id")
+                .select("groups.group_name")
+                .groupByRaw("DATE(posisi_usaha.tanggal_input), group_id");
+        } else {
+            historyQuery.groupByRaw("DATE(posisi_usaha.tanggal_input)");
+        }
+
+        const history = await historyQuery
             .orderBy("tanggal", "desc")
             .limit(limit)
             .offset(offset);
-        const total = totalRes.total
+
+        const total = totalRes ? totalRes.total : 0
         return {
             history,
             total
@@ -125,6 +139,40 @@ export default class PosisiUsaha {
             updated_by: user_id,
         });
     }
+
+    static async checkDataByDate({
+        code,
+        tanggal_input,
+        group_id,
+        ignoreId
+    }) {
+        const typeVar = await db("type_variabel").where("code", code).first();
+        const isModalDo = code == "modaldo"
+
+        const baseQuery = () => {
+            let query = db("posisi_usaha")
+                .where("type_id", typeVar.id)
+                .whereRaw(`DATE(tanggal_input) = '${tanggal_input}'`)
+                .whereNull("deleted_at");
+            if (!isModalDo) {
+                query.where("group_id", group_id);
+            }
+            if (ignoreId) {
+                query.whereNot("id", ignoreId);
+            }
+
+            return query;
+        };
+
+        const posisiUsaha = await baseQuery().first();
+
+        if (!posisiUsaha) {
+            return false;
+        }
+
+        return true;
+    }
+
     static async insertUpdatePosisiUsahaById({
         code,
         amount,
@@ -159,7 +207,8 @@ export default class PosisiUsaha {
             amount: amount,
             updated_by: user_id,
             tanggal_input: tanggal_input,
-            raw_formula: raw_formula
+            raw_formula: raw_formula,
+            group_id: group_id
         });
     }
 
@@ -174,21 +223,27 @@ export default class PosisiUsaha {
             .first()
     }
 
-    static async getDataThisWeek(date, code) {
+    static async getDataThisWeek(date, group_id, code) {
         try {
             const typeVar = await db("type_variabel").where("code", code).first();
-            
+
             if (!typeVar) return null;
-            return await db("posisi_usaha")
+
+            const query = db("posisi_usaha")
                 .select(
                     db.raw("COALESCE(SUM(amount), 0) as amount")
                 )
                 .where("type_id", typeVar.id)
                 .where("tanggal_input", date)
-                .whereNull("deleted_at")
-                .first();
+                .whereNull("deleted_at");
+
+            if (group_id) {
+                query.where("group_id", group_id);
+            }
+
+            return await query.first();
         } catch (error) {
-            return error;
+            throw error;
         }
     }
 

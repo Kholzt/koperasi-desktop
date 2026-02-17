@@ -28,7 +28,7 @@ function useSirkulasi(
           `api/posisi-usaha/data-minggu-lalu?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.SIRKULASI}`,
         )
         .then((d) => {
-          
+
           setSirkulasiMingguLalu(d.data.target_minggu_lalu || 0);
         });
       axios
@@ -41,7 +41,7 @@ function useSirkulasi(
         });
     }
     console.log(stortingThisWeek);
-    
+
   }, [date, group]);
   useEffect(() => {
     const hasData = id;

@@ -12,6 +12,10 @@ import { usePosisiUsaha, usePosisiUsahaGroup } from './hooks/usePosisiUsaha';
 import TargetForm from './forms/TargetForm';
 import SirkulasiForm from './forms/SirkulasiForm';
 import IPForm from './forms/IPForm';
+import PDForm from './forms/PDForm ';
+import SUForm from './forms/SUForm';
+import NaikTurunForm from './forms/NaikTurunForm';
+
 
 const Metrics: React.FC = () => {
     const [startDate, setStartDate] = useState<string | null>(null);
@@ -44,7 +48,25 @@ const Metrics: React.FC = () => {
         items: modalIp, sum: modalIpSum,
         pagination: paginationIp, fetchPage: fetchIp
     } = usePosisiUsaha(posisiUsahaCode.IP);
-    // --- Handlers (Memoized) ---
+
+    const {
+        items: modalPD, sum: modalPDSum,
+        pagination: paginationPD, fetchPage: fetchPD
+    } = usePosisiUsaha(posisiUsahaCode.PD);
+
+    const {
+        items: modalSU, sum: modalSUSum,
+        pagination: paginationSU, fetchPage: fetchSU
+    } = usePosisiUsaha(posisiUsahaCode.SU);
+
+    const {
+        items: modalNaikTurun, sum: modalNaikTurunSum,
+        pagination: paginationNaikTurun, fetchPage: fetchNaikTurun
+    } = usePosisiUsaha(posisiUsahaCode.NAIK_TURUN);
+
+
+
+
     const loadAllData = useCallback((sDate: string | null, eDate: string | null) => {
         const start = sDate || '';
         const end = eDate || '';
@@ -53,7 +75,10 @@ const Metrics: React.FC = () => {
         fetchTargetAnggota(1, paginationTargetAnggota.limit, start, end);
         fetchTarget(1, paginationTarget.limit, start, end);
         fetchIp(1, paginationIp.limit, start, end);
-    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit]);
+        fetchPD(1, paginationPD.limit, start, end);
+        fetchSU(1, paginationSU.limit, start, end);
+        fetchNaikTurun(1, paginationNaikTurun.limit, start, end);
+    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, fetchTarget, fetchIp, fetchPD, fetchSU, fetchNaikTurun, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit, paginationTarget.limit, paginationIp.limit, paginationPD.limit, paginationSU.limit, paginationNaikTurun.limit]);
 
     // --- Effects ---
     useEffect(() => {
@@ -83,13 +108,28 @@ const Metrics: React.FC = () => {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("storting")} Icon={DollarLineIcon} title='Storting' count={angsuranSum} />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("modaldo")} Icon={DollarLineIcon} title='Modal DO' count={modalDoSum} />
-                <MetricItem hasPointer onClick={() => setModalActive("ip")} Icon={DollarLineIcon} title='IP' count={modalIpSum} />
+                <MetricItem
+                    hasPointer
+                    onClick={() => setModalActive("ip")}
+                    Icon={DollarLineIcon}
+                    title='IP'
+                    count={`${(modalIpSum / (paginationIp.total || 1)).toFixed(2)}%`}
+                    valueClassName={(modalIpSum / (paginationIp.total || 1)) >= 100 ? "text-gray-800 dark:text-white/90" : "text-red-500"}
+                />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />
                 <MetricItem hasPointer onClick={() => setModalActive("targetanggota")} Icon={DollarLineIcon} title='Target Anggota' count={modalTargetAnggotaSum} />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("sirkulasi")} Icon={DollarLineIcon} title='Sirkulasi' count={0} />
-                <MetricItem isCurrency Icon={DollarLineIcon} title='Naik/Turun' count={0} />
-                <MetricItem isCurrency Icon={DollarLineIcon} title='PD' count={0} />
-                <MetricItem isCurrency Icon={DollarLineIcon} title='SU' count={0} />
+                <MetricItem
+                    isCurrency
+                    hasPointer
+                    onClick={() => setModalActive("naikturun")}
+                    Icon={DollarLineIcon}
+                    title='Naik/Turun'
+                    count={modalNaikTurunSum}
+                    valueClassName={modalNaikTurunSum >= 0 ? "text-gray-800 dark:text-white/90" : "text-red-500"}
+                />
+                <MetricItem isCurrency hasPointer onClick={() => setModalActive("pd")} Icon={DollarLineIcon} title='PD' count={modalPDSum} />
+                <MetricItem isCurrency hasPointer onClick={() => setModalActive("su")} Icon={DollarLineIcon} title='SU' count={modalSUSum} />
             </div>
 
             {/* MODAL */}
@@ -134,6 +174,7 @@ const Metrics: React.FC = () => {
                 Form={TargetAnggotaForm}
             />
             <Modals
+                isCurrency
                 title="History Target "
                 titleHeader="Jumlah Target "
                 isOpen={modalActive === "target"}
@@ -171,6 +212,50 @@ const Metrics: React.FC = () => {
                 groups={groups}
                 hasGroup
                 Form={IPForm}
+                isPercentage={true}
+            />
+            <Modals
+                title="History Naik/Turun"
+                titleHeader="Jumlah Naik/Turun"
+                isOpen={modalActive === "naikturun"}
+                setOpen={(status) => setModalActive(status ? "naikturun" : null)}
+                items={modalNaikTurun}
+                pagination={paginationNaikTurun}
+                onPageChange={(filter) => fetchNaikTurun(filter.page, paginationNaikTurun.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onFilter={(filter) => fetchNaikTurun(filter.page, paginationNaikTurun.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                groups={groups}
+                hasGroup
+                Form={NaikTurunForm}
+                isCurrency={true}
+                addButtonText="Generate Naik/Turun"
+            />
+            <Modals
+                isCurrency
+                title="History PD"
+                titleHeader="Jumlah PD"
+                isOpen={modalActive === "pd"}
+                setOpen={(status) => setModalActive(status ? "pd" : null)}
+                items={modalPD}
+                pagination={paginationPD}
+                onPageChange={(filter) => fetchPD(filter.page, paginationPD.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onFilter={(filter) => fetchPD(filter.page, paginationPD.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                groups={groups}
+                hasGroup
+                Form={PDForm}
+            />
+            <Modals
+                isCurrency
+                title="History SU"
+                titleHeader="Jumlah SU"
+                isOpen={modalActive === "su"}
+                setOpen={(status) => setModalActive(status ? "su" : null)}
+                items={modalSU}
+                pagination={paginationSU}
+                onPageChange={(filter) => fetchSU(filter.page, paginationSU.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onFilter={(filter) => fetchSU(filter.page, paginationSU.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                groups={groups}
+                hasGroup
+                Form={SUForm}
             />
         </>
     );

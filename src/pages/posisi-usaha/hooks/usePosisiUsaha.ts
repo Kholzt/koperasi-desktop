@@ -9,7 +9,7 @@ export interface PaginationProps {
     total: number;
 }
 
-function usePaginatedResource(endpoint: string, itemsKey: string,code:string) {
+export function usePaginatedResource(endpoint: string, itemsKey: string,code:string) {
     const [items, setItems] = useState<any[]>([]);
     const [sum, setSum] = useState<number>(0);
     const [pagination, setPagination] = useState<PaginationProps>({

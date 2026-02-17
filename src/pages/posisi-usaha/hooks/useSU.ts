@@ -1,34 +1,43 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from '../../../utils/axios';
 import { posisiUsahaCode } from '../../../utils/constanta';
 import { unformatCurrency } from '../../../utils/helpers';
-interface Props {
 
+interface Props {
+    pd: number | string;
     storting: number | string;
-    target: number | string;
+    drop: number | string;
+    transport: number | string;
     group_id: number;
     tanggal_input: string;
     code: string;
     raw_formula: string;
-    total:number;
+    total: number;
 }
-function useIp(date?: string | null, group?: number | null, id?: number) {
+
+function useSU(date?: string | null, group?: number | null, id?: number) {
     const [stortingMingguIni, setStortingMingguIni] = useState(0);
-    const [targetMingguIni, setTargetMingguIni] = useState(0);
+    const [pdMingguIni, setPdMingguIni] = useState(0);
+
     const [data, setData] = useState<any>(null);
+
     useEffect(() => {
         const hasDateAndGroup = date && group
         if (hasDateAndGroup) {
+            // Get Storting
             axios.get(`api/posisi-usaha/data-this-week?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.STORTING}`)
                 .then((d) => {
                     setStortingMingguIni(d.data.amount || 0)
                 })
-            axios.get(`api/posisi-usaha/data-this-week?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.TARGET}`)
+
+            // Get PD and Transport from PD
+            axios.get(`api/posisi-usaha/data-this-week?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.PD}`)
                 .then((d) => {
-                    setTargetMingguIni(d.data.amount || 0)
+                    setPdMingguIni(d.data.amount || 0)
                 })
         }
     }, [date, group]);
+
     useEffect(() => {
         const hasData = id
         if (hasData) {
@@ -38,13 +47,21 @@ function useIp(date?: string | null, group?: number | null, id?: number) {
     }, [id]);
 
     const onsubmit = async (data: Props) => {
+        const pd = unformatCurrency(data.pd.toString());
         const storting = unformatCurrency(data.storting.toString());
-        const target = unformatCurrency(data.target.toString());
-        data.total = target > 0 ? Number(((storting / target) * 100).toFixed(1)) : 0;
+        const drop = unformatCurrency(data.drop.toString());
+        const transport = unformatCurrency(data.transport.toString());
+
+        // Formula: SU = PD + Storting - Drop - Transport
+        data.total = (pd + storting) - drop - transport;
+
         data.raw_formula = JSON.stringify({
-            storting:storting,
-            target:target,
+            pd: pd,
+            storting: storting,
+            drop: drop,
+            transport: transport
         })
+
         try {
             const isEdit = id
             let res;
@@ -61,7 +78,7 @@ function useIp(date?: string | null, group?: number | null, id?: number) {
         }
     }
 
-    return { stortingMingguIni,targetMingguIni, onsubmit, data }
+    return { stortingMingguIni, pdMingguIni,onsubmit, data }
 }
 
-export default useIp
+export default useSU
