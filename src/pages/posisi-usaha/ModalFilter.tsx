@@ -22,7 +22,7 @@ export default function ModalFilter({ onFilter, groups, hasGroup }: ModalFilterP
                     hasClear
                     id={"startDate"}
                     mode="range"
-                    placeholder="Tanggal peminjaman"
+                    placeholder="Tanggal Transaksi"
                     defaultDate={
                         startDate && endDate
                             ? [new Date(startDate), new Date(endDate)]

@@ -25,6 +25,8 @@ interface ModalsProps {
     onFilter: (filter: any) => void;
     groups: any[];
     Form?: React.ElementType;
+    titleHeader2?: string;
+    useGroupName?: boolean;
     hasGroup?: boolean
     isCurrency?: boolean
 }
@@ -32,9 +34,11 @@ interface ModalsProps {
 export default function Modals({
     setOpen,
     isOpen,
+    useGroupName,
     items,
     title,
     titleHeader,
+    titleHeader2,
     pagination,
     onPageChange,
     onFilter,
@@ -80,6 +84,12 @@ export default function Modals({
                         >
                             {titleHeader}
                         </TableCell>
+                        {useGroupName ? <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                        >
+                            {titleHeader2}
+                        </TableCell> : <></>}
                         <TableCell
                             isHeader
                             className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -114,6 +124,9 @@ export default function Modals({
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {isCurrency ? formatCurrency(item.jumlah) : item.jumlah ?? "-"}
                             </TableCell>
+                            {useGroupName ? <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                {item.group_name ?? "-"}
+                            </TableCell> : <></>}
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {formatDate(item.tanggal)}
                             </TableCell>
@@ -125,7 +138,7 @@ export default function Modals({
                     ))}
 
                     {items.length === 0 && <TableRow>
-                        <TableCell colSpan={Form ? 4 : 3} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                        <TableCell colSpan={Form ? 4 : 4} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                             Tidak ada data
                         </TableCell></TableRow>}
                 </TableBody>

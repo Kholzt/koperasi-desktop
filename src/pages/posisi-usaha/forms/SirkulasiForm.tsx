@@ -51,18 +51,37 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
 
     const watchTanggal = watch("tanggal_input");
     const watchGroup = watch("group_id");
-    const { sirkulasiMingguLalu, onsubmit, data } = useSirkulasi(watchTanggal, watchGroup, id);
+    const { sirkulasiMingguLalu, stortingThisWeekTotal, onsubmit, data } = useSirkulasi(watchTanggal, watchGroup, id);
 
     React.useEffect(() => {
-        setValue("target_minggu_lalu", sirkulasiMingguLalu || 0, { shouldDirty: true });
+        setValue("target_minggu_lalu", sirkulasiMingguLalu ?? 0, { shouldDirty: true });
+        setValue("storting", stortingThisWeekTotal ?? 0, { shouldDirty: true });
+        console.log(sirkulasiMingguLalu, stortingThisWeekTotal);
+
         if (data) {
             const rawFormula = data.raw_formula;
-            setValue("drop", rawFormula?.drop || 0, { shouldDirty: true })
-            setValue("storting", rawFormula?.storting || 0, { shouldDirty: true })
+            setValue("drop", rawFormula?.drop ?? 0, { shouldDirty: true })
+            // setValue("storting", rawFormula?.storting ?? 0, { shouldDirty: true })
             setValue("group_id", data.group_id, { shouldDirty: true })
             setValue("tanggal_input", toLocalDate(new Date(data.tanggal_input)), { shouldDirty: true })
         }
     }, [sirkulasiMingguLalu, setValue, data]);
+
+    // React.useEffect(() => {
+    //     setValue("target_minggu_lalu", sirkulasiMingguLalu ?? 0);
+    // }, [sirkulasiMingguLalu]);
+
+    // React.useEffect(() => {
+    //     setValue("storting", stortingThisWeekTotal ?? 0);
+    // }, [stortingThisWeekTotal]);
+
+    React.useEffect(() => {
+        if (!watchTanggal || !watchGroup) return;
+
+        setValue("target_minggu_lalu", sirkulasiMingguLalu ?? 0);
+        setValue("storting", stortingThisWeekTotal ?? 0);
+    }, [watchTanggal, watchGroup, sirkulasiMingguLalu, stortingThisWeekTotal]);
+
 
     const handleDate = (date: any) => {
         setValue("tanggal_input", toLocalDate(date[0]));

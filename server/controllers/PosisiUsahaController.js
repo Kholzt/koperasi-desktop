@@ -89,10 +89,7 @@ export default class PosisiUsahaController {
     static async getDataThisWeek(req, res) {
         try {
             const { tanggal_input, code } = req.query
-            console.log(`tanggal_input`, tanggal_input, code);
-
             const result = await PosisiUsaha.getDataThisWeek(tanggal_input, code)
-            console.log(`resultt`, result);
 
             return res.status(200).json({
                 amount: result?.amount || 0

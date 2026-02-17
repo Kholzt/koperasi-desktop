@@ -66,16 +66,19 @@ export default class PosisiUsaha {
             .select(
                 db.raw("DATE(posisi_usaha.tanggal_input) AS tanggal"),
                 db.raw("SUM(amount) AS jumlah"),
+                db.raw("groups.group_name AS group_name"),
                 db.raw("max(posisi_usaha.id) as id")
             )
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
+            .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
             .where(PosisiUsaha.filter({
                 startDate,
                 endDate,
                 code,
                 group_id
             }))
-            .groupByRaw("DATE(posisi_usaha.tanggal_input)")
+            .whereNull("posisi_usaha.deleted_at")
+            .groupByRaw("DATE(posisi_usaha.tanggal_input), groups.group_name")
             .orderBy("tanggal", "desc")
             .limit(limit)
             .offset(offset);

@@ -38,6 +38,11 @@ const Metrics: React.FC = () => {
         items: modalTarget, sum: modalTargetSum,
         pagination: paginationTarget, fetchPage: fetchTarget
     } = usePosisiUsaha(posisiUsahaCode.TARGET);
+
+    const {
+        items: modalSirkulasi, sum: modalSirkulasiSum,
+        pagination: paginationSirkulasi, fetchPage: fetchSirkulasi
+    } = usePosisiUsaha(posisiUsahaCode.SIRKULASI);
     // --- Handlers (Memoized) ---
     const loadAllData = useCallback((sDate: string | null, eDate: string | null) => {
         const start = sDate || '';
@@ -45,7 +50,8 @@ const Metrics: React.FC = () => {
         fetchAngsuran(1, paginationAngsuran.limit, start, end);
         fetchModalDo(1, paginationModalDo.limit, start, end);
         fetchTargetAnggota(1, paginationTargetAnggota.limit, start, end);
-    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit]);
+        fetchSirkulasi(1, paginationSirkulasi.limit, start, end);
+    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, fetchSirkulasi, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit, paginationSirkulasi.limit]);
 
     // --- Effects ---
     useEffect(() => {
@@ -78,7 +84,7 @@ const Metrics: React.FC = () => {
                 <MetricItem Icon={DollarLineIcon} title='IP' count={0} />
                 <MetricItem hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />
                 <MetricItem hasPointer onClick={() => setModalActive("targetanggota")} Icon={DollarLineIcon} title='Target Anggota' count={modalTargetAnggotaSum} />
-                <MetricItem isCurrency hasPointer onClick={() => setModalActive("sirkulasi")} Icon={DollarLineIcon} title='Sirkulasi' count={0} />
+                <MetricItem isCurrency hasPointer onClick={() => setModalActive("sirkulasi")} Icon={DollarLineIcon} title='Sirkulasi' count={modalSirkulasiSum} />
                 <MetricItem isCurrency Icon={DollarLineIcon} title='Naik/Turun' count={0} />
                 <MetricItem isCurrency Icon={DollarLineIcon} title='PD' count={0} />
                 <MetricItem isCurrency Icon={DollarLineIcon} title='SU' count={0} />
@@ -93,6 +99,8 @@ const Metrics: React.FC = () => {
                 setOpen={(status) => setModalActive(status ? "storting" : null)}
                 items={angsuranHistory}
                 pagination={paginationAngsuran}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 onPageChange={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 groups={groups}
@@ -107,6 +115,8 @@ const Metrics: React.FC = () => {
                 setOpen={(status) => setModalActive(status ? "modaldo" : null)}
                 items={modalDoHistory}
                 pagination={paginationModalDo}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 onPageChange={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 groups={groups}
@@ -118,6 +128,8 @@ const Metrics: React.FC = () => {
                 isOpen={modalActive === "targetanggota"}
                 setOpen={(status) => setModalActive(status ? "targetanggota" : null)}
                 items={modalTargetAnggota}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 pagination={paginationTargetAnggota}
                 onPageChange={(filter) => fetchTargetAnggota(filter.page, paginationTargetAnggota.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchTargetAnggota(filter.page, paginationTargetAnggota.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -131,6 +143,8 @@ const Metrics: React.FC = () => {
                 isOpen={modalActive === "target"}
                 setOpen={(status) => setModalActive(status ? "target" : null)}
                 items={modalTarget}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 pagination={paginationTarget}
                 onPageChange={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -141,12 +155,15 @@ const Metrics: React.FC = () => {
             <Modals
                 title="History Sirkulasi"
                 titleHeader="Jumlah Sirkulasi"
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 isOpen={modalActive === "sirkulasi"}
                 setOpen={(status) => setModalActive(status ? "sirkulasi" : null)}
-                items={modalTarget}
-                pagination={paginationTarget}
-                onPageChange={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                items={modalSirkulasi}
+                isCurrency={true}
+                pagination={paginationSirkulasi}
+                onPageChange={(filter) => fetchSirkulasi(filter.page, paginationSirkulasi.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onFilter={(filter) => fetchSirkulasi(filter.page, paginationSirkulasi.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 groups={groups}
                 hasGroup
                 Form={SirkulasiForm}

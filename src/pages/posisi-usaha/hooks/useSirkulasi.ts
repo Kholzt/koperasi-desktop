@@ -14,10 +14,11 @@ interface Props {
 function useSirkulasi(
   date?: string | null,
   group?: number | null,
+  stortingThisWeek?: number | null,
   id?: number,
 ) {
   const [sirkulasiMingguLalu, setSirkulasiMingguLalu] = useState(0);
-  const [stortingThisWeek, setStortingThisWeek] = useState(0);
+  const [stortingThisWeekTotal, setStortingThisWeek] = useState(0);
   const [data, setData] = useState<any>(null);
   useEffect(() => {
     const hasDateAndGroup = date && group;
@@ -28,7 +29,6 @@ function useSirkulasi(
           `api/posisi-usaha/data-minggu-lalu?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.SIRKULASI}`,
         )
         .then((d) => {
-          
           setSirkulasiMingguLalu(d.data.target_minggu_lalu || 0);
         });
       axios
@@ -36,13 +36,11 @@ function useSirkulasi(
           `api/posisi-usaha/data-this-week?tanggal_input=${date}&code=${posisiUsahaCode.STORTING}`,
         )
         .then((d) => {
-          console.log('data',d);
           setStortingThisWeek(d.data.amount || 0);
         });
     }
-    console.log(stortingThisWeek);
-    
-  }, [date, group]);
+  }, [date, group, stortingThisWeek]);
+
   useEffect(() => {
     const hasData = id;
     if (hasData) {
@@ -54,13 +52,15 @@ function useSirkulasi(
 
   const onsubmit = async (data: Props) => {
     const result =
-      (Number(data.drop) - Number(data.storting)) * 0.13 +
+      Number(data.drop) * 0.13 -
+      Number(data.storting) +
       Number(data.target_minggu_lalu);
     data.total = result;
     data.raw_formula = JSON.stringify({
       drop: data.drop,
       storting: data.storting,
     });
+    console.log(result);
 
     try {
       const isEdit = id;
@@ -79,7 +79,7 @@ function useSirkulasi(
     }
   };
 
-  return { sirkulasiMingguLalu, onsubmit, data };
+  return { sirkulasiMingguLalu, stortingThisWeekTotal, onsubmit, data };
 }
 
 export default useSirkulasi;
