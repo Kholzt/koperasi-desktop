@@ -39,8 +39,9 @@ function useSirkulasi(
           setStortingThisWeek(d.data.amount || 0);
         });
     }
-  }, [date, group, stortingThisWeek]);
+    console.log(stortingThisWeek);
 
+  }, [date, group]);
   useEffect(() => {
     const hasData = id;
     if (hasData) {

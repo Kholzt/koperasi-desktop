@@ -63,6 +63,19 @@ export default class PosisiUsahaController {
                 raw_formula: raw_formula,
                 posisi_usaha_id: id || null
             }
+
+            const isExist = await PosisiUsaha.checkDataByDate({
+                code,
+                tanggal_input,
+                group_id,
+                ignoreId: id
+            })
+            if (isExist) {
+                return res.status(400).json({
+                    message: "Data sudah ada"
+                })
+            }
+
             await PosisiUsaha.insertUpdatePosisiUsahaById(data)
             return res.status(200).json({
                 message: "success"
@@ -88,8 +101,11 @@ export default class PosisiUsahaController {
 
     static async getDataThisWeek(req, res) {
         try {
-            const { tanggal_input, code } = req.query
-            const result = await PosisiUsaha.getDataThisWeek(tanggal_input, code)
+            const { tanggal_input, code, group_id } = req.query
+            console.log(`tanggal_input`, tanggal_input, code);
+
+            const result = await PosisiUsaha.getDataThisWeek(tanggal_input, group_id, code)
+            console.log(`resultt`, result);
 
             return res.status(200).json({
                 amount: result?.amount || 0

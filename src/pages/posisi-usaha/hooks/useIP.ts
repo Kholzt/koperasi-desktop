@@ -1,25 +1,31 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from '../../../utils/axios';
 import { posisiUsahaCode } from '../../../utils/constanta';
+import { unformatCurrency } from '../../../utils/helpers';
 interface Props {
-    anggota_drop: number;
-    anggota_lunas: number;
+
+    storting: number | string;
+    target: number | string;
     group_id: number;
-    target_minggu_lalu: number;
     tanggal_input: string;
     code: string;
     raw_formula: string;
     total:number;
 }
-function useTargetAnggota(date?: string | null, group?: number | null, id?: number) {
-    const [targetMingguLalu, setTargetMingguLalu] = useState(0);
+function useIp(date?: string | null, group?: number | null, id?: number) {
+    const [stortingMingguIni, setStortingMingguIni] = useState(0);
+    const [targetMingguIni, setTargetMingguIni] = useState(0);
     const [data, setData] = useState<any>(null);
     useEffect(() => {
         const hasDateAndGroup = date && group
         if (hasDateAndGroup) {
-            axios.get(`api/posisi-usaha/data-minggu-lalu?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.TARGET_ANGGOTA}`)
+            axios.get(`api/posisi-usaha/data-this-week?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.STORTING}`)
                 .then((d) => {
-                    setTargetMingguLalu(d.data.target_minggu_lalu || 0)
+                    setStortingMingguIni(d.data.amount || 0)
+                })
+            axios.get(`api/posisi-usaha/data-this-week?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.TARGET}`)
+                .then((d) => {
+                    setTargetMingguIni(d.data.amount || 0)
                 })
         }
     }, [date, group]);
@@ -32,13 +38,13 @@ function useTargetAnggota(date?: string | null, group?: number | null, id?: numb
     }, [id]);
 
     const onsubmit = async (data: Props) => {
-        const result = (Number(data.anggota_drop)) - (Number(data.anggota_lunas)) + (Number(data.target_minggu_lalu))
-        data.total = result
+        const storting = unformatCurrency(data.storting.toString());
+        const target = unformatCurrency(data.target.toString());
+        data.total = target > 0 ? Number(((storting / target) * 100).toFixed(1)) : 0;
         data.raw_formula = JSON.stringify({
-            anggota_drop:data.anggota_drop,
-            anggota_lunas:data.anggota_lunas,
+            storting:storting,
+            target:target,
         })
-
         try {
             const isEdit = id
             let res;
@@ -55,7 +61,7 @@ function useTargetAnggota(date?: string | null, group?: number | null, id?: numb
         }
     }
 
-    return { targetMingguLalu, onsubmit, data }
+    return { stortingMingguIni,targetMingguIni, onsubmit, data }
 }
 
-export default useTargetAnggota
+export default useIp

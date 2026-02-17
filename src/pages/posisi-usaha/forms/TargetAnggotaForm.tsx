@@ -35,6 +35,9 @@ const schema: yup.SchemaOf<Props> = yup.object({
         .required('Target minggu lalu  wajib diisi'),
     tanggal_input: yup.string()
         .required('Tanggal input lalu  wajib diisi'),
+    code: yup.string(),
+    raw_formula: yup.string(),
+    total: yup.number(),
 });
 interface PropsForm {
     id?: number,
@@ -51,27 +54,37 @@ export default function TargetAnggotaForm({ id, onClose, groups }: PropsForm) {
 
     const watchTanggal = watch("tanggal_input");
     const watchGroup = watch("group_id");
+    const [initialized, setInitialized] = React.useState(false);
     const { targetMingguLalu, onsubmit, data } = useTargetAnggota(watchTanggal, watchGroup, id);
 
     React.useEffect(() => {
-        setValue("target_minggu_lalu", targetMingguLalu || 0, { shouldDirty: true });
-        if (data) {
+        if (id && data && !initialized) {
             const rawFormula = data.raw_formula;
             setValue("anggota_drop", rawFormula?.anggota_drop || 0, { shouldDirty: true })
             setValue("anggota_lunas", rawFormula?.anggota_lunas || 0, { shouldDirty: true })
             setValue("group_id", data.group_id, { shouldDirty: true })
             setValue("tanggal_input", toLocalDate(new Date(data.tanggal_input)), { shouldDirty: true })
+            setValue("target_minggu_lalu", data.target_minggu_lalu || 0, { shouldDirty: true });
+            setInitialized(true);
         }
-    }, [targetMingguLalu, setValue, data]);
+    }, [data, id, initialized, setValue]);
+
+    React.useEffect(() => {
+        if (!id || initialized) {
+            setValue("target_minggu_lalu", targetMingguLalu || 0, { shouldDirty: true });
+        }
+    }, [targetMingguLalu, id, initialized, setValue]);
 
     const handleDate = (date: any) => {
         setValue("tanggal_input", toLocalDate(date[0]));
     };
     const onSubmitForm = async (data: Props) => {
         const status = await onsubmit(data)
-        if (status == 200) {
+        if (status === 200 || status === 201) {
             toast.success("Target anggota berhasil disimpan")
             onClose(false)
+        } else if (status === 400) {
+            toast.error("Data dengan tanggal tersebut sudah ada");
         } else {
             toast.error("Target anggota gagal disimpan")
         }

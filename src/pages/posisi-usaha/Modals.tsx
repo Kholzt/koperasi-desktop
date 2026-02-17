@@ -20,7 +20,7 @@ interface ModalsProps {
     items: any[];
     title: string;
     titleHeader: string;
-    pagination?: any; // Ganti dengan tipe PaginationProps Anda
+    pagination: PaginationProps; // Ganti dengan tipe PaginationProps Anda
     onPageChange?: (filter: any) => void;
     onFilter: (filter: any) => void;
     groups: any[];
@@ -45,8 +45,10 @@ export default function Modals({
     groups,
     Form,
     hasGroup,
-    isCurrency
-}: ModalsProps) {
+    isCurrency,
+    addButtonText = "Tambah",
+    isPercentage = false,
+}: ModalsProps & { addButtonText?: string, isPercentage?: boolean }) {
     const [startDate, setStartDate] = useState<string | null>(null);
     const [endDate, setEndDate] = useState<string | null>(null);
     const [group, setGroup] = useState<string | number | null>(null);
@@ -65,7 +67,10 @@ export default function Modals({
                 setEndDate(filter.endDate)
                 setGroup(filter.group)
             }} groups={groups} hasGroup={hasGroup} />
-            {Form && <div className='ms-auto'><Button className='mt-8 ' onClick={() => setIsOpenForm(true)}>Tambah</Button></div>}
+            {Form && <div className='ms-auto'><Button className='mt-8 ' onClick={() => {
+                setIsOpenForm(true)
+                setIdEdit(null)
+            }}>{addButtonText}</Button></div>}
         </div>
         <div className=" h-[60vh] overflow-auto mt-5">
             <Table className='relative'>
@@ -96,6 +101,12 @@ export default function Modals({
                         >
                             Tanggal
                         </TableCell>
+                        {hasGroup && <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                        >
+                            Kelompok
+                        </TableCell>}
                         {Form && <TableCell
                             isHeader
                             className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -122,7 +133,7 @@ export default function Modals({
                                 </div>
                             </TableCell>
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                {isCurrency ? formatCurrency(item.jumlah) : item.jumlah ?? "-"}
+                                {isCurrency ? formatCurrency(item.jumlah) : isPercentage ? `${item.jumlah}%` : item.jumlah ?? "-"}
                             </TableCell>
                             {useGroupName ? <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {item.group_name ?? "-"}
@@ -130,6 +141,9 @@ export default function Modals({
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {formatDate(item.tanggal)}
                             </TableCell>
+                            {hasGroup && <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                {item.group_name || "-"}
+                            </TableCell>}
                             {Form && <Action setIdEdit={(id: number) => {
                                 setIdEdit(id)
                                 setIsOpenForm(true)
@@ -138,7 +152,7 @@ export default function Modals({
                     ))}
 
                     {items.length === 0 && <TableRow>
-                        <TableCell colSpan={Form ? 4 : 4} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                        <TableCell colSpan={(Form ? 4 : 4) + (hasGroup ? 1 : 0)} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                             Tidak ada data
                         </TableCell></TableRow>}
                 </TableBody>

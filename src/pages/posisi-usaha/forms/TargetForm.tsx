@@ -9,22 +9,22 @@ import DatePicker from '../../../components/form/date-picker';
 import Input from '../../../components/form/input/InputField';
 import Button from '../../../components/ui/button/Button';
 import { posisiUsahaCode } from '../../../utils/constanta';
-import { toLocalDate } from '../../../utils/helpers';
-import useTargetAnggota from '../hooks/useTarget';
+import { formatCurrency, toLocalDate, unformatCurrency } from '../../../utils/helpers';
+import useTarget from '../hooks/useTarget';
 
 
 interface Props {
-    drop: number;
-    lunas: number;
-    group_id: number;
-    target_minggu_lalu: number;
+    drop: string;
+    lunas: string;
+    group_id: string;
+    target_minggu_lalu: string;
     tanggal_input: string;
-    code: string;
-    raw_formula: string;
-    total: number;
+    code?: string;
+    raw_formula?: string;
+    total?: number;
 
 }
-const schema: yup.SchemaOf<Props> = yup.object({
+const schema: yup.ObjectSchema<Props> = yup.object({
     drop: yup.string()
         .required('Drop wajib diisi'),
     lunas: yup.string()
@@ -35,6 +35,9 @@ const schema: yup.SchemaOf<Props> = yup.object({
         .required('Target minggu lalu  wajib diisi'),
     tanggal_input: yup.string()
         .required('Tanggal input lalu  wajib diisi'),
+    code: yup.string(),
+    raw_formula: yup.string(),
+    total: yup.number(),
 });
 interface PropsForm {
     id?: number,
@@ -45,41 +48,68 @@ export default function TargetForm({ id, onClose, groups }: PropsForm) {
     const { handleSubmit, register, setValue, watch, getValues, formState: { errors } } = useForm<Props>({
         resolver: yupResolver(schema),
         defaultValues: {
-            code: posisiUsahaCode.TARGET
+            code: posisiUsahaCode.TARGET,
+            drop: "0",
+            lunas: "0",
         }
     });
 
     const watchTanggal = watch("tanggal_input");
     const watchGroup = watch("group_id");
-    const { targetMingguLalu, onsubmit, data } = useTargetAnggota(watchTanggal, watchGroup, id);
+    const drop_watch = watch("drop");
+    const lunas_watch = watch("lunas");
+    const [initialized, setInitialized] = React.useState(false);
+    const { targetMingguLalu, onsubmit, data } = useTarget(watchTanggal, Number(watchGroup), id);
 
     React.useEffect(() => {
-        setValue("target_minggu_lalu", targetMingguLalu || 0, { shouldDirty: true });
-        if (data) {
-            const rawFormula = data.raw_formula;
-            setValue("drop", rawFormula?.drop || 0, { shouldDirty: true })
-            setValue("lunas", rawFormula?.lunas || 0, { shouldDirty: true })
-            setValue("group_id", data.group_id, { shouldDirty: true })
+        if (id && data && !initialized) {
+            const rawFormula = data.raw_formula ? (typeof data.raw_formula === 'string' ? JSON.parse(data.raw_formula) : data.raw_formula) : {};
+            setValue("drop", formatCurrency(rawFormula?.drop || 0, false), { shouldDirty: true })
+            setValue("lunas", formatCurrency(rawFormula?.lunas || 0, false), { shouldDirty: true })
+            setValue("group_id", String(data.group_id), { shouldDirty: true })
             setValue("tanggal_input", toLocalDate(new Date(data.tanggal_input)), { shouldDirty: true })
+            setValue("target_minggu_lalu", formatCurrency(data.target_minggu_lalu || 0, false), { shouldDirty: true });
+            setInitialized(true);
         }
-    }, [targetMingguLalu, setValue, data]);
+    }, [data, id, initialized, setValue]);
+
+    React.useEffect(() => {
+        if (!id || initialized) {
+            setValue("target_minggu_lalu", formatCurrency(targetMingguLalu || 0, false), { shouldDirty: true });
+        }
+    }, [targetMingguLalu, id, initialized, setValue]);
+
+    React.useEffect(() => {
+        const drop_unformat = unformatCurrency(String(drop_watch));
+        const lunas_unformat = unformatCurrency(String(lunas_watch));
+        setValue("drop", formatCurrency(drop_unformat, false));
+        setValue("lunas", formatCurrency(lunas_unformat, false));
+    }, [drop_watch, lunas_watch]);
 
     const handleDate = (date: any) => {
         setValue("tanggal_input", toLocalDate(date[0]));
     };
     const onSubmitForm = async (data: Props) => {
-        const status = await onsubmit(data)
-        if (status == 200) {
-            toast.success("Target  berhasil disimpan")
+
+        const payload = {
+            ...data,
+            group_id: Number(data.group_id),
+            code: data.code || posisiUsahaCode.TARGET,
+        }
+        const status = await onsubmit(payload as any)
+        if (status === 200 || status === 201) {
+            toast.success("Target berhasil disimpan")
             onClose(false)
+        } else if (status === 400) {
+            toast.error("Data dengan tanggal tersebut sudah ada");
         } else {
-            toast.error("Target  gagal disimpan")
+            toast.error("Target gagal disimpan")
         }
     }
     return (
         <form onSubmit={handleSubmit(onSubmitForm)} className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-6 border-b pb-3">
-                <h1 className='text-2xl font-semibold text-gray-800'>Target Anggota</h1>
+                <h1 className='text-2xl font-semibold text-gray-800'>Target</h1>
                 <span className="text-sm text-gray-500">* Wajib diisi</span>
             </div>
 
@@ -114,7 +144,7 @@ export default function TargetForm({ id, onClose, groups }: PropsForm) {
                 <div className="flex flex-col">
                     <Label>Drop <span className="text-error-500">*</span></Label>
                     <Input
-                        type="number"
+                        type="text"
                         placeholder="0"
                         {...register("drop")}
                     />
@@ -127,7 +157,7 @@ export default function TargetForm({ id, onClose, groups }: PropsForm) {
                 <div className="flex flex-col">
                     <Label>Lunas <span className="text-error-500">*</span></Label>
                     <Input
-                        type="number"
+                        type="text"
                         placeholder="0"
                         {...register("lunas")}
                     />
@@ -143,7 +173,7 @@ export default function TargetForm({ id, onClose, groups }: PropsForm) {
                         className="font-bold text-lg bg-transparent border-none"
                         {...register("target_minggu_lalu")}
                         readOnly
-
+                        type="text"
                     />
                 </div>
             </div>

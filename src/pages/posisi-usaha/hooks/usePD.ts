@@ -1,25 +1,26 @@
 import { useEffect, useState } from 'react'
 import axios from '../../../utils/axios';
 import { posisiUsahaCode } from '../../../utils/constanta';
+import { unformatCurrency } from '../../../utils/helpers';
 interface Props {
-    anggota_drop: number;
-    anggota_lunas: number;
+    rencana_drop: number | string;
+    transport: number | string;
+    target: number | string;
     group_id: number;
-    target_minggu_lalu: number;
     tanggal_input: string;
     code: string;
     raw_formula: string;
-    total:number;
+    total: number;
 }
-function useTargetAnggota(date?: string | null, group?: number | null, id?: number) {
-    const [targetMingguLalu, setTargetMingguLalu] = useState(0);
+function usePD(date?: string | null, group?: number | null, id?: number) {
+    const [targetMingguIni, setTargetMingguIni] = useState(0);
     const [data, setData] = useState<any>(null);
     useEffect(() => {
         const hasDateAndGroup = date && group
         if (hasDateAndGroup) {
-            axios.get(`api/posisi-usaha/data-minggu-lalu?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.TARGET_ANGGOTA}`)
+            axios.get(`api/posisi-usaha/data-this-week?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.TARGET}`)
                 .then((d) => {
-                    setTargetMingguLalu(d.data.target_minggu_lalu || 0)
+                    setTargetMingguIni(d.data.amount || 0)
                 })
         }
     }, [date, group]);
@@ -32,13 +33,15 @@ function useTargetAnggota(date?: string | null, group?: number | null, id?: numb
     }, [id]);
 
     const onsubmit = async (data: Props) => {
-        const result = (Number(data.anggota_drop)) - (Number(data.anggota_lunas)) + (Number(data.target_minggu_lalu))
-        data.total = result
+        const rencana_drop = unformatCurrency(data.rencana_drop.toString());
+        const transport = unformatCurrency(data.transport.toString());
+        const target = unformatCurrency(data.target.toString());
+        data.total =  ((rencana_drop + transport) - target) ;
         data.raw_formula = JSON.stringify({
-            anggota_drop:data.anggota_drop,
-            anggota_lunas:data.anggota_lunas,
+            rencana_drop:rencana_drop,
+            transport:transport,
+            target:target,
         })
-
         try {
             const isEdit = id
             let res;
@@ -55,7 +58,7 @@ function useTargetAnggota(date?: string | null, group?: number | null, id?: numb
         }
     }
 
-    return { targetMingguLalu, onsubmit, data }
+    return { targetMingguIni, onsubmit, data }
 }
 
-export default useTargetAnggota
+export default usePD
