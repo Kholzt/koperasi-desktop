@@ -140,7 +140,13 @@ export default class TransactionController {
             });
             console.log("DARI TRANSAKSI STORE", resource);
             if (existingTransaction && resource != "transaksi") {
-                console.log(existingTransaction, resource, Number(existingTransaction.amount), Number(nominal));
+                // Gunakan regex untuk menghapus semua karakter kecuali angka dan titik
+            const cleanExisting = String(existingTransaction.amount).replace(/[^0-9.-]+/g, "");
+            const cleanNominal = String(nominal).replace(/[^0-9.-]+/g, "");
+
+            const totalNewAmount = Number(cleanExisting) + Number(cleanNominal);
+
+            await Transaction.update({ amount: totalNewAmount }, existingTransaction.id);
 
                 await Transaction.update({ amount: Number(existingTransaction.amount) + Number(nominal) }, existingTransaction.id);
                 await Transaction.createLog({
