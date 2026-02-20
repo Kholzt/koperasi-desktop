@@ -1,7 +1,12 @@
 import { app, BrowserWindow, ipcMain, shell ,dialog  } from 'electron'
 import { spawn } from 'child_process';
 import fs from 'fs';
-import { autoUpdater } from 'electron-updater';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
+// Ganti import { autoUpdater } from 'electron-updater' dengan ini:
+const { autoUpdater } = require('electron-updater');
+// import { autoUpdater } from 'electron-updater';
 
 // import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -133,7 +138,6 @@ app.whenReady().then(() => {
         return { success: true, path: filePath };
     });
 
-    createWindow();
     autoUpdater.setFeedURL({
         provider: "github",
         owner: "kholzt",
@@ -141,7 +145,6 @@ app.whenReady().then(() => {
         private: true,
         token: process.env.GH_TOKEN
     });
-    autoUpdater.checkForUpdates();
 
     ipcMain.handle('check-update', async () => {
         return autoUpdater.checkForUpdates();
@@ -181,5 +184,8 @@ app.whenReady().then(() => {
     autoUpdater.on('update-downloaded', () => {
         win?.webContents.send('update-status', 'downloaded');
     });
+    createWindow();
+    autoUpdater.checkForUpdates();
+
 
   });

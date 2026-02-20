@@ -138,15 +138,17 @@ export default class TransactionController {
                 desc: description,
                 type: transaction_type
             });
-
+            console.log("DARI TRANSAKSI STORE", resource);
             if (existingTransaction && resource != "transaksi") {
-                await Transaction.update({ amount: Number(existingTransaction.amount) + Number(nominal)}, existingTransaction.id);
+                console.log(existingTransaction, resource, Number(existingTransaction.amount), Number(nominal));
+
+                await Transaction.update({ amount: Number(existingTransaction.amount) + Number(nominal) }, existingTransaction.id);
                 await Transaction.createLog({
                     id_transaksi: existingTransaction.id,
                     updated_by: user,
                     status: status ?? 'edit',
                     meta,
-                    reason: reason ?? this._getDefaultReason(resource, 'edit')
+                    reason: reason ?? TransactionController._getDefaultReason(resource, 'edit')
                 });
             } else {
                 const loanId = await Transaction.create({

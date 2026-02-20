@@ -128,11 +128,14 @@ const TransactionForm: React.FC = () => {
             data.user = user?.id;
             data.resource = "transaksi"
             let res;
+            console.log(data);
+
             if (!id) {
                 res = await axios.post("/api/transactions", data);
             } else {
                 res = await axios.put("/api/transactions/" + id, data);
             }
+
 
             if (res.status === 201 || res.status === 200) {
                 toast.success(`Transaksi berhasil ${!id ? "ditambah" : "diubah"}`);

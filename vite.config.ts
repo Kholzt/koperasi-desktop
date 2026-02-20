@@ -32,8 +32,7 @@ export default defineConfig({
         vite: {
             build: {
               rollupOptions: {
-                external: ['knex','jsonwebtoken']
-              }
+external: ['electron', 'electron-updater', 'knex', 'jsonwebtoken'],              }
             }
           }
       },
