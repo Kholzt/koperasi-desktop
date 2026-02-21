@@ -147,8 +147,6 @@ export default class TransactionController {
             const totalNewAmount = Number(cleanExisting) + Number(cleanNominal);
 
             await Transaction.update({ amount: totalNewAmount }, existingTransaction.id);
-
-                await Transaction.update({ amount: Number(existingTransaction.amount) + Number(nominal) }, existingTransaction.id);
                 await Transaction.createLog({
                     id_transaksi: existingTransaction.id,
                     updated_by: user,
