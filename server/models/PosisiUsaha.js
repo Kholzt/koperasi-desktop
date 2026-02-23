@@ -68,7 +68,7 @@ export default class PosisiUsaha {
             .select(
                 db.raw("DATE(posisi_usaha.tanggal_input) AS tanggal"),
                 db.raw("SUM(amount) AS jumlah"),
-                db.raw("groups.group_name AS group_name"),
+                // db.raw("groups.group_name AS group_name"),
                 db.raw("max(posisi_usaha.id) as id"),
                 db.raw("max(raw_formula) as raw_formula"),
                 db.raw("max(posisi_usaha.group_id) as group_id"),
@@ -84,8 +84,10 @@ export default class PosisiUsaha {
 
         if (!isModalDo) {
             historyQuery.leftJoin("groups", "posisi_usaha.group_id", "groups.id")
-                .select("groups.group_name")
-                .groupByRaw("DATE(posisi_usaha.tanggal_input), group_id");
+                .select(
+                    db.raw("COALESCE(groups.group_name, '-') as group_name")
+                )
+                .groupByRaw("DATE(posisi_usaha.tanggal_input), posisi_usaha.group_id");
         } else {
             historyQuery.groupByRaw("DATE(posisi_usaha.tanggal_input)");
         }

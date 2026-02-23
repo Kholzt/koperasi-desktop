@@ -101,12 +101,12 @@ export default function Modals({
                         >
                             Tanggal
                         </TableCell>
-                        {hasGroup && <TableCell
+                        {/* {hasGroup && <TableCell
                             isHeader
                             className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                         >
                             Kelompok
-                        </TableCell>}
+                        </TableCell>} */}
                         {Form && <TableCell
                             isHeader
                             className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -141,9 +141,9 @@ export default function Modals({
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {formatDate(item.tanggal)}
                             </TableCell>
-                            {hasGroup && <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                            {/* {hasGroup && <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {item.group_name || "-"}
-                            </TableCell>}
+                            </TableCell>} */}
                             {Form && <Action setIdEdit={(id: number) => {
                                 setIdEdit(id)
                                 setIsOpenForm(true)

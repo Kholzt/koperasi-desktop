@@ -30,23 +30,23 @@ if (!globalThis.__knexInstance) {
         },
         pool: { min: 2, max: 10 },
     });
-    // globalThis.__knexInstance.on('query', (queryData) => {
-    //     // cek apakah query mengandung nama tabel "transactions"
-    //     if (queryData.sql.toLowerCase().includes('transactions')) {
-    //         console.log('--- Transactions Query ---');
-    //         console.log('SQL:', queryData.sql);
-    //         console.log('Bindings:', queryData.bindings);
-    //         console.log('--------------------------');
-    //     }
-    // });
-
-
     globalThis.__knexInstance.on('query', (queryData) => {
-        if (queryData.sql.includes("posisi_usaha")) {
+        // cek apakah query mengandung nama tabel "transactions"
+        if (queryData.sql.toLowerCase().includes('angsuran')) {
+            console.log('--- Transactions Query ---');
             console.log('SQL:', queryData.sql);
             console.log('Bindings:', queryData.bindings);
+            console.log('--------------------------');
         }
     });
+
+
+    // globalThis.__knexInstance.on('query', (queryData) => {
+    //     if (queryData.sql.includes("posisi_usaha")) {
+    //         console.log('SQL:', queryData.sql);
+    //         console.log('Bindings:', queryData.bindings);
+    //     }
+    // });
 }
 const als = new AsyncLocalStorage();
 
