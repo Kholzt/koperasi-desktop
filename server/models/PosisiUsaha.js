@@ -74,7 +74,7 @@ export default class PosisiUsaha {
                 db.raw("max(posisi_usaha.group_id) as group_id"),
             )
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
+            // .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
             .where(PosisiUsaha.filter({
                 startDate,
                 endDate,
