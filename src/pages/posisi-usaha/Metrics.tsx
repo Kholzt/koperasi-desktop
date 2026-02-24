@@ -102,7 +102,7 @@ const Metrics: React.FC = () => {
                     hasClear
                     id={"globalFilter"}
                     mode="range"
-                    placeholder="Tanggal peminjaman"
+                    placeholder="Tanggal Mulai - Tanggal Selesai"
                     defaultDate={startDate && endDate ? [new Date(startDate), new Date(endDate)] : undefined}
                     onChange={handleDateChange}
                 />

@@ -1,11 +1,32 @@
-import { body, validationResult } from 'express-validator';
+import {
+    body,
+    validationResult
+} from 'express-validator';
 import PosModel from '../models/Pos.js';
+import {
+    logActivity
+} from './services/logActivity.js';
+import {
+    ACTIVITY_ACTION,
+    ACTIVITY_ENTITY,
+    ACTIVITY_MENU
+} from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class PosController {
     static async index(req, res) {
         try {
-            const { page = 1, limit = 10, search = '' } = req.query;
-            const { rows, total } = await PosModel.findAll({ page, limit, search });
+            const {
+                page = 1, limit = 10, search = ''
+            } = req.query;
+            const {
+                rows,
+                total
+            } = await PosModel.findAll({
+                page,
+                limit,
+                search
+            });
 
             const map = new Map();
             for (const row of rows) {
@@ -29,16 +50,22 @@ export default class PosController {
                 },
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 
     static async show(req, res) {
         try {
-            const { id } = req.params;
+            const {
+                id
+            } = req.params;
             const rows = await PosModel.findById(id);
 
-            if (!rows.length) return res.status(404).json({ error: 'Pos tidak ditemukan' });
+            if (!rows.length) return res.status(404).json({
+                error: 'Pos tidak ditemukan'
+            });
 
             const pos = {
                 ...rows[0],
@@ -47,9 +74,13 @@ export default class PosController {
                 // },
             };
 
-            res.status(200).json({ pos });
+            res.status(200).json({
+                pos
+            });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 
@@ -65,21 +96,62 @@ export default class PosController {
                 acc[err.path] = err.msg;
                 return acc;
             }, {});
-            return res.status(400).json({ errors: formatted });
+            return res.status(400).json({
+                errors: formatted
+            });
         }
 
         try {
-            const { nama_pos, alamat, no_telepon, penanggung_jawab } = req.body;
+            const {
+                nama_pos,
+                alamat,
+                no_telepon,
+                penanggung_jawab
+            } = req.body;
             const exists = await PosModel.existsByName(nama_pos);
             if (exists) {
-                return res.status(400).json({ errors: { nama_pos: 'Nama pos sudah ada' } });
+                return res.status(400).json({
+                    errors: {
+                        nama_pos: 'Nama pos sudah ada'
+                    }
+                });
             }
 
-            const id = await PosModel.create({ nama_pos, alamat, no_telepon, penanggung_jawab });
+            const id = await PosModel.create({
+                nama_pos,
+                alamat,
+                no_telepon,
+                penanggung_jawab
+            });
 
-            res.status(200).json({ message: 'Pos berhasil dibuat', pos: { id, nama_pos } });
+            //insert to log activity
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.POS,
+                entityReff: ACTIVITY_ENTITY.POS, // nama tabel
+                entityId: id,
+                description: `Menambahkan pos ${nama_pos}`,
+                newValue: {
+                    nama_pos,
+                    alamat,
+                    no_telepon,
+                    penanggung_jawab
+                },
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
+            res.status(200).json({
+                message: 'Pos berhasil dibuat',
+                pos: {
+                    id,
+                    nama_pos
+                }
+            });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 
@@ -95,48 +167,115 @@ export default class PosController {
                 acc[err.path] = err.msg;
                 return acc;
             }, {});
-            return res.status(400).json({ errors: formatted });
+            return res.status(400).json({
+                errors: formatted
+            });
         }
 
         try {
-            const { id } = req.params;
-            const { nama_pos, alamat, no_telepon, penanggung_jawab } = req.body;
+            const {
+                id
+            } = req.params;
+            const {
+                nama_pos,
+                alamat,
+                no_telepon,
+                penanggung_jawab
+            } = req.body;
 
             const exists = await PosModel.existsByName(nama_pos, id);
             if (exists) {
-                return res.status(400).json({ errors: { nama_pos: 'Nama pos sudah ada' } });
+                return res.status(400).json({
+                    errors: {
+                        nama_pos: 'Nama pos sudah ada'
+                    }
+                });
             }
-
-            await PosModel.update(id, { nama_pos, alamat, no_telepon, penanggung_jawab });
-
-            res.status(200).json({ message: 'Pos updated successfully' });
+            const oldData = await PosModel.findById(id);
+            console.log(oldData[0]);
+            
+            const {
+                oldValue,
+                newValue
+            } = diffObject(oldData[0], {
+                nama_pos,
+                alamat,
+                no_telepon,
+                penanggung_jawab
+            });
+            await PosModel.update(id, {
+                nama_pos,
+                alamat,
+                no_telepon,
+                penanggung_jawab
+            });
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.POS,
+                entityReff: ACTIVITY_ENTITY.POS, // nama tabel
+                entityId: id,
+                description: `Mengupdate pos ${nama_pos}`,
+                oldValue,
+                newValue,
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
+            res.status(200).json({
+                message: 'Pos updated successfully'
+            });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 
     static async delete(req, res) {
         try {
-            const { id } = req.params;
+            const {
+                id
+            } = req.params;
             const isUsed = await PosModel.checkContraint(id);
             if (isUsed) {
                 return res.status(409).json({
                     error: 'Pos gagal dihapus, Data sedang digunakan dibagian lain sistem',
                 });
             }
+            const oldData = await PosModel.findById(id);
+            const nama_pos = oldData[0].nama_pos;
             await PosModel.softDelete(id);
-            res.status(200).json({ message: 'Pos berhasil dihapus' });
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.POS,
+                entityReff: ACTIVITY_ENTITY.POS, // nama tabel
+                entityId: id,
+                description: `Menghapus pos ${nama_pos}`,
+                oldValue: oldData[0],
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
+            res.status(200).json({
+                message: 'Pos berhasil dihapus'
+            });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 
     static async count(req, res) {
         try {
             const total = await PosModel.count();
-            res.status(200).json({ total });
+            res.status(200).json({
+                total
+            });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({
+                error: error.message
+            });
         }
     }
 }
