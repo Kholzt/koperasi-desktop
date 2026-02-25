@@ -18,6 +18,7 @@ import TransactionController from "./controllers/TransactionController";
 import UserController from './controllers/UserController';
 import authenticate from './middleware/authenticate';
 import verifySecret from './middleware/verifySecret';
+import LogActivityController from "./controllers/LogActivityController";
 
 
 dotenv.config();
@@ -153,6 +154,7 @@ apiRouter.get("/posisi-usaha", PosisiUsahaController.getPosisiUsaha)
 apiRouter.get("/posisi-usaha/:id", PosisiUsahaController.getPosisiUsahaById)
 apiRouter.delete("/posisi-usaha/:id", PosisiUsahaController.deletePosisiUsaha)
 
+apiRouter.get("/activity", LogActivityController.index)
 app.use('/api', apiRouter);
 app.listen(port, async () => {
 

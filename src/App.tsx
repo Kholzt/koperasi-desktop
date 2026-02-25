@@ -44,6 +44,7 @@ import TransactionForm from './pages/transactions/TransactionForm';
 import User from "./pages/user/User";
 import UserForm from './pages/user/UserForm';
 import PosisiUsaha from './pages/posisi-usaha/PosisiUsaha';
+import LogActivity from './pages/Activity/LogActivity';
 
 export default function App() {
     return (
@@ -130,6 +131,7 @@ export default function App() {
                         {/* <Route path="/line-chart" element={<LineChart />} /> */}
                         {/* <Route path="/bar-chart" element={<BarChart />} /> */}
                         <Route path="/profile" element={<UserProfiles />} />
+                        <Route path="/activity" element={<LogActivity />} />
                     </Route>
 
                     {/* Auth Layout */}

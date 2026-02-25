@@ -163,3 +163,19 @@ export interface TransactionProps{
     deleted_at:string,
 
 }
+
+export interface ActivityProps{
+    id:number,
+    user_id:number,
+    username:string,
+    action:string,
+    pos_id:string,
+    pos:PosProps,
+    menu:string,
+    entity:string,
+    description:string,
+    created_at:Date,
+    pos_name:string,
+    old_data:string,
+    new_data:string,
+}

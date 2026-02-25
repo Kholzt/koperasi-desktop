@@ -11,13 +11,6 @@ export async function logActivity({
     newValue = null,
     posId = null
 }) {
-    console.log('user:', user);
-    console.log('action:', action);
-    console.log('menu:', menu);
-    console.log('entityReff:', entityReff);
-    console.log('entityId:', entityId);
-    console.log('description:', description);
-    console.log('newValue:', newValue);
     try {
         await ActivityModel.create({
             user_id: user.id,
@@ -28,7 +21,7 @@ export async function logActivity({
             description,
             old_data: oldValue ? JSON.stringify(oldValue) : null,
             new_data: newValue ? JSON.stringify(newValue) : null,
-            pos_id: posId,
+            pos_id: user.pos_id ?? posId,
             created_at: new Date()
         });
     } catch (error) {

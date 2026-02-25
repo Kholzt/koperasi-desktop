@@ -1,17 +1,19 @@
 import db from '../config/db';
 
 class ActivityModel {
-    static async findAll({ page = 1, limit = 10, search = '' }) {
+    static async findAll({ page = 1, limit = 100, search = '' }) {
         const offset = (page - 1) * limit;
 
         const rows = await db('log_activity as la')
             .select(
                 'la.*',
-                'u.complete_name'
+                'u.username',
+                'p.nama_pos as pos_name'
             )
 
             .join('users as u', 'la.user_id', 'u.id') 
-            .andWhere('la.description', 'like', `%${search}%`)
+            .join('pos as p', 'la.pos_id', 'p.id') 
+            .where('la.description', 'like', `%${search}%`)
             .orderBy('la.id', 'desc')
             .limit(limit)
             .offset(offset);
