@@ -33,7 +33,6 @@ export default class EmployeController {
                 .whereNull('deleted_at')
                 .andWhere('complete_name', 'like', `%${search}%`)
                 .andWhere('access_apps', 'noAccess')
-                .groupBy("users.id")
                 .count('id as total');
             if (status != "all") usersCount.where("status", status);
             const [{ total }] = await usersCount;

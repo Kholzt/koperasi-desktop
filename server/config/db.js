@@ -1,4 +1,3 @@
-// db.js
 import knex from 'knex';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -7,18 +6,37 @@ import { exec } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { AsyncLocalStorage } from "node:async_hooks";
+import { app } from 'electron';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// --- FUNGSI UTILS UNTUK PATH ---
+// Kita buat fungsi agar path diambil SAAT DIBUTUHKAN, bukan saat file di-load
+const getAppDataPath = () => app.getPath('userData');
+const getEnvPath = () => path.join(getAppDataPath(), '.env');
+const getBackupDir = () => {
+    const dir = path.join(getAppDataPath(), 'backups');
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    return dir;
+};
 
+// --- 1. LOAD ENVIRONMENT CONFIG ---
+const loadEnvConfig = () => {
+    const appDataEnvPath = getEnvPath();
+    const devEnvPath = path.join(process.cwd(), '.env');
 
-dotenv.config();
+    if (fs.existsSync(appDataEnvPath)) {
+        dotenv.config({ path: appDataEnvPath });
+        console.log('✅ Config loaded from AppData');
+    } else if (fs.existsSync(devEnvPath)) {
+        dotenv.config({ path: devEnvPath });
+        console.log('⚠️ Config loaded from Process (Dev Mode)');
+    }
+};
 
-/**
- * @type {import('knex').Knex}
- */
-let db;
+loadEnvConfig();
 
+// --- 2. INISIALISASI DATABASE ---
 if (!globalThis.__knexInstance) {
     globalThis.__knexInstance = knex({
         client: 'mysql2',
@@ -76,80 +94,58 @@ export async function transaction(callback) {
         });
     });
 }
+const db = globalThis.__knexInstance;
+
+// --- 3. BACKUP FUNCTIONS ---
 
 export function listBackup() {
-    const backupDir = path.join(process.cwd(), 'backups');
+    const dir = getBackupDir(); // Pastikan ambil dari fungsi
+    const files = fs.readdirSync(dir);
 
-    // Pastikan folder backup ada
-    if (!fs.existsSync(backupDir)) {
-        return [];  // Jika folder tidak ada, kembalikan array kosong
-    }
-
-    const files = fs.readdirSync(backupDir);
-
-    // Filter hanya file .sql (opsional)
-    const backups = files
+    return files
         .filter(file => file.endsWith('.sql'))
         .sort((a, b) => b.localeCompare(a))
         .map(file => ({
             name: file,
-            path: path.join(backupDir, file)
+            path: path.join(dir, file)
         }));
-
-    return backups;
 }
 
 export function exportDB() {
-    const backupDir = path.join(process.cwd(), 'backups');
+    const dir = getBackupDir(); // Pastikan ambil dari fungsi
+    const files = fs.readdirSync(dir).filter(file => file.endsWith('.sql'));
 
-    if (!fs.existsSync(backupDir)) {
-        fs.mkdirSync(backupDir, { recursive: true });
-    }
-
-    // Cari semua file backup
-    const files = fs.readdirSync(backupDir).filter(file => file.endsWith('.sql'));
-
-    // Ambil tanggal 7 minggu lalu
     const now = new Date();
-    const sevenWeeksAgo = new Date(now);
-    sevenWeeksAgo.setDate(now.getDate() - (7 * 7)); // 7 minggu = 49 hari
+    const fortyNineDaysAgo = new Date(now);
+    fortyNineDaysAgo.setDate(now.getDate() - 49);
 
-    // Cek apakah ada file backup dalam 7 minggu terakhir
-    const recentBackupExists = files.some(file => {
+    const isRecentExists = files.some(file => {
         const match = file.match(/(\d{4})-(\d{2})-(\d{2})/);
         if (match) {
             const [_, year, month, day] = match;
             const fileDate = new Date(`${year}-${month}-${day}`);
-            return fileDate >= sevenWeeksAgo;
+            return fileDate >= fortyNineDaysAgo;
         }
         return false;
     });
 
-    if (recentBackupExists) {
-        console.log('Backup sudah ada dalam 7 minggu terakhir. Tidak perlu backup.');
+    if (isRecentExists) {
+        console.log('⏭️ Backup sudah ada dalam 7 minggu terakhir.');
         return;
     }
 
-    // Kalau belum ada backup -> lanjut backup
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const timestamp = `${year}-${month}-${day}`;
+    const timestamp = now.toISOString().split('T')[0];
+    const dbName = process.env.VITE_APP_DBNAME;
+    const backupFile = path.join(dir, `${dbName}-backup-${timestamp}.sql`);
 
-    const backupFile = path.join(backupDir, `${process.env.VITE_APP_DBNAME}-backup-${timestamp}.sql`);
-
-    const command = `mysqldump -h ${process.env.VITE_APP_DBHOST} -u ${process.env.VITE_APP_DBUSER} -p${process.env.VITE_APP_DBPASS} ${process.env.VITE_APP_DBNAME} > "${backupFile}"`;
+    const command = `mysqldump -h ${process.env.VITE_APP_DBHOST} -u ${process.env.VITE_APP_DBUSER} -p${process.env.VITE_APP_DBPASS} ${dbName} > "${backupFile}"`;
 
     exec(command, (error, stdout, stderr) => {
         if (error) {
-            console.error(`Error during backup: ${error.message}`);
+            console.error(`❌ Backup Error: ${error.message}`);
             return;
         }
-        if (stderr) {
-            console.error(`mysqldump stderr: ${backupFile}`);
-            return;
-        }
-        console.log(`Database backup created successfully: ${backupFile}`);
+        console.log(`🚀 Database backup success in AppData: ${backupFile}`);
     });
 }
 

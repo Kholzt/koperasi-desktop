@@ -139,15 +139,21 @@ export default class TransactionController {
                 type: transaction_type,
                 resource
             });
+            console.log("DARI TRANSAKSI STORE", resource);
+            if (existingTransaction && resource != "transaksi") {
+                // Gunakan regex untuk menghapus semua karakter kecuali angka dan titik
+            const cleanExisting = String(existingTransaction.amount).replace(/[^0-9.-]+/g, "");
+            const cleanNominal = String(nominal).replace(/[^0-9.-]+/g, "");
 
-            if (existingTransaction) {
-                await Transaction.update({ amount: existingTransaction.amount + nominal }, existingTransaction.id);
+            const totalNewAmount = Number(cleanExisting) + Number(cleanNominal);
+
+            await Transaction.update({ amount: totalNewAmount }, existingTransaction.id);
                 await Transaction.createLog({
                     id_transaksi: existingTransaction.id,
                     updated_by: user,
                     status: status ?? 'edit',
                     meta,
-                    reason: reason ?? this._getDefaultReason(resource, 'edit')
+                    reason: reason ?? TransactionController._getDefaultReason(resource, 'edit')
                 });
             } else {
                 const loanId = await Transaction.create({
