@@ -8,6 +8,16 @@ import { dirname } from 'path';
 import { AsyncLocalStorage } from "node:async_hooks";
 import { app } from 'electron';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+
+dotenv.config();
+
+/**
+ * @type {import('knex').Knex}
+ */
+let db;
 // --- FUNGSI UTILS UNTUK PATH ---
 // Kita buat fungsi agar path diambil SAAT DIBUTUHKAN, bukan saat file di-load
 const getAppDataPath = () => app.getPath('userData');
@@ -94,7 +104,7 @@ export async function transaction(callback) {
         });
     });
 }
-const db = globalThis.__knexInstance;
+
 
 // --- 3. BACKUP FUNCTIONS ---
 

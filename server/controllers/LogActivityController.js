@@ -1,10 +1,11 @@
+import { ACTIVITY_MENU } from "../constants/activityConstant";
 import ActivityModel from "../models/Activity";
 
 export default class LogActivityController {
     static async index(req, res) {
         try {
             const {
-                page = 1, limit = 100, search = ''
+                page = 1, limit = 100, search = '', menu = ''
             } = req.query;
             const {
                 rows,
@@ -12,9 +13,9 @@ export default class LogActivityController {
             } = await ActivityModel.findAll({
                 page,
                 limit,
-                search
+                search,
+                menu
             });
-            console.log(rows);
             
             const map = new Map();
             for (const row of rows) {
@@ -64,6 +65,19 @@ export default class LogActivityController {
 
             res.status(200).json({
                 pos
+            });
+        } catch (error) {
+            res.status(500).json({
+                error: error.message
+            });
+        }
+    }
+
+    static async getMenu(req, res) {
+        try {
+            const menu = await ACTIVITY_MENU;
+            res.status(200).json({
+                menu
             });
         } catch (error) {
             res.status(500).json({

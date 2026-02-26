@@ -1,8 +1,4 @@
 import React, { useState } from "react";
-import { toast } from 'react-toastify';
-import Badge from "../../components/ui/badge/Badge";
-import { Dropdown } from "../../components/ui/dropdown/Dropdown";
-import { DropdownItem } from "../../components/ui/dropdown/DropdownItem";
 import { Modal } from "../../components/ui/modal";
 import {
     Table, // Ubah nama komponen yang diimpor
@@ -11,15 +7,9 @@ import {
     TableHeader,
     TableRow,
 } from "../../components/ui/table";
-import { useTheme } from "../../context/ThemeContext";
-import { useModal } from "../../hooks/useModal";
-import axios from "../../utils/axios";
 import { ActivityProps, PaginationProps } from "../../utils/types";
 import Pagination from '../../components/tables/BasicTables/Pagination';
-import { EyeIcon } from "../../icons";
-import { formatLongDate, formatLongDateTime } from "../../utils/helpers";
-import { Link } from "react-router";
-import Button from "../../components/ui/button/Button";
+import { formatLongDateTime } from "../../utils/helpers";
 // import { toast } from 'react-hot-toast';
 interface ActivtyTableProps {
     data: ActivityProps[],
@@ -194,16 +184,5 @@ const ActivityTable: React.FC<ActivtyTableProps> = ({ data, pagination, setPagin
         </div>
     );
 };
-
-function Detail({ data }: { data: any }) {
-    const { isOpen, openModal, closeModal } = useModal();
-    return (
-        <Modal isOpen={isOpen}
-            onClose={closeModal}
-            className="max-w-[600px] p-6 lg:p-10">
-            <p>Detail aktivitas dengan ID: {data.id}</p>
-        </Modal>
-    );
-}
 
 export default ActivityTable;

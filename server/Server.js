@@ -19,6 +19,8 @@ import UserController from './controllers/UserController';
 import authenticate from './middleware/authenticate';
 import verifySecret from './middleware/verifySecret';
 import LogActivityController from "./controllers/LogActivityController";
+const multer = require('multer');
+const path = require('path');
 
 
 dotenv.config();
@@ -31,6 +33,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Keep login public
 app.post('/api/login', AuthController.login);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // create router and apply verifySecret to all controller routes
 const apiRouter = express.Router();
@@ -155,6 +159,29 @@ apiRouter.get("/posisi-usaha/:id", PosisiUsahaController.getPosisiUsahaById)
 apiRouter.delete("/posisi-usaha/:id", PosisiUsahaController.deletePosisiUsaha)
 
 apiRouter.get("/activity", LogActivityController.index)
+apiRouter.get("/listMenu", LogActivityController.getMenu)
+
+// konfigurasi multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  },
+});
+
+const upload = multer({ storage });
+
+// endpoint upload
+app.post('/upload', upload.single('photo'), (req, res) => {
+  res.json({
+    message: 'Upload berhasil',
+    file: req.file,
+    imageUrl: `http://localhost:${port}/uploads/${req.file.filename}`,
+  });
+});
+
 app.use('/api', apiRouter);
 app.listen(port, async () => {
 
