@@ -1,5 +1,8 @@
 import { body, validationResult } from 'express-validator';
 import CategoryModel from '../models/Category.js';
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class CategoryController {
     static async index(req, res) {
@@ -75,6 +78,16 @@ export default class CategoryController {
             const code = await CategoryModel.generateCode();
             const id = await CategoryModel.create({ name, code });
 
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.PINJAMAN,
+                entityReff: ACTIVITY_ENTITY.CATEGORIES,
+                entityId: id,
+                description: `Menambahkan kategori ${name}`,
+                newValue: { name, code },
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({ message: 'Kategori berhasil dibuat', kategori: { id, name } });
         } catch (error) {
             res.status(500).json({ error: error.message });
@@ -97,12 +110,28 @@ export default class CategoryController {
             const { id } = req.params;
             const { name } = req.body;
 
+            const oldData = await CategoryModel.findById(id);
+            if (!oldData.length) return res.status(404).json({ error: 'Kategori tidak ditemukan' });
+
             const exists = await CategoryModel.existsByName(name, id);
             if (exists) {
                 return res.status(400).json({ errors: { nama_pos: 'Nama kategori sudah ada' } });
             }
 
+            const { oldValue, newValue } = diffObject(oldData[0], { name });
+
             await CategoryModel.update(id, { name });
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.PINJAMAN,
+                entityReff: ACTIVITY_ENTITY.CATEGORIES,
+                entityId: id,
+                description: `Mengupdate kategori ${name}`,
+                oldValue,
+                newValue,
+            }).catch(err => console.error('Failed to log activity:', err));
 
             res.status(200).json({ message: 'Kategori updated successfully' });
         } catch (error) {
@@ -113,13 +142,26 @@ export default class CategoryController {
     static async delete(req, res) {
         try {
             const { id } = req.params;
+            const oldData = await CategoryModel.findById(id);
+            if (!oldData.length) return res.status(404).json({ error: 'Kategori tidak ditemukan' });
+
             const isUsed = await CategoryModel.checkContraint(id);
             if (isUsed) {
-                return res.status(409).json({
-                    error: 'Kategori gagal dihapus, Data sedang digunakan dibagian lain sistem',
-                });
+                return res.status(409).json({ error: 'Kategori gagal dihapus, Data sedang digunakan dibagian lain sistem' });
             }
+
             await CategoryModel.softDelete(id);
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.PINJAMAN,
+                entityReff: ACTIVITY_ENTITY.CATEGORIES,
+                entityId: id,
+                description: `Menghapus kategori ${oldData[0].name}`,
+                oldValue: oldData[0],
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({ message: 'Kategori berhasil dihapus' });
         } catch (error) {
             res.status(500).json({ error: error.message });

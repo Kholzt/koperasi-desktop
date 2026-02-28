@@ -1,5 +1,8 @@
 import { body, validationResult } from 'express-validator';
 import db from "../config/db.js"; // db adalah instance knex
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class EmployeController {
     // Menampilkan daftar pengguna dengan pagination
@@ -137,6 +140,21 @@ export default class EmployeController {
 
             const newUser = await db('users').where('id', insertedId).first();
 
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.KARYAWAN,
+                entityReff: ACTIVITY_ENTITY.USER,
+                entityId: insertedId,
+                description: `Menambahkan karyawan ${complete_name}`,
+                newValue: {
+                    complete_name, position, status, tanggal_masuk, tanggal_keluar,
+                    jenis_ijazah, status_ijazah, pos_id, nip, address
+                },
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
+
             res.status(200).json({
                 message: 'Pengguna berhasil dibuat',
                 user: newUser,
@@ -175,6 +193,11 @@ export default class EmployeController {
                 return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
             }
 
+            const { oldValue, newValue } = diffObject(existingUser, {
+                complete_name, position, status, tanggal_masuk, tanggal_keluar,
+                jenis_ijazah, status_ijazah, pos_id, address, nip
+            });
+
             await db('users')
                 .where('id', id)
                 .update({
@@ -190,6 +213,19 @@ export default class EmployeController {
                     address,
                     nip
                 });
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.KARYAWAN,
+                entityReff: ACTIVITY_ENTITY.USER,
+                entityId: id,
+                description: `Mengupdate karyawan ${complete_name}`,
+                oldValue,
+                newValue,
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
 
             res.status(200).json({ message: 'User updated successfully' });
         } catch (error) {
@@ -224,6 +260,18 @@ export default class EmployeController {
             }
             await updateNip(id)
             await db('users').where('id', id).update({ deleted_at: new Date() });
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.KARYAWAN,
+                entityReff: ACTIVITY_ENTITY.USER,
+                entityId: id,
+                description: `Menghapus karyawan ${user.complete_name}`,
+                oldValue: user,
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
 
             res.status(200).json({ user });
         } catch (error) {

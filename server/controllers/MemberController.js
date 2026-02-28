@@ -1,6 +1,9 @@
 import { body, validationResult } from "express-validator";
 import db from "../config/db.js";
 import Member from "../models/Member.js";
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class MemberController {
     static async index(req, res) {
@@ -150,6 +153,19 @@ export default class MemberController {
             }
 
             const newMember = await Member.findById(memberId);
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.ANGGOTA,
+                entityReff: ACTIVITY_ENTITY.MEMBER,
+                entityId: memberId,
+                description: `Menambahkan anggota ${complete_name}`,
+                newValue: { complete_name, area_id, address, nik, no_kk, pos_id, description },
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
+
             res.status(200).json({
                 message: "Anggota berhasil dibuat",
                 member: newMember,
@@ -192,8 +208,28 @@ export default class MemberController {
                 });
             }
 
+            const oldData = await Member.findById(id);
+            if (!oldData) {
+                return res.status(404).json({ error: "Anggota tidak ditemukan" });
+            }
+
+            const { oldValue, newValue } = diffObject(oldData, { complete_name, area_id, address, nik, no_kk, pos_id, description });
+
             const data = { complete_name, area_id, address, id, nik, no_kk, pos_id, description }
             await Member.update(data, id);
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.ANGGOTA,
+                entityReff: ACTIVITY_ENTITY.MEMBER,
+                entityId: id,
+                description: `Mengupdate anggota ${complete_name}`,
+                oldValue,
+                newValue,
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
 
             res.status(200).json({ message: "Anggota updated successfully" });
         } catch (error) {
@@ -218,6 +254,18 @@ export default class MemberController {
 
             await Member.updateMemberSequenceAndLoanKode(member);
             await Member.softDelete(id)
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.ANGGOTA,
+                entityReff: ACTIVITY_ENTITY.MEMBER,
+                entityId: id,
+                description: `Menghapus anggota ${member.complete_name}`,
+                oldValue: member,
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
 
             res.status(200).json({
                 message: "Anggota berhasil dihapus",

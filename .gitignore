@@ -33,3 +33,5 @@ dist-electron/main.js
 extras/update-info.txt
 extras/holiday.json
 backup
+dist-electron/uploads/*
+uploads/*

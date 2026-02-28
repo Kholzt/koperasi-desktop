@@ -19,14 +19,17 @@ import UserController from './controllers/UserController';
 import authenticate from './middleware/authenticate';
 import verifySecret from './middleware/verifySecret';
 import LogActivityController from "./controllers/LogActivityController";
-const multer = require('multer');
-const path = require('path');
-
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 dotenv.config();
 // const express = require('express');
 const app = express();
 const port = import.meta.env.VITE_APP_PORT || 5000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -163,23 +166,23 @@ apiRouter.get("/listMenu", LogActivityController.getMenu)
 
 // konfigurasi multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  },
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    },
 });
 
 const upload = multer({ storage });
 
 // endpoint upload
 app.post('/upload', upload.single('photo'), (req, res) => {
-  res.json({
-    message: 'Upload berhasil',
-    file: req.file,
-    imageUrl: `http://localhost:${port}/uploads/${req.file.filename}`,
-  });
+    res.json({
+        message: 'Upload berhasil',
+        file: req.file,
+        imageUrl: `http://localhost:${port}/uploads/${req.file.filename}`,
+    });
 });
 
 app.use('/api', apiRouter);

@@ -1,5 +1,8 @@
 import { body, validationResult } from 'express-validator';
 import GroupModel from '../models/Group.js';
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class GroupController {
     static async index(req, res) {
@@ -88,6 +91,18 @@ export default class GroupController {
             const id = await GroupModel.create({ group_name, pos_id });
             await GroupModel.insertStaffs(id, staffs);
 
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.KELOMPOK,
+                entityReff: ACTIVITY_ENTITY.GROUPS,
+                entityId: id,
+                description: `Menambahkan kelompok ${group_name}`,
+                newValue: { group_name, pos_id, staffs },
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
+
             res.status(200).json({ message: 'Kelompok berhasil dibuat', group: { id, group_name } });
         } catch (error) {
             res.status(500).json({ error: error.message });
@@ -118,9 +133,27 @@ export default class GroupController {
             //     return res.status(400).json({ errors: { group_name: 'Nama group sudah terdaftar' } });
             //   }
 
+            const oldData = await GroupModel.findById(id);
+            if (!oldData.length) return res.status(404).json({ error: 'Kelompok tidak ditemukan' });
+
+            const { oldValue, newValue } = diffObject(oldData[0], { group_name, pos_id });
+
             await GroupModel.update(id, { group_name, pos_id });
             await GroupModel.deleteGroupDetails(id);
             await GroupModel.insertStaffs(id, staffs);
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.KELOMPOK,
+                entityReff: ACTIVITY_ENTITY.GROUPS,
+                entityId: id,
+                description: `Mengupdate kelompok ${group_name}`,
+                oldValue,
+                newValue: { group_name, pos_id, staffs },
+            }).catch(err => {
+                console.error('Failed to log activity:', err);
+            });
 
             res.status(200).json({ message: 'Kelompok updated successfully' });
         } catch (error) {

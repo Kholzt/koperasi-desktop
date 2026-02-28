@@ -4,6 +4,9 @@ import Transaction from '../models/Transaction.js';
 import { isHoliday } from '../config/holidays.js';
 import PosModel from '../models/Pos.js';
 import CategoryModel from '../models/Category.js';
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class TransactionController {
     // Menampilkan daftar area dengan pagination
@@ -139,15 +142,16 @@ export default class TransactionController {
                 type: transaction_type,
                 resource
             });
-            console.log("DARI TRANSAKSI STORE", resource);
+
+            // handle auto insert dari menu lain
             if (existingTransaction && resource != "transaksi") {
                 // Gunakan regex untuk menghapus semua karakter kecuali angka dan titik
-            const cleanExisting = String(existingTransaction.amount).replace(/[^0-9.-]+/g, "");
-            const cleanNominal = String(nominal).replace(/[^0-9.-]+/g, "");
+                const cleanExisting = String(existingTransaction.amount).replace(/[^0-9.-]+/g, "");
+                const cleanNominal = String(nominal).replace(/[^0-9.-]+/g, "");
 
-            const totalNewAmount = Number(cleanExisting) + Number(cleanNominal);
+                const totalNewAmount = Number(cleanExisting) + Number(cleanNominal);
 
-            await Transaction.update({ amount: totalNewAmount }, existingTransaction.id);
+                await Transaction.update({ amount: totalNewAmount }, existingTransaction.id);
                 await Transaction.createLog({
                     id_transaksi: existingTransaction.id,
                     updated_by: user,
@@ -155,6 +159,19 @@ export default class TransactionController {
                     meta,
                     reason: reason ?? TransactionController._getDefaultReason(resource, 'edit')
                 });
+
+                 const { oldValue, newValue } = diffObject(transaction, { pos_id, category_id, description, transaction_type, nominal, date, user, reason, resource });
+
+                logActivity({
+                    user: req.user,
+                    action: ACTIVITY_ACTION.UPDATE,
+                    menu: ACTIVITY_MENU.TRANSAKSI,
+                    entityReff: ACTIVITY_ENTITY.TRANSACTIONS,
+                    entityId: existingTransaction.id,
+                    description: `Mengupdate transaksi ID ${existingTransaction.id}`,
+                    oldValue,
+                    newValue,
+                }).catch(err => console.error('Failed to log activity:', err));
             } else {
                 const loanId = await Transaction.create({
                     category_id,
@@ -186,10 +203,22 @@ export default class TransactionController {
                     meta: JSON.stringify(metas),
                     reason: reason ?? TransactionController._getDefaultReason(resource, 'add')
                 });
+
+                logActivity({
+                    user: req.user,
+                    action: ACTIVITY_ACTION.CREATE,
+                    menu: ACTIVITY_MENU.TRANSAKSI,
+                    entityReff: ACTIVITY_ENTITY.TRANSACTION,
+                    entityId: loanId,
+                    description: `Menambahkan transaksi ${transaction_type} senilai ${nominal}`,
+                    newValue: req.body,
+                }).catch(err => console.error('Failed to log activity:', err));
             }
 
 
             res.status(200).json({ message: 'Transaksi berhasil dibuat' });
+
+
         } catch (error) {
             res.status(500).json({ error: `Terjadi kesalahan saat menyimpan transaksi: ${error.message}` });
         }
@@ -266,6 +295,19 @@ export default class TransactionController {
                 meta: JSON.stringify(metas),
                 reason: reason
             });
+
+            const { oldValue, newValue } = diffObject(transaction, { pos_id, category_id, description, transaction_type, nominal, date, user, reason, resource });
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.TRANSAKSI,
+                entityReff: ACTIVITY_ENTITY.TRANSACTIONS,
+                entityId: id,
+                description: `Mengupdate transaksi ID ${id}`,
+                oldValue,
+                newValue,
+            }).catch(err => console.error('Failed to log activity:', err));
 
             res.status(200).json({
                 message: 'Transaksi berhasil diubah'

@@ -1,5 +1,8 @@
 import db from "../config/db";
 import PosisiUsaha from "../models/PosisiUsaha";
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 // import { posisiUsahaCode } from "../utils/constant";
 
 export default class PosisiUsahaController {
@@ -76,10 +79,36 @@ export default class PosisiUsahaController {
                 })
             }
 
+            let oldValue = null;
+            let newValue = data;
+
+            if (id) {
+                const existing = await PosisiUsaha.getPosisiUsaha(id);
+                if (existing) {
+                    const diff = diffObject(existing, data);
+                    oldValue = diff.oldValue;
+                    newValue = diff.newValue;
+                }
+            }
+
             await PosisiUsaha.insertUpdatePosisiUsahaById(data)
+
+            logActivity({
+                user: req.user,
+                action: id ? ACTIVITY_ACTION.UPDATE : ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.POSISI_USAHA,
+                entityReff: ACTIVITY_ENTITY.POSISI_USAHA,
+                entityId: id || null,
+                description: `${id ? 'Mengupdate' : 'Menambahkan'} posisi usaha ${code}`,
+                oldValue,
+                newValue,
+            }).catch(err => console.error('Failed to log activity:', err));
+
+
             return res.status(200).json({
                 message: "success"
             })
+
         } catch (error) {
             return res.status(500).json({ error: 'Failed to save target anggota', errors: error.message, user });
         }
@@ -135,10 +164,36 @@ export default class PosisiUsahaController {
                 raw_formula: JSON.stringify(raw_formula),
                 posisi_usaha_id: id || null
             }
+            let oldValue = null;
+            let newValue = data;
+
+            if (id) {
+                const existing = await PosisiUsaha.getPosisiUsaha(id);
+                if (existing) {
+                    const diff = diffObject(existing, data);
+                    oldValue = diff.oldValue;
+                    newValue = diff.newValue;
+                }
+            }
+
             await PosisiUsaha.insertUpdatePosisiUsahaById(data)
+
+            logActivity({
+                user: req.user,
+                action: id ? ACTIVITY_ACTION.UPDATE : ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.POSISI_USAHA,
+                entityReff: ACTIVITY_ENTITY.POSISI_USAHA,
+                entityId: id || null,
+                description: `${id ? 'Mengupdate' : 'Menambahkan'} target ${code}`,
+                oldValue,
+                newValue,
+            }).catch(err => console.error('Failed to log activity:', err));
+
+
             return res.status(200).json({
                 message: "success"
             })
+
         } catch (error) {
             return res.status(500).json({ error: 'Failed to save target anggota', errors: error.message, user });
         }
@@ -163,10 +218,23 @@ export default class PosisiUsahaController {
         try {
             const id = req.params?.id || null
 
-            const result = await PosisiUsaha.deletePosisiUsaha(id)
+            const oldData = await PosisiUsaha.getPosisiUsaha(id)
+            await PosisiUsaha.deletePosisiUsaha(id)
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.POSISI_USAHA,
+                entityReff: ACTIVITY_ENTITY.POSISI_USAHA,
+                entityId: id,
+                description: `Menghapus posisi usaha ID ${id}`,
+                oldValue: oldData,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             return res.status(200).json({
                 message: "Posisi usaha berhasil dihapus"
             })
+
         } catch (error) {
             return res.status(500).json({ error: 'Posisi usaha gagal dihapus', errors: error.message });
         }

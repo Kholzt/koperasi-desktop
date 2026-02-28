@@ -5,6 +5,9 @@ import { isHoliday } from '../config/holidays.js';
 import { formatDateLocal } from '../helpers/helpers.js';
 import PosisiUsaha from '../models/PosisiUsaha.js';
 import Transaction from '../models/Transaction.js';
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class LoanController {
     // Menampilkan daftar area dengan pagination
@@ -292,6 +295,16 @@ export default class LoanController {
                 pinjaman: newPeminjaman
             });
 
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.PINJAMAN,
+                entityReff: ACTIVITY_ENTITY.PINJAMAN,
+                entityId: newPeminjaman.id,
+                description: `Menambahkan pinjaman untuk anggota ID ${req.body.anggota_id}`,
+                newValue: req.body,
+            }).catch(err => console.error('Failed to log activity:', err));
+
         } catch (error) {
 
 
@@ -386,6 +399,20 @@ export default class LoanController {
                 }
 
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
+
+                const { oldValue, newValue } = diffObject(pinjaman, data);
+
+                logActivity({
+                    user: req.user,
+                    action: ACTIVITY_ACTION.UPDATE,
+                    menu: ACTIVITY_MENU.PINJAMAN,
+                    entityReff: ACTIVITY_ENTITY.PINJAMAN,
+                    entityId: id,
+                    description: `Mengupdate pinjaman ID ${id}`,
+                    oldValue,
+                    newValue,
+                }).catch(err => console.error('Failed to log activity:', err));
+
                 debugger
                 return await Loan.findById(id);
             });
@@ -458,6 +485,16 @@ export default class LoanController {
             });
 
             // ================= COMMIT BERHASIL =================
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.PINJAMAN,
+                entityReff: ACTIVITY_ENTITY.PINJAMAN,
+                entityId: req.params.id,
+                description: `Menghapus pinjaman ID ${req.params.id}`,
+                oldValue: result,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             return res.status(200).json({
                 pinjaman: result
             });

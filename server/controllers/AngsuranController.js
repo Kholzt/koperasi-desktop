@@ -11,6 +11,9 @@ import Loan from "../models/Loan";
 import { formatDateLocal } from "../helpers/helpers";
 import PosisiUsaha from './../models/PosisiUsaha';
 import Transaction from "../models/Transaction";
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class AngsuranController {
     static async index(req, res) {
@@ -227,6 +230,17 @@ export default class AngsuranController {
             }
 
             await trx.commit();
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.ANGSURAN,
+                entityReff: ACTIVITY_ENTITY.ANGSURAN,
+                entityId: angsuran_id,
+                description: `Menambahkan angsuran untuk pinjaman ID ${idPinjaman}`,
+                newValue: { idPinjaman, status, penagih, asal_pembayaran, jumlah_bayar, tanggal_bayar, jumlah_katrol },
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({
                 angsuran,
             });
@@ -354,10 +368,23 @@ export default class AngsuranController {
             }
 
             await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
+            const { oldValue, newValue } = diffObject(angsuran, { asal_pembayaran, jumlah_bayar, jumlah_katrol, penagih });
+
             await trx.commit();
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.ANGSURAN,
+                entityReff: ACTIVITY_ENTITY.ANGSURAN,
+                entityId: id,
+                description: `Mengupdate angsuran ID ${id}`,
+                oldValue,
+                newValue,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({
                 angsuran,
-
             });
         } catch (error) {
             await trx.rollback();
@@ -452,6 +479,17 @@ export default class AngsuranController {
             }
             await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
             await trx.commit();
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.ANGSURAN,
+                entityReff: ACTIVITY_ENTITY.ANGSURAN,
+                entityId: id,
+                description: `Menghapus angsuran ID ${id}`,
+                oldValue: angsuran,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({
                 angsuran,
                 loan,
