@@ -208,7 +208,7 @@ export default class TransactionController {
                     user: req.user,
                     action: ACTIVITY_ACTION.CREATE,
                     menu: ACTIVITY_MENU.TRANSAKSI,
-                    entityReff: ACTIVITY_ENTITY.TRANSACTION,
+                    entityReff: ACTIVITY_ENTITY.TRANSACTIONS,
                     entityId: loanId,
                     description: `Menambahkan transaksi ${transaction_type} senilai ${nominal}`,
                     newValue: req.body,

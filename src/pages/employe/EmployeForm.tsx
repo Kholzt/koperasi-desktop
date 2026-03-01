@@ -35,6 +35,7 @@ interface EmployeFormInput {
     pos_id: string;
     status: 'aktif' | 'nonAktif';
     status_ijazah: 'belum diambil' | 'sudah diambil';
+    foto_profile: string;
 }
 
 
@@ -52,6 +53,13 @@ const schema: yup.SchemaOf<EmployeFormInput> = yup.object({
     status_ijazah: yup.mixed<'belum diambil' | 'sudah diambil'>()
         .oneOf(['belum diambil', 'sudah diambil'], 'Status ijazah tidak valid')
         .required('Status ijazah wajib dipilih'),
+    foto_profile: yup.mixed().test('fileSize', 'Ukuran file terlalu besar', (value) => {
+        if (!value || value.length === 0) return true; // Jika tidak ada file, lewati validasi ini
+        return value[0].size <= 2 * 1024 * 1024; // Maksimal 5MB
+    }).test('fileType', 'Tipe file tidak didukung', (value) => {
+        if (!value || value.length === 0) return true; // Jika tidak ada file, lewati validasi ini
+        return ['image/jpeg', 'image/png', 'image/jpg'].includes(value[0].type); // Hanya izinkan JPEG dan PNG
+    }),
 });
 
 const EmployeForm: React.FC = () => {
@@ -60,6 +68,11 @@ const EmployeForm: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
     const [disabled, setDisabled] = useState(false);
+    const [file, setFile] = useState<File | null>(null);;
+    const [imageUrl, setImageUrl] = useState('');
+    const [preview, setPreview] = useState<string>('');
+    const [errorFile, setErrorFile] = useState<string>('');
+    const [loadingUpload, setLoadingUpload] = useState(false);
     const isUpdate = !!id;
     const {
         register,
@@ -134,6 +147,17 @@ const EmployeForm: React.FC = () => {
     const onSubmit = async (data: EmployeFormInput) => {
         try {
             let res;
+            let uploadedImageUrl = imageUrl;
+
+            // ⬅️ upload hanya saat submit
+            if (file) {
+                uploadedImageUrl = await handleUpload();
+            }
+
+            if (uploadedImageUrl) {
+                data = { ...data, foto_profile: uploadedImageUrl };
+            }
+
             if (!id) {
                 res = await axios.post("/api/employees", data);
             } else {
@@ -167,6 +191,30 @@ const EmployeForm: React.FC = () => {
         }
 
     }
+
+    const handleUpload = async () => {
+        const formData = new FormData();
+        formData.append('photo', file);
+        try {
+            setLoadingUpload(true);
+            const res = await axios.post('upload',
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
+            setImageUrl(res.data.imageUrl);
+            return res.data.imageUrl; // ⬅️ PENTING: return URL
+
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoadingUpload(false);
+        }
+    };
     if (loading && isUpdate) return <Loading />
     return (
         <>
@@ -329,6 +377,36 @@ const EmployeForm: React.FC = () => {
                                     {...register("masa_kerja")}
                                 />
 
+                            </div>
+                            <div>
+                                <Label>
+                                    Foto Profil
+                                </Label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const selected = e.target.files?.[0];
+                                        if (!selected) return;
+                                        if (selected.size > (2 * 1024 * 1024)) {
+                                            toast.error('Ukuran file maksimal 2MB');
+                                            setErrorFile('Ukuran file maksimal 2MB');
+                                            e.target.value = ''; // reset input
+                                            return;
+                                        }else {   
+                                            setErrorFile('');
+                                        }
+                                        setFile(selected);
+                                        setPreview(URL.createObjectURL(selected));
+                                    }}
+                                />
+                                {errorFile && <p className="mt-1 text-sm text-red-500">{errorFile}</p>}
+
+                                {/* <button onClick={handleUpload} disabled={loadingUpload}>{loadingUpload ? 'Uploading...' : 'Upload'}</button> */}
+
+                                {preview && (
+                                    <img src={preview} width={120} alt="preview" />
+                                )}
                             </div>
                         </div>
                         <div>

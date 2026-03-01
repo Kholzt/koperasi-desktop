@@ -1,8 +1,13 @@
 import cors from "cors";
 import dotenv from 'dotenv';
 import express from 'express';
-import { exportDB, listBackup } from "./config/db";
-import { saveHolidayJson } from "./config/holidays";
+import {
+  exportDB,
+  listBackup
+} from "./config/db";
+import {
+  saveHolidayJson
+} from "./config/holidays";
 import AngsuranController from './controllers/AngsuranController';
 import AreaController from './controllers/AreaController';
 import AuthController from './controllers/AuthController';
@@ -19,24 +24,39 @@ import UserController from './controllers/UserController';
 import authenticate from './middleware/authenticate';
 import verifySecret from './middleware/verifySecret';
 import LogActivityController from "./controllers/LogActivityController";
+
+import uploadProfile from './middleware/upload';
+import {
+  uploadProfileController
+} from './controllers/UploadController';
+
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import {
+  fileURLToPath
+} from 'url';
+import {
+  dirname
+} from 'path';
+import fs from 'fs';
 
 dotenv.config();
 // const express = require('express');
 const app = express();
-const port = import.meta.env.VITE_APP_PORT || 5000;
-const __filename = fileURLToPath(import.meta.url);
+const port =
+  import.meta.env.VITE_APP_PORT || 5000;
+const __filename = fileURLToPath(
+  import.meta.url);
 const __dirname = dirname(__filename);
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({
+  extended: true
+}));
 
 // Keep login public
 app.post('/api/login', AuthController.login);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 
 // create router and apply verifySecret to all controller routes
@@ -138,18 +158,27 @@ apiRouter.delete('/transactions/:id', TransactionController.delete);
 apiRouter.get('/getGroupsTransaction', TransactionController.getGroupTransaction);
 
 apiRouter.get('/configLoan', (req, res) => {
-    const totalBulan = process.env.VITE_APP_BULAN || 10;
-    const modalDo = process.env.VITE_APP_MODAL_DO || 13;
-    return res.json({ config: { totalBulan, modalDo } })
+  const totalBulan = process.env.VITE_APP_BULAN || 10;
+  const modalDo = process.env.VITE_APP_MODAL_DO || 13;
+  return res.json({
+    config: {
+      totalBulan,
+      modalDo
+    }
+  })
 });
 
 apiRouter.post('/export-db', async (req, res) => {
-    exportDB();
-    await saveHolidayJson();
-    return res.json({ message: "Berhasil export db" })
+  exportDB();
+  await saveHolidayJson();
+  return res.json({
+    message: "Berhasil export db"
+  })
 });
 apiRouter.get('/list-backup', async (req, res) => {
-    return res.json({ backups: listBackup() })
+  return res.json({
+    backups: listBackup()
+  })
 });
 
 apiRouter.post("/posisi-usaha/save", PosisiUsahaController.savePosisiUsaha)
@@ -164,29 +193,66 @@ apiRouter.delete("/posisi-usaha/:id", PosisiUsahaController.deletePosisiUsaha)
 apiRouter.get("/activity", LogActivityController.index)
 apiRouter.get("/listMenu", LogActivityController.getMenu)
 
-// konfigurasi multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    },
-});
+// apiRouter.post('/upload', uploadProfile.single('photo'), uploadProfilePhoto);
 
-const upload = multer({ storage });
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// endpoint upload
-app.post('/upload', upload.single('photo'), (req, res) => {
-    res.json({
-        message: 'Upload berhasil',
-        file: req.file,
-        imageUrl: `http://localhost:${port}/uploads/${req.file.filename}`,
-    });
-});
+// static file
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// endpoint upload (TANPA routes folder)
+// app.post(
+//   '/upload',
+//   authenticate, // JWT middleware
+//   uploadProfile.single('photo'), // upload middleware
+//   uploadProfileController // controller
+// );
+app.post(
+  '/upload',
+  authenticate,
+  uploadProfile.single('photo'),
+  (req, res, next) => {
+    console.log('🔥 HIT /upload');
+    console.log('file:', req.file);
+    next();
+  },
+  uploadProfileController
+);
+// const uploadDir = path.join(__dirname, 'uploads', 'profiles');
+// if (!fs.existsSync(uploadDir)) {
+//   fs.mkdirSync(uploadDir,{ recursive: true });
+// }
+// // konfigurasi multer
+// const storage = multer.diskStorage({
+
+//   destination: (req, file, cb) => {
+//     cb(null, uploadDir);
+//   },
+//   filename: (req, file, cb) => {
+//     const ext = path.extname(file.originalname);
+//     cb(null, Date.now() + ext);
+//   },
+// });
+
+// const upload = multer({
+//   storage
+// });
+
+// // endpoint upload
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.post('/upload', upload.single('photo'), (req, res) => {
+//   if (!req.file) {
+//     return res.status(400).json({ message: 'File tidak terkirim' });
+//   }
+//   res.json({
+//     message: 'Upload berhasil',
+//     filename: req.file.filename,
+//     imageUrl: `/uploads/profiles/${req.file.filename}`,
+//   });
+// });
 
 app.use('/api', apiRouter);
 app.listen(port, async () => {
 
-    console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running at http://localhost:${port}`);
 });

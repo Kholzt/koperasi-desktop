@@ -120,7 +120,7 @@ export default class EmployeController {
         }
 
         try {
-            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address, nip } = req.body;
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address, nip, foto_profile } = req.body;
             ;
             // const nip = await generateNip();
             const [insertedId] = await db('users').insert({
@@ -135,7 +135,8 @@ export default class EmployeController {
                 status_ijazah,
                 pos_id,
                 nip,
-                address
+                address,
+                foto_profile,
             });
 
             const newUser = await db('users').where('id', insertedId).first();
@@ -149,7 +150,7 @@ export default class EmployeController {
                 description: `Menambahkan karyawan ${complete_name}`,
                 newValue: {
                     complete_name, position, status, tanggal_masuk, tanggal_keluar,
-                    jenis_ijazah, status_ijazah, pos_id, nip, address
+                    jenis_ijazah, status_ijazah, pos_id, nip, address, foto_profile
                 },
             }).catch(err => {
                 console.error('Failed to log activity:', err);
