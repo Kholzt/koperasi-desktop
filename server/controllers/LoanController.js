@@ -1,7 +1,13 @@
 import { body, validationResult } from 'express-validator';
-import db from "../config/db.js";
+import db, { transaction } from "../config/db.js";
 import Loan from '../models/Loan.js';
 import { isHoliday } from '../config/holidays.js';
+import { formatDateLocal } from '../helpers/helpers.js';
+import PosisiUsaha from '../models/PosisiUsaha.js';
+import Transaction from '../models/Transaction.js';
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class LoanController {
     // Menampilkan daftar area dengan pagination
@@ -179,108 +185,128 @@ export default class LoanController {
             }, {});
             return res.status(400).json({ errors: formattedErrors });
         }
-        const trx = await db.transaction();
+
 
         try {
-            const {
-                jumlah_pinjaman,
-                total_pinjaman_diterima,
-                anggota_id,
-                kode,
-                penanggung_jawab,
-                modal_do,
-                jumlah_angsuran,
-                total_pinjaman,
-                persen_bunga,
-                status,
-                petugas_input,
-                total_bunga,
-                tanggal_pinjam
-            } = req.body;
+            const newPeminjaman = await transaction(async () => {
 
-            const loanExist = await Loan.existLoan(anggota_id, kode);
-            if (loanExist) {
-                return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
-            }
+                const {
+                    jumlah_pinjaman,
+                    total_pinjaman_diterima,
+                    anggota_id,
+                    kode,
+                    penanggung_jawab,
+                    modal_do,
+                    jumlah_angsuran,
+                    total_pinjaman,
+                    persen_bunga,
+                    status,
+                    petugas_input,
+                    total_bunga,
+                    tanggal_pinjam
+                } = req.body;
+                const user = req.user
+                const loanExist = await Loan.existLoan(anggota_id, kode);
+                if (loanExist) {
+                    return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
+                }
 
-            // Hitung tanggal angsuran pertama (7 hari dari sekarang)
-            const now = new Date();
-            const tanggalAngsuranPertama = new Date(tanggal_pinjam);
-            tanggalAngsuranPertama.setDate(tanggalAngsuranPertama.getDate() + 7);
+                // Hitung tanggal angsuran pertama (7 hari dari sekarang)
+                const now = new Date();
+                const tanggalAngsuranPertama = new Date(tanggal_pinjam);
+                tanggalAngsuranPertama.setDate(tanggalAngsuranPertama.getDate() + 7);
 
-            // Fungsi format tanggal YYYY-MM-DD
-            const formatDate = (date) => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            };
+                // Fungsi format tanggal YYYY-MM-DD
+                const formatDate = (date) => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
 
-            // Simpan data pinjaman
-            const loanId = await Loan.create({
-                jumlah_pinjaman,
-                total_pinjaman_diterima,
-                anggota_id,
-                kode,
-                penanggung_jawab: JSON.stringify(penanggung_jawab),
-                modal_do,
-                jumlah_angsuran,
-                total_pinjaman,
-                persen_bunga,
-                status,
-                petugas_input,
-                sisa_pembayaran: total_pinjaman,
-                besar_tunggakan: 0,
-                total_bunga,
-                tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama),
-                created_at: now,
-            });
+                // Simpan data pinjaman
+                const loanId = await Loan.create({
+                    jumlah_pinjaman,
+                    total_pinjaman_diterima,
+                    anggota_id,
+                    kode,
+                    penanggung_jawab: JSON.stringify(penanggung_jawab),
+                    modal_do,
+                    jumlah_angsuran,
+                    total_pinjaman,
+                    persen_bunga,
+                    status,
+                    petugas_input,
+                    sisa_pembayaran: total_pinjaman,
+                    besar_tunggakan: 0,
+                    total_bunga,
+                    tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama),
+                    created_at: now,
+                });
 
-            // Loop angsuran per bulan
-            let totalMinggu = parseInt(process.env.VITE_APP_BULAN || '10');
-            for (let i = 0; i < totalMinggu; i++) {
-                const tanggalPembayaran = new Date(tanggalAngsuranPertama);
-                tanggalPembayaran.setDate(tanggalPembayaran.getDate() + (i * 7));
+                // Loop angsuran per bulan
+                let totalMinggu = parseInt(process.env.VITE_APP_BULAN || '10');
+                for (let i = 0; i < totalMinggu; i++) {
+                    const tanggalPembayaran = new Date(tanggalAngsuranPertama);
+                    tanggalPembayaran.setDate(tanggalPembayaran.getDate() + (i * 7));
 
-                let sudahAktif = false;
+                    let sudahAktif = false;
 
-                while (!sudahAktif) {
-                    const isDay = await isHoliday(tanggalPembayaran);
-                    if (isDay) {
-                        // Buat angsuran status "libur"
-                        await Loan.createAngsuran({
-                            idPinjaman: loanId,
-                            tanggalPembayaran: formatDate(tanggalPembayaran),
-                            status: "libur"
-                        });
+                    while (!sudahAktif) {
+                        const isDay = await isHoliday(tanggalPembayaran);
+                        if (isDay) {
+                            // Buat angsuran status "libur"
+                            await Loan.createAngsuran({
+                                idPinjaman: loanId,
+                                tanggalPembayaran: formatDate(tanggalPembayaran),
+                                status: "libur"
+                            });
 
-                        // Geser ke minggu berikutnya
-                        tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
-                        i++;
-                        totalMinggu++;
-                    } else {
-                        sudahAktif = true;
-                        await Loan.createAngsuran({
-                            idPinjaman: loanId,
-                            tanggalPembayaran: formatDate(tanggalPembayaran),
-                            status: "aktif"
-                        });
+                            // Geser ke minggu berikutnya
+                            tanggalPembayaran.setDate(tanggalPembayaran.getDate() + 7);
+                            i++;
+                            totalMinggu++;
+                        } else {
+                            sudahAktif = true;
+                            await Loan.createAngsuran({
+                                idPinjaman: loanId,
+                                tanggalPembayaran: formatDate(tanggalPembayaran),
+                                status: "aktif"
+                            });
+                        }
                     }
                 }
-            }
+                const group = await Loan.getGroupNameByIdPinjaman(loanId);
 
+                const dataTransaksi = {
+                    amount: modal_do,
+                    code: "modaldo",
+                    user_id: user.id,
+                    tanggal_input: formatDateLocal(tanggal_pinjam),
+                    group_id: group.group_id
+                }
+                await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
 
-
-            const newPeminjaman = await Loan.findById(loanId);
-            await trx.commit();
+                return await Loan.findById(loanId);
+            });
 
             res.status(200).json({
                 message: 'Pinjaman berhasil dibuat',
                 pinjaman: newPeminjaman
             });
 
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.PINJAMAN,
+                entityReff: ACTIVITY_ENTITY.PINJAMAN,
+                entityId: newPeminjaman.id,
+                description: `Menambahkan pinjaman untuk anggota ID ${req.body.anggota_id}`,
+                newValue: req.body,
+            }).catch(err => console.error('Failed to log activity:', err));
+
         } catch (error) {
-            await trx.rollback();
+
 
             res.status(500).json({ error: 'Terjadi kesalahan saat menyimpan pinjaman: ' + error.message });
         }
@@ -312,46 +338,84 @@ export default class LoanController {
             return res.status(400).json({ errors: formattedErrors });
         }
 
-        const trx = await db.transaction();
         try {
-            const id = req.params.id; // pastikan id dikirim di URL: /pinjaman/:id
-            const {
-                jumlah_pinjaman, total_pinjaman_diterima, anggota_id, kode,
-                penanggung_jawab, modal_do, jumlah_angsuran, total_pinjaman,
-                persen_bunga, status, petugas_input, total_bunga
-            } = req.body;
+            const updatedPinjaman = await transaction(async () => {
 
-            // Cek apakah pinjaman dengan ID tersebut ada
-            const existing = await Loan.findById(id);
-            if (!existing) {
-                return res.status(404).json({ error: 'Data pinjaman tidak ditemukan.' });
-            }
+                const id = req.params.id; // pastikan id dikirim di URL: /pinjaman/:id
+                const {
+                    jumlah_pinjaman, total_pinjaman_diterima, anggota_id, kode,
+                    penanggung_jawab, modal_do, jumlah_angsuran, total_pinjaman,
+                    persen_bunga, status, petugas_input, total_bunga
+                } = req.body;
+                const user = req.user
+                // Cek apakah pinjaman dengan ID tersebut ada
+                const pinjaman = await Loan.findByIdOnlyOne(id);
 
-            // Cek kode unik (kode tidak boleh sama dengan entri lain)
-            const kodeCek = await Loan.existLoan(anggota_id, kode, id);
-            if (kodeCek) {
-                return res.status(400).json({ errors: { kode: 'Kode sudah digunakan oleh pinjaman lain.' } });
-            }
+                if (!pinjaman) {
+                    return res.status(404).json({ error: 'Data pinjaman tidak ditemukan.' });
+                }
 
-            const data = {
-                jumlah_pinjaman,
-                total_pinjaman_diterima,
-                penanggung_jawab: JSON.stringify(penanggung_jawab),
-                modal_do,
-                jumlah_angsuran,
-                total_pinjaman,
-                persen_bunga,
-                status,
-                petugas_input,
-                total_bunga,
-                // sisa_pembayaran: total_pinjaman
-            };
-            // Update data
-            await Loan.update(data, id)
-            await Loan.updateSisaPembayaran(id);
+                // Cek kode unik (kode tidak boleh sama dengan entri lain)
+                const kodeCek = await Loan.existLoan(anggota_id, kode, id);
+                if (kodeCek) {
+                    return res.status(400).json({ errors: { kode: 'Kode sudah digunakan oleh pinjaman lain.' } });
+                }
 
-            const updatedPinjaman = await Loan.findById(id);
-            await trx.commit();
+                const data = {
+                    jumlah_pinjaman,
+                    total_pinjaman_diterima,
+                    penanggung_jawab: JSON.stringify(penanggung_jawab),
+                    modal_do,
+                    jumlah_angsuran,
+                    total_pinjaman,
+                    persen_bunga,
+                    status,
+                    petugas_input,
+                    total_bunga,
+                    // sisa_pembayaran: total_pinjaman
+                };
+                // Update data
+                await Loan.update(data, id)
+                await Loan.updateSisaPembayaran(id);
+
+
+                const group = await Loan.getGroupNameByIdPinjaman(id);
+
+                const oldTotalBayar =
+                    (pinjaman.modal_do ?? 0)
+
+                const newTotalBayar =
+                    (modal_do ?? 0)
+
+                const jumlahBayarTotal = newTotalBayar - oldTotalBayar
+                const tanggal = new Date(pinjaman.tanggal_angsuran_pertama);
+                tanggal.setDate(tanggal.getDate() - 7);
+                const dataTransaksi = {
+                    amount: jumlahBayarTotal,
+                    code: "modaldo",
+                    user_id: user.id,
+                    tanggal_input: formatDateLocal(tanggal),
+                    group_id: group.group_id
+                }
+
+                await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
+
+                const { oldValue, newValue } = diffObject(pinjaman, data);
+
+                logActivity({
+                    user: req.user,
+                    action: ACTIVITY_ACTION.UPDATE,
+                    menu: ACTIVITY_MENU.PINJAMAN,
+                    entityReff: ACTIVITY_ENTITY.PINJAMAN,
+                    entityId: id,
+                    description: `Mengupdate pinjaman ID ${id}`,
+                    oldValue,
+                    newValue,
+                }).catch(err => console.error('Failed to log activity:', err));
+
+                debugger
+                return await Loan.findById(id);
+            });
 
             res.status(200).json({
                 message: 'Data pinjaman berhasil diperbarui',
@@ -359,7 +423,6 @@ export default class LoanController {
             });
 
         } catch (error) {
-            await trx.rollback();
 
             res.status(500).json({ error: 'Terjadi kesalahan saat memperbarui data: ' + error.message });
         }
@@ -370,26 +433,80 @@ export default class LoanController {
     // Menampilkan detail area berdasarkan ID
     static async delete(req, res) {
         try {
-            const { id } = req.params;
-            const pinjaman = await Loan.findByIdOnlyOne(id);
-            if (!pinjaman) {
-                return res.status(404).json({ error: 'Pinjaman tidak ditemukan' });
-            }
+            const result = await transaction(async () => {
 
-            // const isUsed = pinjaman.total_pinjaman > pinjaman.sisa_pembayaran || pinjaman.besar_tunggakan > 0;
-            // if (isUsed) {
-            //     return res.status(409).json({
-            //         error: 'Pinjaman gagal dihapus, Data sedang digunakan dibagian lain sistem',
-            //     });
-            // }
-            await Loan.softDelete(id);
-            res.status(200).json({
-                pinjaman: pinjaman,
+                const { id } = req.params;
+                const user = req.user
+                const pinjaman = await Loan.findByIdOnlyOne(id);
+                if (!pinjaman) {
+                    throw new Error('Pinjaman tidak ditemukan'); // 🔥 rollback
+                }
+
+                await Loan.softDelete(id);
+
+                const group = await Loan.getGroupNameByIdPinjaman(id);
+
+                // 🔹 transaksi pinjaman
+                const tanggal = new Date(pinjaman.tanggal_angsuran_pertama);
+                tanggal.setDate(tanggal.getDate() - 7);
+
+                await Transaction.decreseTransaksi({
+                    transaction_type: "credit",
+                    transactionDate: tanggal,
+                    amount: pinjaman.total_pinjaman,
+                    description: group.group_name ?? "Kelompok 0",
+                    resource: "pinjaman"
+                });
+
+                // 🔹 transaksi angsuran (WAJIB for..of)
+                const angsuran = await Loan.getListAngsuranByIdPinjaman(id);
+
+                for (const ang of angsuran) {
+                    await Transaction.decreseTransaksi({
+                        transaction_type: "debit",
+                        transactionDate: ang.tanggal_pembayaran,
+                        amount: ang.jumlah_bayar + ang.jumlah_katrol,
+                        description: ang.group_name ?? "Kelompok 0",
+                        resource: "angsuran"
+                    });
+                }
+
+
+                const dataTransaksi = {
+                    amount: -(pinjaman.total_pinjaman),
+                    code: "modaldo",
+                    user_id: user.id,
+                    tanggal_input: formatDateLocal(tanggal),
+                    group_id: group.group_id
+                }
+
+                await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
+                return pinjaman; // 🔥 return data ke luar
             });
+
+            // ================= COMMIT BERHASIL =================
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.PINJAMAN,
+                entityReff: ACTIVITY_ENTITY.PINJAMAN,
+                entityId: req.params.id,
+                description: `Menghapus pinjaman ID ${req.params.id}`,
+                oldValue: result,
+            }).catch(err => console.error('Failed to log activity:', err));
+
+            return res.status(200).json({
+                pinjaman: result
+            });
+
         } catch (error) {
-            res.status(500).json({ error: 'An error occurred while retrieving the pinjaman.', errorss: error });
+            // ================= ROLLBACK OTOMATIS =================
+            return res.status(400).json({
+                error: error.message
+            });
         }
     }
+
 
 
     static async pinjamanAnggotaStatus(req, res) {

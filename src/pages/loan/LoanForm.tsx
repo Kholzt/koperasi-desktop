@@ -20,7 +20,7 @@ import Button from "../../components/ui/button/Button";
 import { useUser } from "../../hooks/useUser";
 import { ChevronLeftIcon } from "../../icons";
 import axios from "../../utils/axios";
-import { formatCurrency, insertToTransaction, toLocalDate, unformatCurrency } from "../../utils/helpers";
+import { formatCurrency, formatDate, insertToTransaction, toLocalDate, unformatCurrency } from "../../utils/helpers";
 import { EmployeProps, MemberProps, UserProps } from "../../utils/types";
 import SelectSearch from './../../components/form/SelectSearch';
 import MultiSelect from "../../components/form/MultiSelect";
@@ -215,6 +215,7 @@ const LoanForm: React.FC = () => {
 
     const onSubmit = async (data: LoanFormInput) => {
         try {
+
             data.besar_tunggakan = unformatCurrency(data.besar_tunggakan).toString();
             data.jumlah_angsuran = unformatCurrency(data.jumlah_angsuran).toString();
             data.jumlah_pinjaman = unformatCurrency(data.jumlah_pinjaman).toString();
@@ -240,7 +241,8 @@ const LoanForm: React.FC = () => {
             const description = employes.find((e) => data.penanggung_jawab.includes(e.id.toString()))?.group_name
 
             if (res.status === 201 || res.status === 200) {
-                const nominal = totalPinjamanLama > parseInt(data.total_pinjaman) ? -(totalPinjamanLama - parseInt(data.total_pinjaman)) : parseInt(data.total_pinjaman) - totalPinjamanLama;
+                const nominal = Number(data.total_pinjaman) - totalPinjamanLama;
+
                 const dataTransaction = {
                     transaction_type: 'credit',
                     category_id: 1,
@@ -252,9 +254,10 @@ const LoanForm: React.FC = () => {
                     meta: JSON.stringify(meta),
                     status: id ? "edit" : "add",
                     reason: id ? "edit pinjaman" : "add pinjaman",
+                    date: toLocalDate(new Date(data.tanggal_pinjam))
                 }
 
-                // await axios.post("/api/transactions", dataTransaction);
+                await axios.post("/api/transactions", dataTransaction);
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
                 navigate("/loan?isFromTransaction=true");
             }
@@ -325,7 +328,6 @@ const LoanForm: React.FC = () => {
                                 </div>
                                 {errors.jumlah_pinjaman && <p className="text-sm text-red-500 mt-1">{errors.jumlah_pinjaman.message}</p>}
                             </div>
-
                             <div>
                                 <Label htmlFor="persen_bunga">Persen Bunga (%)</Label>
                                 <div className="relative">

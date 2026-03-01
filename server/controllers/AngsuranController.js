@@ -8,6 +8,12 @@ import {
     validationResult
 } from 'express-validator';
 import Loan from "../models/Loan";
+import { formatDateLocal } from "../helpers/helpers";
+import PosisiUsaha from './../models/PosisiUsaha';
+import Transaction from "../models/Transaction";
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class AngsuranController {
     static async index(req, res) {
@@ -76,6 +82,7 @@ export default class AngsuranController {
                 tanggal_bayar,
                 jumlah_katrol
             } = req.body
+            const user = req.user
             const angsuran = await Angsuran.getAngsuranAktifByIdPeminjaman(idPinjaman);
             if (!angsuran) {
                 res.status(404).json({
@@ -208,7 +215,32 @@ export default class AngsuranController {
                     id_angsuran: angsuran_id
                 });
             }
+            const ag = await Angsuran.getGroupNameByIdAngsuran(angsuran_id)
+
+            const notHoliday = (status != "menunggak" && (status != 'Libur Operasional' || status != 'Libur Operasional'))
+            const dataTransaksi = {
+                amount: jumlahBayarTotal,
+                code: "storting",
+                user_id: user.id,
+                tanggal_input: tanggal_bayar ? formatDateLocal(tanggal_bayar) : formatDateLocal(angsuran.tanggal_pembayaran),
+                group_id: ag.group_id
+            }
+            if (notHoliday) {
+                await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
+            }
+
             await trx.commit();
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.ANGSURAN,
+                entityReff: ACTIVITY_ENTITY.ANGSURAN,
+                entityId: angsuran_id,
+                description: `Menambahkan angsuran untuk pinjaman ID ${idPinjaman}`,
+                newValue: { idPinjaman, status, penagih, asal_pembayaran, jumlah_bayar, tanggal_bayar, jumlah_katrol },
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({
                 angsuran,
             });
@@ -263,6 +295,8 @@ export default class AngsuranController {
                 jumlah_bayar,
                 jumlah_katrol
             } = req.body
+            const user = req.user
+
             const angsuran = await Angsuran.findById(id);
             if (!angsuran) {
                 res.status(404).json({
@@ -313,13 +347,48 @@ export default class AngsuranController {
                     isAktifAdded = true;
                 }
             }
+            const ag = await Angsuran.getGroupNameByIdAngsuran(id)
+
+            const oldTotalBayar =
+                (angsuran.jumlah_bayar ?? 0) +
+                (angsuran.jumlah_katrol ?? 0)
+
+            const newTotalBayar =
+                (jumlah_bayar ?? 0) +
+                (jumlah_katrol ?? 0)
+
+            const jumlahBayarTotal = newTotalBayar - oldTotalBayar
+
+            const dataTransaksi = {
+                amount: jumlahBayarTotal,
+                code: "storting",
+                user_id: user.id,
+                tanggal_input: formatDateLocal(angsuran.tanggal_pembayaran),
+                group_id: ag.group_id
+            }
+
+            await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
+            const { oldValue, newValue } = diffObject(angsuran, { asal_pembayaran, jumlah_bayar, jumlah_katrol, penagih });
+
             await trx.commit();
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.ANGSURAN,
+                entityReff: ACTIVITY_ENTITY.ANGSURAN,
+                entityId: id,
+                description: `Mengupdate angsuran ID ${id}`,
+                oldValue,
+                newValue,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({
                 angsuran,
-
             });
         } catch (error) {
             await trx.rollback();
+            console.log(error)
             res.status(500).json({
                 error: error.message
             });
@@ -332,6 +401,7 @@ export default class AngsuranController {
             const {
                 id
             } = req.params
+            const user = req.user
             const angsuran = await Angsuran.findById(id);
             if (!angsuran) {
                 return res.status(404).json({
@@ -360,6 +430,7 @@ export default class AngsuranController {
                     status: statusPinjaman
                 });
             }
+            const ag = await Angsuran.getGroupNameByIdAngsuran(id)
 
             await Angsuran.softDeleteAngsuran(id);
             const formatDate = (date) => {
@@ -389,13 +460,43 @@ export default class AngsuranController {
                     isAktifAdded = true;
                 }
             }
+
+            await Transaction.decreseTransaksi({
+                transaction_type: "debit",
+                transactionDate: ag.tanggal_pembayaran,
+                amount: ag.jumlah_bayar + ag.jumlah_katrol,
+                description: ag.group_name ?? "Kelompok 0",
+                resource: "angsuran"
+            });
+
+
+            const dataTransaksi = {
+                amount: -(angsuran.jumlah_bayar + angsuran.jumlah_katrol),
+                code: "storting",
+                user_id: user.id,
+                tanggal_input: formatDateLocal(angsuran.tanggal_pembayaran),
+                group_id: ag.group_id
+            }
+            await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
             await trx.commit();
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.ANGSURAN,
+                entityReff: ACTIVITY_ENTITY.ANGSURAN,
+                entityId: id,
+                description: `Menghapus angsuran ID ${id}`,
+                oldValue: angsuran,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({
                 angsuran,
                 loan,
             });
         } catch (error) {
             await trx.rollback();
+            console.log(error)
             res.status(500).json({
                 error: error.message
             });

@@ -186,7 +186,8 @@ const Angsuran: React.FC = () => {
                 const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
                 if (data.status != "Libur Operasional" && data.status != "libur") {
                     const jumlahBayar = unformatCurrency(data.jumlah_bayar ?? "0") + unformatCurrency(data.jumlah_katrol ?? "0");
-                    const nominal = totalPinjamanLama > jumlahBayar ? -(totalPinjamanLama - jumlahBayar) : jumlahBayar - totalPinjamanLama;
+                    const nominal = jumlahBayar - totalPinjamanLama;
+
                     const dataTransaction = {
                         transaction_type: 'debit',
                         category_id: 1,
@@ -200,7 +201,7 @@ const Angsuran: React.FC = () => {
                         status: status,
                         date: angsuran?.tanggal_pembayaran ? toLocalDate(new Date(angsuran?.tanggal_pembayaran)) : toLocalDate(new Date())
                     }
-                    // await axios.post("/api/transactions", dataTransaction);
+                    await axios.post("/api/transactions", dataTransaction);
 
 
                 }

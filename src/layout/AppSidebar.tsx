@@ -11,6 +11,7 @@ import {
     GridIcon,
     GroupIcon,
     HorizontaLDots,
+    TimeIcon,
     LocationIcon
 } from "../icons";
 import { useUser } from "../hooks/useUser";
@@ -43,7 +44,12 @@ const navItems: NavItem[] = [
         path: "/backup",
         access: ["super admin"]
     },
-
+    {
+        icon: <TimeIcon />,
+        name: "Activity Log",
+        path: "/activity",
+        access: ["super admin", "pusat"]
+    },
 ];
 
 const masterDataItems: NavItem[] = [

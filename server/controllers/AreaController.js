@@ -1,5 +1,8 @@
 import { body, validationResult } from 'express-validator';
 import AreaModel from '../models/Area.js';
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class AreaController {
     static async index(req, res) {
@@ -81,6 +84,17 @@ export default class AreaController {
             if (exists) return res.status(400).json({ errors: { area_name: 'Nama area sudah ada' } });
 
             const area = await AreaModel.create({ area_name, city, subdistrict, village, address, status, pos_id });
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.WILAYAH,
+                entityReff: ACTIVITY_ENTITY.AREAS,
+                entityId: area,
+                description: `Menambahkan wilayah ${area_name}`,
+                newValue: { area_name, city, subdistrict, village, address, status, pos_id },
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({ message: 'Area berhasil dibuat', area });
         } catch (error) {
             res.status(500).json({ error: error.message });
@@ -115,7 +129,21 @@ export default class AreaController {
             const duplicate = await AreaModel.existsByNameExceptId(area_name, id);
             if (duplicate) return res.status(400).json({ errors: { area_name: 'Nama area sudah terdaftar' } });
 
+            const { oldValue, newValue } = diffObject(area[0], { area_name, city, subdistrict, village, address, status, pos_id });
+
             await AreaModel.update(id, { area_name, city, subdistrict, village, address, status, pos_id });
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.WILAYAH,
+                entityReff: ACTIVITY_ENTITY.AREAS,
+                entityId: id,
+                description: `Mengupdate wilayah ${area_name}`,
+                oldValue,
+                newValue,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({ message: 'Area updated successfully' });
         } catch (error) {
             res.status(500).json({ error: error.message });
@@ -134,6 +162,17 @@ export default class AreaController {
             }
 
             await AreaModel.softDelete(id);
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.WILAYAH,
+                entityReff: ACTIVITY_ENTITY.AREAS,
+                entityId: id,
+                description: `Menghapus wilayah ${area[0].area_name}`,
+                oldValue: area[0],
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({ message: 'Area berhasil dihapus', area });
         } catch (error) {
             res.status(500).json({ error: error.message });

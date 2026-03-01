@@ -4,6 +4,9 @@ import {
 } from 'express-validator';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class UserController {
     static async index(req, res) {
@@ -125,6 +128,17 @@ export default class UserController {
                 message: 'Pengguna berhasil dibuat',
                 user
             });
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.PENGGUNA,
+                entityReff: ACTIVITY_ENTITY.USER,
+                entityId: user.id || null,
+                description: `Menambahkan pengguna ${username}`,
+                newValue: { username, complete_name, role, position, status, pos_id },
+            }).catch(err => console.error('Failed to log activity:', err));
+
         } catch (error) {
             res.status(500).json({
                 error: 'An error occurred while creating the user.'
@@ -201,11 +215,24 @@ export default class UserController {
                 payload.password = await bcrypt.hash(password, 10); // jangan lupa hash jika diperlukan
             }
 
+            const { oldValue, newValue } = diffObject(user, payload);
             await User.update(id, payload);
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.PENGGUNA,
+                entityReff: ACTIVITY_ENTITY.USER,
+                entityId: id,
+                description: `Mengupdate pengguna ${username}`,
+                oldValue,
+                newValue,
+            }).catch(err => console.error('Failed to log activity:', err));
 
             res.status(200).json({
                 message: 'User updated successfully'
             });
+
         } catch (error) {
             res.status(500).json({
                 error: 'An error occurred while updating the user.'
@@ -231,9 +258,21 @@ export default class UserController {
             }
 
             await User.softDelete(id);
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.PENGGUNA,
+                entityReff: ACTIVITY_ENTITY.USER,
+                entityId: id,
+                description: `Menghapus pengguna ${user.username}`,
+                oldValue: user,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({
                 user
             });
+
         } catch (error) {
             res.status(500).json({
                 error: 'An error occurred while deleting the user.'

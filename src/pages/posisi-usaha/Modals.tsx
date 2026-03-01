@@ -1,7 +1,11 @@
-import React from 'react';
-import { formatCurrency, formatDate } from '../../utils/helpers';
+import React, { useState } from 'react';
+import Button from '../../components/ui/button/Button';
 import { Modal } from '../../components/ui/modal';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../components/ui/table';
+import { formatCurrency, formatDate } from '../../utils/helpers';
+import Action from './Action';
+import ModalFilter from './ModalFilter';
+
 
 interface PaginationProps {
     page: number;
@@ -10,22 +14,65 @@ interface PaginationProps {
     total: number;
 }
 
-export function Modals(
-    setOpen: React.Dispatch<React.SetStateAction<boolean>>,
-    isOpen: boolean,
-    items: any[],
-    title: string,
-    titleHeader: string,
-    pagination?: PaginationProps,
-    onPageChange?: (page: number) => void
-) {
+interface ModalsProps {
+    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    isOpen: boolean;
+    items: any[];
+    title: string;
+    titleHeader: string;
+    pagination: PaginationProps; // Ganti dengan tipe PaginationProps Anda
+    onPageChange?: (filter: any) => void;
+    onFilter: (filter: any) => void;
+    groups: any[];
+    Form?: React.ElementType;
+    titleHeader2?: string;
+    useGroupName?: boolean;
+    hasGroup?: boolean
+    isCurrency?: boolean
+}
+
+export default function Modals({
+    setOpen,
+    isOpen,
+    useGroupName,
+    items,
+    title,
+    titleHeader,
+    titleHeader2,
+    pagination,
+    onPageChange,
+    onFilter,
+    groups,
+    Form,
+    hasGroup,
+    isCurrency,
+    addButtonText = "Tambah",
+    isPercentage = false,
+}: ModalsProps & { addButtonText?: string, isPercentage?: boolean }) {
+    const [startDate, setStartDate] = useState<string | null>(null);
+    const [endDate, setEndDate] = useState<string | null>(null);
+    const [group, setGroup] = useState<string | number | null>(null);
+    const [idEdit, setIdEdit] = useState<number | null>(null);
+    const [isOpenForm, setIsOpenForm] = useState(false);
     return <Modal
         showCloseButton
         // isFullscreen
         className="max-w-[800px] max-h-[90vh] p-6 lg:p-10"
         onClose={() => setOpen(!isOpen)} isOpen={isOpen}>
-        <h1>{title}</h1>
-        <div className=" h-[70vh] overflow-auto mt-5">
+        <h1 className='text-xl'>{title}</h1>
+        <div className="grid md:grid-cols-3 grid-cols-1 gap-4">
+            <ModalFilter onFilter={(filter) => {
+                onFilter({ ...filter, page: pagination.page })
+                setStartDate(filter.startDate)
+                setEndDate(filter.endDate)
+                setGroup(filter.group)
+            }} groups={groups} hasGroup={hasGroup} />
+            {Form && <div className='ms-auto'><Button className='mt-8 ' onClick={() => {
+                setIsOpenForm(true)
+                setIdEdit(null)
+            }}>{addButtonText}</Button></div>}
+        </div>
+        <div className=" h-[60vh] overflow-auto mt-5">
             <Table className='relative'>
                 {/* Table Header */}
                 <TableHeader className="border-b sticky top-0 bg-white dark:bg-gray-900 border-gray-100 dark:border-white/[0.05]">
@@ -42,12 +89,30 @@ export function Modals(
                         >
                             {titleHeader}
                         </TableCell>
+                        {useGroupName ? <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                        >
+                            {titleHeader2}
+                        </TableCell> : <></>}
                         <TableCell
                             isHeader
                             className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                         >
                             Tanggal
                         </TableCell>
+                        {/* {hasGroup && <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                        >
+                            Kelompok
+                        </TableCell>} */}
+                        {Form && <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                        >
+                            Aksi
+                        </TableCell>}
 
 
                     </TableRow>
@@ -68,17 +133,26 @@ export function Modals(
                                 </div>
                             </TableCell>
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
-                                {formatCurrency(item.jumlah) ?? "-"}
+                                {isCurrency ? formatCurrency(item.jumlah) : isPercentage ? `${item.jumlah}%` : item.jumlah ?? "-"}
                             </TableCell>
+                            {useGroupName ? <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                {item.group_name ?? "-"}
+                            </TableCell> : <></>}
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {formatDate(item.tanggal)}
                             </TableCell>
-
+                            {/* {hasGroup && <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                {item.group_name || "-"}
+                            </TableCell>} */}
+                            {Form && <Action setIdEdit={(id: number) => {
+                                setIdEdit(id)
+                                setIsOpenForm(true)
+                            }} id={item.id} code='s' />}
                         </TableRow>
                     ))}
 
                     {items.length === 0 && <TableRow>
-                        <TableCell colSpan={3} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
+                        <TableCell colSpan={(Form ? 4 : 4) + (hasGroup ? 1 : 0)} className="px-4 py-3 text-gray-700 font-medium  text-theme-sm dark:text-gray-400 text-center">
                             Tidak ada data
                         </TableCell></TableRow>}
                 </TableBody>
@@ -92,14 +166,14 @@ export function Modals(
                 <div className="flex gap-2">
                     <button
                         disabled={pagination.page <= 1}
-                        onClick={() => onPageChange(Math.max(1, pagination.page - 1))}
+                        onClick={() => onPageChange({ page: Math.max(1, pagination.page - 1), startDate, endDate, group })}
                         className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50"
                     >
                         Prev
                     </button>
                     <button
                         disabled={pagination.page >= pagination.totalPages}
-                        onClick={() => onPageChange(Math.min(pagination.totalPages, pagination.page + 1))}
+                        onClick={() => onPageChange({ page: Math.min(pagination.totalPages, pagination.page + 1), startDate, endDate, group })}
                         className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50"
                     >
                         Next
@@ -107,5 +181,15 @@ export function Modals(
                 </div>
             </div>
         )}
+
+        {Form && <Modal isOpen={isOpenForm} onClose={() => setIsOpenForm(!isOpenForm)}
+            className="max-w-[800px] max-h-[90vh] p-6 lg:p-10"
+        >
+            <Form id={idEdit} onClose={() => {
+                setIsOpenForm(false)
+                onFilter((prev: any) => prev)
+                setIdEdit(null)
+            }} groups={groups} />
+        </Modal>}
     </Modal>;
 }

@@ -3,8 +3,21 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { AsyncLocalStorage } from "node:async_hooks";
 import { app } from 'electron';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+
+dotenv.config();
+
+/**
+ * @type {import('knex').Knex}
+ */
+let db;
 // --- FUNGSI UTILS UNTUK PATH ---
 // Kita buat fungsi agar path diambil SAAT DIBUTUHKAN, bukan saat file di-load
 const getAppDataPath = () => app.getPath('userData');
@@ -45,8 +58,53 @@ if (!globalThis.__knexInstance) {
         },
         pool: { min: 2, max: 10 },
     });
+    globalThis.__knexInstance.on('query', (queryData) => {
+        // cek apakah query mengandung nama tabel "transactions"
+        if (queryData.sql.toLowerCase().includes('angsuran')) {
+            console.log('--- Transactions Query ---');
+            console.log('SQL:', queryData.sql);
+            console.log('Bindings:', queryData.bindings);
+            console.log('--------------------------');
+        }
+    });
+
+
+    // globalThis.__knexInstance.on('query', (queryData) => {
+    //     if (queryData.sql.includes("posisi_usaha")) {
+    //         console.log('SQL:', queryData.sql);
+    //         console.log('Bindings:', queryData.bindings);
+    //     }
+    // });
 }
-const db = globalThis.__knexInstance;
+const als = new AsyncLocalStorage();
+
+const knexInstance = globalThis.__knexInstance;
+
+db = new Proxy(knexInstance, {
+    get(target, prop) {
+        const trx = als.getStore();
+        const actual = trx ?? target;
+        const value = actual[prop];
+        // console.log('USE TRX?', !!trx);
+
+        // bind function ke instance yang benar
+        if (typeof value === "function") {
+            return value.bind(actual);
+        }
+        return value;
+    },
+});
+
+export async function transaction(callback) {
+    return knexInstance.transaction(async (trx) => {
+
+        return als.run(trx, async () => {
+            return callback(db);
+
+        });
+    });
+}
+
 
 // --- 3. BACKUP FUNCTIONS ---
 
@@ -101,4 +159,6 @@ export function exportDB() {
     });
 }
 
+
+// db = globalThis.__knexInstance;
 export default db;

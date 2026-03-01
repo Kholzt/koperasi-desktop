@@ -1,5 +1,8 @@
 import { body, validationResult } from 'express-validator';
 import ScheduleModel from '../models/Schedule.js';
+import { logActivity } from './services/logActivity.js';
+import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
+import { diffObject } from '../helpers/diffObject.js';
 
 export default class ScheduleController {
     static async index(req, res) {
@@ -90,6 +93,17 @@ export default class ScheduleController {
                 message: 'Schedule berhasil dibuat',
                 area: newSchedule,
             });
+
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.CREATE,
+                menu: ACTIVITY_MENU.JADWAL_KUNJUNGAN,
+                entityReff: ACTIVITY_ENTITY.SCHEDULE,
+                entityId: newId,
+                description: `Menambahkan jadwal kunjungan untuk wilayah ID ${area_id} pada hari ${day}`,
+                newValue: { area_id, group_id, day, status, pos_id },
+            }).catch(err => console.error('Failed to log activity:', err));
+
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -127,9 +141,22 @@ export default class ScheduleController {
                 });
             }
 
+            const { oldValue, newValue } = diffObject(existing, { area_id, group_id, day, status, pos_id });
             await ScheduleModel.update(id, { area_id, group_id, day, status, pos_id });
 
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.UPDATE,
+                menu: ACTIVITY_MENU.JADWAL_KUNJUNGAN,
+                entityReff: ACTIVITY_ENTITY.SCHEDULE,
+                entityId: id,
+                description: `Mengupdate jadwal kunjungan ID ${id}`,
+                oldValue,
+                newValue,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({ message: 'Schedule updated successfully' });
+
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -145,10 +172,21 @@ export default class ScheduleController {
 
             await ScheduleModel.softDelete(id);
 
+            logActivity({
+                user: req.user,
+                action: ACTIVITY_ACTION.DELETE,
+                menu: ACTIVITY_MENU.JADWAL_KUNJUNGAN,
+                entityReff: ACTIVITY_ENTITY.SCHEDULE,
+                entityId: id,
+                description: `Menghapus jadwal kunjungan ID ${id}`,
+                oldValue: existing,
+            }).catch(err => console.error('Failed to log activity:', err));
+
             res.status(200).json({
                 message: 'Schedule deleted successfully',
                 schedule: existing,
             });
+
         } catch (error) {
             res.status(500).json({ error: error.message });
         }

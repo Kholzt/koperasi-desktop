@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import axios from '../../../utils/axios';
+import { GroupProps } from '../../../utils/types';
 
 export interface PaginationProps {
     page: number;
@@ -8,7 +9,7 @@ export interface PaginationProps {
     total: number;
 }
 
-function usePaginatedResource(endpoint: string, itemsKey: string) {
+export function usePaginatedResource(endpoint: string, itemsKey: string,code:string) {
     const [items, setItems] = useState<any[]>([]);
     const [sum, setSum] = useState<number>(0);
     const [pagination, setPagination] = useState<PaginationProps>({
@@ -18,11 +19,13 @@ function usePaginatedResource(endpoint: string, itemsKey: string) {
         total: 0,
     });
 
-    const fetchPage = useCallback(async (page = 1, limit = pagination.limit, startDate = '', endDate = '') => {
+    const fetchPage = useCallback(async (page = 1, limit = pagination.limit, startDate = '', endDate = '',group='') => {
         try {
-            let url = `${endpoint}?page=${page}&limit=${limit}`;
+            let url = `${endpoint}?page=${page}&limit=${limit}&code=${code}`;
+            if (group) url += `&group_id=${group}`;
             if (startDate) url += `&startDate=${startDate}`;
             if (endDate) url += `&endDate=${endDate}`;
+
             const res: any = await axios.get(url);
             const data = res.data || {};
             const body = data.data || data;
@@ -45,7 +48,6 @@ function usePaginatedResource(endpoint: string, itemsKey: string) {
                 const last = body.last_page || Math.max(1, Math.ceil((total || 0) / per_page));
                 setPagination({ page: current, totalPages: last, limit: per_page, total: total });
             }
-
             setItems(list);
             setSum(jumlah);
         } catch (err) {
@@ -65,18 +67,23 @@ function usePaginatedResource(endpoint: string, itemsKey: string) {
     } as const;
 }
 
-export function useAngsuran() {
-    return usePaginatedResource('/api/posisi-usaha-angsuran', 'angsuran');
+export function usePosisiUsaha(code:string) {
+    return usePaginatedResource('/api/posisi-usaha', 'history',code);
 }
-
-export function useModalDo() {
-    return usePaginatedResource('/api/posisi-usaha-modaldo', 'modaldo');
-}
-export  function usePosisiUsaha(code :string) {
+export  function usePosisiUsahaToday(code :string) {
     const [amount, setAmount] = useState<number>(0);
     useEffect(() => {
-        axios(`/api/posisi-usaha?code=${code}`).then((d)=>setAmount(d.data?.posisiUsaha?.amount ?? 0))
+        axios(`/api/posisi-usaha-today?code=${code}`).then((d)=>setAmount(d.data?.posisiUsaha?.amount ?? 0))
     }, []);
 
     return  amount;
+}
+export  function usePosisiUsahaGroup() {
+    const [groups, setGroups] = useState<{ label: string, value: string }[]>([]);
+    useEffect(() => {
+        axios.get("/api/groups?limit=20000000").then(res => {
+            setGroups(res.data.groups.map((group: GroupProps) => ({ label: group.group_name, value: group.id })))
+    });    }, []);
+
+    return  {groups};
 }

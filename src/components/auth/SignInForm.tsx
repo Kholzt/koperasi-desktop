@@ -51,6 +51,7 @@ export default function SignInForm() {
 
             if (res.status === 200) {
                 saveUser(res.data.user);
+                localStorage.setItem("token", res.data.token);
                 navigate("/dashboard");
             } else {
                 setHasError(true)
