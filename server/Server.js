@@ -2,11 +2,11 @@ import cors from "cors";
 import dotenv from 'dotenv';
 import express from 'express';
 import {
-  exportDB,
-  listBackup
+    exportDB,
+    listBackup
 } from "./config/db";
 import {
-  saveHolidayJson
+    saveHolidayJson
 } from "./config/holidays";
 import AngsuranController from './controllers/AngsuranController';
 import AreaController from './controllers/AreaController';
@@ -27,16 +27,16 @@ import LogActivityController from "./controllers/LogActivityController";
 
 import uploadProfile from './middleware/upload';
 import {
-  uploadProfileController
+    uploadProfileController
 } from './controllers/UploadController';
 
 import multer from "multer";
 import path from "path";
 import {
-  fileURLToPath
+    fileURLToPath
 } from 'url';
 import {
-  dirname
+    dirname
 } from 'path';
 import fs from 'fs';
 
@@ -44,14 +44,14 @@ dotenv.config();
 // const express = require('express');
 const app = express();
 const port =
-  import.meta.env.VITE_APP_PORT || 5000;
+    import.meta.env.VITE_APP_PORT || 5000;
 const __filename = fileURLToPath(
-  import.meta.url);
+    import.meta.url);
 const __dirname = dirname(__filename);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({
-  extended: true
+    extended: true
 }));
 
 // Keep login public
@@ -158,27 +158,27 @@ apiRouter.delete('/transactions/:id', TransactionController.delete);
 apiRouter.get('/getGroupsTransaction', TransactionController.getGroupTransaction);
 
 apiRouter.get('/configLoan', (req, res) => {
-  const totalBulan = process.env.VITE_APP_BULAN || 10;
-  const modalDo = process.env.VITE_APP_MODAL_DO || 13;
-  return res.json({
-    config: {
-      totalBulan,
-      modalDo
-    }
-  })
+    const totalBulan = process.env.VITE_APP_BULAN || 10;
+    const modalDo = process.env.VITE_APP_MODAL_DO || 13;
+    return res.json({
+        config: {
+            totalBulan,
+            modalDo
+        }
+    })
 });
 
 apiRouter.post('/export-db', async (req, res) => {
-  exportDB();
-  await saveHolidayJson();
-  return res.json({
-    message: "Berhasil export db"
-  })
+    exportDB();
+    await saveHolidayJson();
+    return res.json({
+        message: "Berhasil export db"
+    })
 });
 apiRouter.get('/list-backup', async (req, res) => {
-  return res.json({
-    backups: listBackup()
-  })
+    return res.json({
+        backups: listBackup()
+    })
 });
 
 apiRouter.post("/posisi-usaha/save", PosisiUsahaController.savePosisiUsaha)
@@ -208,15 +208,15 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 //   uploadProfileController // controller
 // );
 app.post(
-  '/upload',
-  authenticate,
-  uploadProfile.single('photo'),
-  (req, res, next) => {
-    console.log('🔥 HIT /upload');
-    console.log('file:', req.file);
-    next();
-  },
-  uploadProfileController
+    '/upload',
+    authenticate,
+    uploadProfile.single('photo'),
+    (req, res, next) => {
+        console.log('🔥 HIT /upload');
+        console.log('file:', req.file);
+        next();
+    },
+    uploadProfileController
 );
 // const uploadDir = path.join(__dirname, 'uploads', 'profiles');
 // if (!fs.existsSync(uploadDir)) {
@@ -254,5 +254,5 @@ app.post(
 app.use('/api', apiRouter);
 app.listen(port, async () => {
 
-  console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server running at http://localhost:${port}`);
 });

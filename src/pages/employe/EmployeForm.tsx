@@ -53,13 +53,25 @@ const schema: yup.SchemaOf<EmployeFormInput> = yup.object({
     status_ijazah: yup.mixed<'belum diambil' | 'sudah diambil'>()
         .oneOf(['belum diambil', 'sudah diambil'], 'Status ijazah tidak valid')
         .required('Status ijazah wajib dipilih'),
-    foto_profile: yup.mixed().test('fileSize', 'Ukuran file terlalu besar', (value) => {
-        if (!value || value.length === 0) return true; // Jika tidak ada file, lewati validasi ini
-        return value[0].size <= 2 * 1024 * 1024; // Maksimal 5MB
-    }).test('fileType', 'Tipe file tidak didukung', (value) => {
-        if (!value || value.length === 0) return true; // Jika tidak ada file, lewati validasi ini
-        return ['image/jpeg', 'image/png', 'image/jpg'].includes(value[0].type); // Hanya izinkan JPEG dan PNG
-    }),
+    foto_profile: yup.mixed()
+        .nullable() // Mengizinkan nilai null jika user tidak menyentuh input
+        .notRequired() // Menegaskan bahwa ini tidak wajib
+        .test('fileSize', 'Ukuran file terlalu besar', (value) => {
+            // Jika tidak ada file (null, undefined, atau array kosong), anggap VALID (true)
+            if (!value || (value instanceof FileList && value.length === 0) || value.length === 0) {
+                return true;
+            }
+            // Jika ada file, baru cek ukurannya
+            const file = value instanceof FileList ? value[0] : value;
+            return file.size <= 2 * 1024 * 1024;
+        })
+        .test('fileType', 'Tipe file tidak didukung', (value) => {
+            if (!value || (value instanceof FileList && value.length === 0) || value.length === 0) {
+                return true;
+            }
+            const file = value instanceof FileList ? value[0] : value;
+            return ['image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
+        }),
 });
 
 const EmployeForm: React.FC = () => {
@@ -379,34 +391,61 @@ const EmployeForm: React.FC = () => {
 
                             </div>
                             <div>
-                                <Label>
+                                <Label className="block mb-2 text-slate-900 dark:text-slate-100">
                                     Foto Profil
                                 </Label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        const selected = e.target.files?.[0];
-                                        if (!selected) return;
-                                        if (selected.size > (2 * 1024 * 1024)) {
-                                            toast.error('Ukuran file maksimal 2MB');
-                                            setErrorFile('Ukuran file maksimal 2MB');
-                                            e.target.value = ''; // reset input
-                                            return;
-                                        }else {   
-                                            setErrorFile('');
-                                        }
-                                        setFile(selected);
-                                        setPreview(URL.createObjectURL(selected));
-                                    }}
-                                />
-                                {errorFile && <p className="mt-1 text-sm text-red-500">{errorFile}</p>}
 
-                                {/* <button onClick={handleUpload} disabled={loadingUpload}>{loadingUpload ? 'Uploading...' : 'Upload'}</button> */}
+                                <div className="flex flex-col items-start gap-4">
+                                    {/* Input File Asli Disembunyikan */}
+                                    <input
+                                        id="file-upload"
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
+                                        {...register("foto_profile", {
+                                            onChange: (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
 
-                                {preview && (
-                                    <img src={preview} width={120} alt="preview" />
-                                )}
+                                                // Validasi Ukuran (2MB) - Berbasis Data & Keamanan
+                                                if (file.size > 2 * 1024 * 1024) {
+                                                    toast.error("File terlalu besar!");
+                                                    setValue("foto_profile", null); // Reset value di useForm
+                                                    return;
+                                                }
+
+                                                // Set preview ke dalam state useForm agar bisa di-watch
+                                                setFile(file);
+                                                setPreview(URL.createObjectURL(file));
+                                            }
+                                        })}
+                                    />
+
+                                    {/* Tombol Kustom yang Mendukung Dark Mode */}
+                                    <label
+                                        htmlFor="file-upload"
+                                        className="cursor-pointer inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors
+                 bg-white border border-slate-200 text-slate-900 hover:bg-slate-100
+                 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-700"
+                                    >
+                                        Pilih Foto
+                                    </label>
+
+                                    {/* Pesan Error */}
+                                    {errorFile && (
+                                        <p className="mt-1 text-sm text-red-500 font-medium">{errorFile}</p>
+                                    )}
+                                    {errors.foto_profile && (
+                                        <p className="mt-1 text-sm text-red-500">{errors.foto_profile.message}</p>
+                                    )}
+
+                                    {/* Preview Image */}
+                                    {preview && (
+                                        <div className="relative mt-2 border-2 border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                                            <img src={preview} width={120} alt="preview" className="object-cover" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <div>
