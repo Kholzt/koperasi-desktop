@@ -160,7 +160,7 @@ export default class TransactionController {
                     reason: reason ?? TransactionController._getDefaultReason(resource, 'edit')
                 });
 
-                 const { oldValue, newValue } = diffObject(transaction, { pos_id, category_id, description, transaction_type, nominal, date, user, reason, resource });
+                const { oldValue, newValue } = diffObject(existingTransaction, { pos_id, category_id, description, transaction_type, nominal, date, user, reason, resource });
 
                 logActivity({
                     user: req.user,

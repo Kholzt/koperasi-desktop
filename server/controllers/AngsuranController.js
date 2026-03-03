@@ -223,7 +223,7 @@ export default class AngsuranController {
                 code: "storting",
                 user_id: user.id,
                 tanggal_input: tanggal_bayar ? formatDateLocal(tanggal_bayar) : formatDateLocal(angsuran.tanggal_pembayaran),
-                group_id: ag.group_id
+                group_id: ag?.group_id || null
             }
             if (notHoliday) {
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
