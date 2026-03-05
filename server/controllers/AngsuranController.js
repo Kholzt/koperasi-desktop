@@ -104,7 +104,7 @@ export default class AngsuranController {
             if ((status != "menunggak" && (status != 'Libur Operasional' || status != 'Libur Operasional'))) {
                 sisaPembayaran = parseInt(pinjaman.sisa_pembayaran) - parseInt((pinjaman.sisa_pembayaran >= jumlah_bayar ? jumlah_bayar : pinjaman.sisa_pembayaran));
                 sisaPembayaran = sisaPembayaran - parseInt(sisaPembayaran >= jumlah_katrol ? jumlah_katrol : sisaPembayaran)
-                totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(jumlahBayarTotal) : parseInt(pinjaman.besar_tunggakan);
+                // totalTunggakan = parseInt(pinjaman.besar_tunggakan) > 0 ? parseInt(pinjaman.besar_tunggakan) - parseInt(jumlahBayarTotal) : parseInt(pinjaman.besar_tunggakan);
 
                 if (statusPinjaman == "lunas") totalTunggakan = 0;
                 //jika tidak ada tanggal bayar update data
@@ -419,7 +419,7 @@ export default class AngsuranController {
             let statusPinjaman = "aktif";
             if (angsuran.status === 'menunggak') {
                 tunggakan = loan.besar_tunggakan - loan.jumlah_angsuran;
-                // if (tunggakan < 0) tunggakan = 0;
+                if (tunggakan < 0) tunggakan = 0;
                 await Angsuran.updatePinjaman(angsuran.id_pinjaman, {
                     besar_tunggakan: tunggakan,
                     status: statusPinjaman

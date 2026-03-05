@@ -60,12 +60,16 @@ if (!globalThis.__knexInstance) {
     });
     globalThis.__knexInstance.on('query', (queryData) => {
         // cek apakah query mengandung nama tabel "transactions"
-        if (queryData.sql.toLowerCase().includes('angsuran')) {
-            console.log('--- Transactions Query ---');
-            console.log('SQL:', queryData.sql);
-            console.log('Bindings:', queryData.bindings);
-            console.log('--------------------------');
-        }
+        console.log('--- Transactions Query ---');
+        console.log('SQL:', queryData.sql);
+        console.log('Bindings:', queryData.bindings);
+        console.log('--------------------------');
+        // if (queryData.sql.toLowerCase().includes('angsuran')) {
+        //     console.log('--- Transactions Query ---');
+        //     console.log('SQL:', queryData.sql);
+        //     console.log('Bindings:', queryData.bindings);
+        //     console.log('--------------------------');
+        // }
     });
 
 

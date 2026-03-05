@@ -91,6 +91,7 @@ export default class Angsuran {
         const [{ total }] = await db("angsuran")
             .where("id_pinjaman", idPinjaman)
             .where("status", "menunggak")
+            .whereNull("angsuran.deleted_at")
             .count({ total: "*" });
 
         const jumlahMenunggak = parseInt(total, 10); // atau: Number(total)

@@ -257,7 +257,7 @@ const LoanForm: React.FC = () => {
                     date: toLocalDate(new Date(data.tanggal_pinjam))
                 }
 
-                await axios.post("/api/transactions", dataTransaction);
+                // await axios.post("/api/transactions", dataTransaction);
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
                 navigate("/loan?isFromTransaction=true");
             }
