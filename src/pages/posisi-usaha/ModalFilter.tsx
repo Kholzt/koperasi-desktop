@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import DatePicker from "../../components/form/date-picker";
 import { toLocalDate } from '../../utils/helpers';
 import Select from '../../components/form/Select';
+import Label from '../../components/form/Label';
 
 interface ModalFilterProps {
     onFilter: (filter: any) => void,
@@ -17,7 +18,7 @@ export default function ModalFilter({ onFilter, groups, hasGroup }: ModalFilterP
     return (
         <>
             <div className="">
-                <label className="mb-2 inline-block">Filter Rentang Tanggal</label>
+                <Label className="mb-2 inline-block">Filter Rentang Tanggal</Label>
                 <DatePicker
                     hasClear
                     id={"startDate"}
@@ -38,7 +39,7 @@ export default function ModalFilter({ onFilter, groups, hasGroup }: ModalFilterP
                 />
             </div>
             {hasGroup && <div>
-                <label className="mb-2 inline-block">Kelompok</label>
+                <Label className="mb-2 inline-block">Kelompok</Label>
                 <Select
                     options={[{ label: "Pilih semua", value: '' }, ...groups]}
                     placeholder="Pilih kelompok"
