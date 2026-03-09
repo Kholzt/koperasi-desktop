@@ -124,7 +124,7 @@ export default function NaikTurunForm({ id, onClose, groups }: NaikTurunFormProp
                     ) : (
                         <select
                             {...register("group_id")}
-                            className="w-full rounded-lg border border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-brand-500 active:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-brand-500"
+                            className="w-full rounded-lg border border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-brand-500 active:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-500"
                         >
                             <option value="">Pilih Kelompok</option>
                             {groups.map((group) => (

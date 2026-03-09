@@ -107,7 +107,7 @@ export default function TargetForm({ id, onClose, groups }: PropsForm) {
         }
     }
     return (
-        <form onSubmit={handleSubmit(onSubmitForm)} className="bg-white p-6 rounded-lg shadow-sm">
+        <form onSubmit={handleSubmit(onSubmitForm)} className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-800">
             <div className="flex justify-between items-center mb-6 border-b pb-3">
                 <h1 className='text-2xl font-semibold text-gray-800'>Target</h1>
                 <span className="text-sm text-gray-500">* Wajib diisi</span>
@@ -167,7 +167,7 @@ export default function TargetForm({ id, onClose, groups }: PropsForm) {
                 </div>
 
                 {/* Kolom 5: Target Minggu Lalu (Full Width atau 1 Kolom) */}
-                <div className="flex flex-col md:col-span-2 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div className="flex flex-col md:col-span-2 bg-gray-50 p-4 rounded-md border border-gray-200 dark:bg-gray-800">
                     <Label className="text-gray-600">Target Minggu Lalu (Terisi Otomatis)</Label>
                     <Input
                         className="font-bold text-lg bg-transparent border-none"
