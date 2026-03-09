@@ -136,22 +136,22 @@ const Metrics: React.FC = () => {
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("su")} Icon={DollarLineIcon} title='SU' count={modalSUSum} />
             </div >
 
-    {/* MODAL */ }
-    < Modals
-isCurrency
-title = "History Angsuran"
-titleHeader = "Jumlah Angsuran"
-isOpen = { modalActive === "storting"}
-setOpen = {(status) => setModalActive(status ? "storting" : null)}
-items = { angsuranHistory }
-pagination = { paginationAngsuran }
-titleHeader2 = "Kelompok"
-useGroupName = { true}
-onPageChange = {(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-onFilter = {(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-groups = { groups }
-hasGroup
-    />
+            {/* MODAL */}
+            < Modals
+                isCurrency
+                title="History Angsuran"
+                titleHeader="Jumlah Angsuran"
+                isOpen={modalActive === "storting"}
+                setOpen={(status) => setModalActive(status ? "storting" : null)}
+                items={angsuranHistory}
+                pagination={paginationAngsuran}
+                titleHeader2="Kelompok"
+                useGroupName={true}
+                onPageChange={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                groups={groups}
+                hasGroup
+            />
 
             <Modals
                 isCurrency
@@ -221,6 +221,8 @@ hasGroup
                 isOpen={modalActive === "ip"}
                 setOpen={(status) => setModalActive(status ? "ip" : null)}
                 items={modalIp}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 pagination={paginationIp}
                 onPageChange={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -235,6 +237,8 @@ hasGroup
                 isOpen={modalActive === "naikturun"}
                 setOpen={(status) => setModalActive(status ? "naikturun" : null)}
                 items={modalNaikTurun}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 pagination={paginationNaikTurun}
                 onPageChange={(filter) => fetchNaikTurun(filter.page, paginationNaikTurun.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchNaikTurun(filter.page, paginationNaikTurun.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -251,6 +255,8 @@ hasGroup
                 isOpen={modalActive === "pd"}
                 setOpen={(status) => setModalActive(status ? "pd" : null)}
                 items={modalPD}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 pagination={paginationPD}
                 onPageChange={(filter) => fetchPD(filter.page, paginationPD.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchPD(filter.page, paginationPD.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -265,6 +271,8 @@ hasGroup
                 isOpen={modalActive === "su"}
                 setOpen={(status) => setModalActive(status ? "su" : null)}
                 items={modalSU}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 pagination={paginationSU}
                 onPageChange={(filter) => fetchSU(filter.page, paginationSU.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchSU(filter.page, paginationSU.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
