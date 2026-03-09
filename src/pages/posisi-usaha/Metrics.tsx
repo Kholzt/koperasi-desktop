@@ -222,6 +222,8 @@ hasGroup
                 setOpen={(status) => setModalActive(status ? "ip" : null)}
                 items={modalIp}
                 pagination={paginationIp}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 onPageChange={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 groups={groups}
