@@ -229,6 +229,8 @@ const Metrics: React.FC = () => {
                 titleHeader2="Kelompok"
                 useGroupName={true}
                 pagination={paginationIp}
+                titleHeader2="Kelompok"
+                useGroupName={true}
                 onPageChange={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 groups={groups}

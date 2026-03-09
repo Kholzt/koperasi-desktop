@@ -53,7 +53,7 @@ function useSirkulasi(
 
   const onsubmit = async (data: Props) => {
     const result =
-      Number(data.drop) * 0.13 -
+      (Number(data.drop) * 1.3) -
       Number(data.storting) +
       Number(data.target_minggu_lalu);
     data.total = result;
