@@ -36,7 +36,7 @@ function usePD(date?: string | null, group?: number | null, id?: number) {
         const rencana_drop = unformatCurrency(data.rencana_drop.toString());
         const transport = unformatCurrency(data.transport.toString());
         const target = unformatCurrency(data.target.toString());
-        data.total =  ((rencana_drop + transport) - target) ;
+        data.total =rencana_drop < target ? transport:  ((rencana_drop + transport) - target) ;
         data.raw_formula = JSON.stringify({
             rencana_drop:rencana_drop,
             transport:transport,
