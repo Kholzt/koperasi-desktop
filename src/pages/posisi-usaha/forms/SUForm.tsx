@@ -125,7 +125,7 @@ export default function SUForm({ id, onClose, groups }: SUFormProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-800">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-900">
             {/* Header */}
             <div className="flex justify-between items-center mb-6 border-b pb-3 dark:border-gray-700">
                 <h1 className='text-2xl font-semibold text-gray-800 dark:text-white'>SU</h1>

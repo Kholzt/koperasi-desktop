@@ -96,9 +96,9 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
         }
     }
     return (
-        <form onSubmit={handleSubmit(onSubmitForm)} className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex justify-between items-center mb-6 border-b pb-3">
-                <h1 className='text-2xl font-semibold text-gray-800'>Sirkulasi</h1>
+        <form onSubmit={handleSubmit(onSubmitForm)} className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-900">
+            <div className="flex justify-between items-center mb-6 border-b pb-3 dark:border-gray-700">
+                <h1 className='text-2xl font-semibold text-gray-800 dark:text-white'>Sirkulasi</h1>
                 <span className="text-sm text-gray-500">* Wajib diisi</span>
             </div>
 
@@ -144,7 +144,7 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mt-4">
                 {/* Kolom 5: Sirkulasi Minggu Lalu (Full Width atau 1 Kolom) */}
-                <div className="flex flex-col bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div className="flex flex-col bg-gray-50 p-4 rounded-md border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
                     <Label className="text-gray-600">Storting (Terisi Otomatis)</Label>
                     <Input
                         className="font-bold text-lg bg-transparent border-none"
@@ -155,7 +155,7 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
                 </div>
 
                 {/* Kolom 6: Sirkulasi Minggu Lalu (Full Width atau 1 Kolom) */}
-                <div className="flex flex-col bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div className="flex flex-col bg-gray-50 p-4 rounded-md border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
                     <Label className="text-gray-600">Sirkulasi Minggu Lalu (Terisi Otomatis)</Label>
                     <Input
                         className="font-bold text-lg bg-transparent border-none"

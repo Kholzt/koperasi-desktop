@@ -15,6 +15,9 @@ import IPForm from './forms/IPForm';
 import PDForm from './forms/PDForm ';
 import SUForm from './forms/SUForm';
 import NaikTurunForm from './forms/NaikTurunForm';
+import PageMeta from '../../components/common/PageMeta';
+import PageBreadcrumb from '../../components/common/PageBreadCrumb';
+import Label from '../../components/form/Label';
 
 
 const Metrics: React.FC = () => {
@@ -96,8 +99,10 @@ const Metrics: React.FC = () => {
 
     return (
         <>
+            <PageMeta title={`Posisi Usaha | ${import.meta.env.VITE_APP_NAME}`} description="" />
+            <PageBreadcrumb pageTitle="Posisi Usaha" />
             <div className="md:w-[50%] w-full">
-                <label htmlFor="" className="mb-2 inline-block">Filter Rentang Tanggal</label>
+                <Label htmlFor="" className="mb-2 inline-block">Filter Rentang Tanggal</Label>
                 <DatePicker
                     hasClear
                     id={"globalFilter"}

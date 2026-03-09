@@ -59,7 +59,7 @@ export default function Modals({
         // isFullscreen
         className="max-w-[800px] max-h-[90vh] p-6 lg:p-10"
         onClose={() => setOpen(!isOpen)} isOpen={isOpen}>
-        <h1 className='text-xl'>{title}</h1>
+        <h1 className='text-xl  text-gray-800 dark:text-white/90'>{title}</h1>
         <div className="grid md:grid-cols-3 grid-cols-1 gap-4">
             <ModalFilter onFilter={(filter) => {
                 onFilter({ ...filter, page: pagination.page })
@@ -167,14 +167,14 @@ export default function Modals({
                     <button
                         disabled={pagination.page <= 1}
                         onClick={() => onPageChange({ page: Math.max(1, pagination.page - 1), startDate, endDate, group })}
-                        className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50"
+                        className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50  text-gray-800 dark:text-white/90"
                     >
                         Prev
                     </button>
                     <button
                         disabled={pagination.page >= pagination.totalPages}
                         onClick={() => onPageChange({ page: Math.min(pagination.totalPages, pagination.page + 1), startDate, endDate, group })}
-                        className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50"
+                        className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 disabled:opacity-50  text-gray-800 dark:text-white/90"
                     >
                         Next
                     </button>

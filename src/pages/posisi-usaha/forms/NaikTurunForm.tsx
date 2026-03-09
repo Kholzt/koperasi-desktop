@@ -73,7 +73,7 @@ export default function NaikTurunForm({ id, onClose, groups }: NaikTurunFormProp
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmitForm)} className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-800">
+        <form onSubmit={handleSubmit(onSubmitForm)} className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-900">
             {/* Header */}
             <div className="flex justify-between items-center mb-6 border-b pb-3 dark:border-gray-700">
                 <h1 className='text-2xl font-semibold text-gray-800 dark:text-white'>
@@ -124,7 +124,7 @@ export default function NaikTurunForm({ id, onClose, groups }: NaikTurunFormProp
                     ) : (
                         <select
                             {...register("group_id")}
-                            className="w-full rounded-lg border border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-brand-500 active:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:focus:border-brand-500"
+                            className="w-full rounded-lg border border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-brand-500 active:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:focus:border-brand-500 dark:text-white/90 "
                         >
                             <option value="">Pilih Kelompok</option>
                             {groups.map((group) => (

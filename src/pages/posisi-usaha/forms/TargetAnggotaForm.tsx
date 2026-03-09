@@ -90,9 +90,9 @@ export default function TargetAnggotaForm({ id, onClose, groups }: PropsForm) {
         }
     }
     return (
-        <form onSubmit={handleSubmit(onSubmitForm)} className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex justify-between items-center mb-6 border-b pb-3">
-                <h1 className='text-2xl font-semibold text-gray-800'>Target Anggota</h1>
+        <form onSubmit={handleSubmit(onSubmitForm)} className="bg-white p-6 rounded-lg shadow-sm dark:bg-gray-900">
+            <div className="flex justify-between items-center mb-6 border-b pb-3 dark:border-gray-700">
+                <h1 className='text-2xl font-semibold text-gray-800 dark:text-white'>Target Anggota</h1>
                 <span className="text-sm text-gray-500">* Wajib diisi</span>
             </div>
 
@@ -150,7 +150,7 @@ export default function TargetAnggotaForm({ id, onClose, groups }: PropsForm) {
                 </div>
 
                 {/* Kolom 5: Target Minggu Lalu (Full Width atau 1 Kolom) */}
-                <div className="flex flex-col md:col-span-2 bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div className="flex flex-col md:col-span-2 bg-gray-50 p-4 rounded-md border dark:border-gray-700 border-gray-200 dark:bg-gray-900">
                     <Label className="text-gray-600">Target Minggu Lalu (Terisi Otomatis)</Label>
                     <Input
                         className="font-bold text-lg bg-transparent border-none"
