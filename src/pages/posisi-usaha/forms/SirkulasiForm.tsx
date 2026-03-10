@@ -9,15 +9,15 @@ import DatePicker from '../../../components/form/date-picker';
 import Input from '../../../components/form/input/InputField';
 import Button from '../../../components/ui/button/Button';
 import { posisiUsahaCode } from '../../../utils/constanta';
-import { toLocalDate } from '../../../utils/helpers';
+import { formatCurrency, toLocalDate, unformatCurrency } from '../../../utils/helpers';
 import useSirkulasi from '../hooks/useSirkulasi';
 
 
 interface Props {
     drop: number;
-    storting: number;
+    storting: string;
     group_id: number;
-    target_minggu_lalu: number;
+    target_minggu_lalu: string;
     tanggal_input: string;
     code: string;
     raw_formula: string;
@@ -54,9 +54,9 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
     const { sirkulasiMingguLalu, stortingThisWeekTotal, onsubmit, data } = useSirkulasi(watchTanggal, watchGroup, id);
 
     React.useEffect(() => {
-        setValue("target_minggu_lalu", sirkulasiMingguLalu ?? 0, { shouldDirty: true });
-        setValue("storting", stortingThisWeekTotal ?? 0, { shouldDirty: true });
-        console.log(sirkulasiMingguLalu, stortingThisWeekTotal);
+        setValue("target_minggu_lalu", formatCurrency(sirkulasiMingguLalu ?? 0), { shouldDirty: true });
+        setValue("storting", formatCurrency(stortingThisWeekTotal ?? 0), { shouldDirty: true });
+        console.log(formatCurrency(sirkulasiMingguLalu), formatCurrency(stortingThisWeekTotal));
 
         if (data) {
             const rawFormula = data.raw_formula;
@@ -77,9 +77,10 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
 
     React.useEffect(() => {
         if (!watchTanggal || !watchGroup) return;
-
-        setValue("target_minggu_lalu", sirkulasiMingguLalu ?? 0);
-        setValue("storting", stortingThisWeekTotal ?? 0);
+        const unformattedSirkulasi= unformatCurrency(String(sirkulasiMingguLalu?? 0)) ;
+        const unformattedStorting = unformatCurrency(String(stortingThisWeekTotal ?? 0));
+        setValue("target_minggu_lalu", formatCurrency(unformattedSirkulasi ?? 0));
+        setValue("storting", formatCurrency(unformattedStorting ?? 0));
     }, [watchTanggal, watchGroup, sirkulasiMingguLalu, stortingThisWeekTotal]);
 
 
@@ -87,6 +88,8 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
         setValue("tanggal_input", toLocalDate(date[0]));
     };
     const onSubmitForm = async (data: Props) => {
+        data.storting = data.storting.replace(/[^0-9]/g, '');
+        data.target_minggu_lalu = data.target_minggu_lalu.replace(/[^0-9]/g, '');
         const status = await onsubmit(data)
         if (status == 200) {
             toast.success("Sirkulasi  berhasil disimpan")

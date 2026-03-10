@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import DatePicker from "../../components/form/date-picker";
 import {
+    ArrowDownIcon,
+    ArrowUpIcon,
     DollarLineIcon
 } from "../../icons";
 import { posisiUsahaCode } from '../../utils/constanta';
@@ -135,6 +137,10 @@ const Metrics: React.FC = () => {
                     Icon={DollarLineIcon}
                     title='Naik/Turun'
                     count={modalNaikTurunSum}
+                    isDoubleTitle={true}
+                    secondTitle={1000000}
+                    FirstIcon={ArrowUpIcon}
+                    SecondIcon={ArrowDownIcon}
                     valueClassName={modalNaikTurunSum >= 0 ? "text-gray-800 dark:text-white/90" : "text-red-500"}
                 />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("pd")} Icon={DollarLineIcon} title='PD' count={modalPDSum} />

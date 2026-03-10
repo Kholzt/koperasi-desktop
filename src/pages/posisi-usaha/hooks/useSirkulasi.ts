@@ -33,7 +33,7 @@ function useSirkulasi(
         });
       axios
         .get(
-          `api/posisi-usaha/data-this-week?tanggal_input=${date}&code=${posisiUsahaCode.STORTING}`,
+          `api/posisi-usaha/data-this-week?tanggal_input=${date}&group_id=${group}&code=${posisiUsahaCode.STORTING}`,
         )
         .then((d) => {
           setStortingThisWeek(d.data.amount || 0);
