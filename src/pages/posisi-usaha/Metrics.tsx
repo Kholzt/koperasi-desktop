@@ -158,7 +158,6 @@ const Metrics: React.FC = () => {
                 setOpen={(status) => setModalActive(status ? "storting" : null)}
                 items={angsuranHistory}
                 pagination={paginationAngsuran}
-                titleHeader2="Kelompok"
                 useGroupName={true}
                 onPageChange={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -174,7 +173,6 @@ const Metrics: React.FC = () => {
                 setOpen={(status) => setModalActive(status ? "modaldo" : null)}
                 items={modalDoHistory}
                 pagination={paginationModalDo}
-                titleHeader2="Kelompok"
                 useGroupName={true}
                 onPageChange={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -187,7 +185,6 @@ const Metrics: React.FC = () => {
                 isOpen={modalActive === "targetanggota"}
                 setOpen={(status) => setModalActive(status ? "targetanggota" : null)}
                 items={modalTargetAnggota}
-                titleHeader2="Kelompok"
                 useGroupName={true}
                 pagination={paginationTargetAnggota}
                 onPageChange={(filter) => fetchTargetAnggota(filter.page, paginationTargetAnggota.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -203,7 +200,6 @@ const Metrics: React.FC = () => {
                 isOpen={modalActive === "target"}
                 setOpen={(status) => setModalActive(status ? "target" : null)}
                 items={modalTarget}
-                titleHeader2="Kelompok"
                 useGroupName={true}
                 pagination={paginationTarget}
                 onPageChange={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -215,7 +211,6 @@ const Metrics: React.FC = () => {
             <Modals
                 title="History Sirkulasi"
                 titleHeader="Jumlah Sirkulasi"
-                titleHeader2="Kelompok"
                 useGroupName={true}
                 isOpen={modalActive === "sirkulasi"}
                 setOpen={(status) => setModalActive(status ? "sirkulasi" : null)}
@@ -234,11 +229,8 @@ const Metrics: React.FC = () => {
                 isOpen={modalActive === "ip"}
                 setOpen={(status) => setModalActive(status ? "ip" : null)}
                 items={modalIp}
-                titleHeader2="Kelompok"
                 useGroupName={true}
                 pagination={paginationIp}
-                titleHeader2="Kelompok"
-                useGroupName={true}
                 onPageChange={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 onFilter={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
                 groups={groups}
@@ -252,7 +244,6 @@ const Metrics: React.FC = () => {
                 isOpen={modalActive === "naikturun"}
                 setOpen={(status) => setModalActive(status ? "naikturun" : null)}
                 items={modalNaikTurun}
-                titleHeader2="Kelompok"
                 useGroupName={true}
                 pagination={paginationNaikTurun}
                 onPageChange={(filter) => fetchNaikTurun(filter.page, paginationNaikTurun.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -270,7 +261,6 @@ const Metrics: React.FC = () => {
                 isOpen={modalActive === "pd"}
                 setOpen={(status) => setModalActive(status ? "pd" : null)}
                 items={modalPD}
-                titleHeader2="Kelompok"
                 useGroupName={true}
                 pagination={paginationPD}
                 onPageChange={(filter) => fetchPD(filter.page, paginationPD.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
@@ -286,7 +276,6 @@ const Metrics: React.FC = () => {
                 isOpen={modalActive === "su"}
                 setOpen={(status) => setModalActive(status ? "su" : null)}
                 items={modalSU}
-                titleHeader2="Kelompok"
                 useGroupName={true}
                 pagination={paginationSU}
                 onPageChange={(filter) => fetchSU(filter.page, paginationSU.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
