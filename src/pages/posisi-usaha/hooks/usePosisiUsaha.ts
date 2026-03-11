@@ -12,6 +12,8 @@ export interface PaginationProps {
 export function usePaginatedResource(endpoint: string, itemsKey: string,code:string) {
     const [items, setItems] = useState<any[]>([]);
     const [sum, setSum] = useState<number>(0);
+    const [sumPositif, setSumPositif] = useState<number>(0);
+    const [sumNegatif, setSumNegatif] = useState<number>(0);
     const [pagination, setPagination] = useState<PaginationProps>({
         page: 1,
         totalPages: 1,
@@ -31,6 +33,8 @@ export function usePaginatedResource(endpoint: string, itemsKey: string,code:str
             const body = data.data || data;
             const list = body[itemsKey] || body.items || body.areas || [];
             const jumlah = body.jumlah ?? 0;
+            const jumlah_positif = body.jumlah_positif ?? 0;
+            const jumlah_negatif = body.jumlah_negatif ?? 0;
 
             // prefer explicit pagination object from API
             const apiPagination = data.pagination || body.pagination;
@@ -50,6 +54,8 @@ export function usePaginatedResource(endpoint: string, itemsKey: string,code:str
             }
             setItems(list);
             setSum(jumlah);
+            setSumPositif(jumlah_positif);
+            setSumNegatif(jumlah_negatif);
         } catch (err) {
             // silent for now — caller can handle errors if needed
             setItems([]);
@@ -61,6 +67,8 @@ export function usePaginatedResource(endpoint: string, itemsKey: string,code:str
     return {
         items,
         sum,
+        sumPositif,
+        sumNegatif,
         pagination,
         fetchPage,
         setPagination,

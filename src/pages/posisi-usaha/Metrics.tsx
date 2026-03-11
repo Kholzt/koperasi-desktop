@@ -68,7 +68,7 @@ const Metrics: React.FC = () => {
     } = usePosisiUsaha(posisiUsahaCode.SU);
 
     const {
-        items: modalNaikTurun, sum: modalNaikTurunSum,
+        items: modalNaikTurun, sum: modalNaikTurunSum, sumPositif, sumNegatif,
         pagination: paginationNaikTurun, fetchPage: fetchNaikTurun
     } = usePosisiUsaha(posisiUsahaCode.NAIK_TURUN);
 
@@ -98,6 +98,7 @@ const Metrics: React.FC = () => {
         setStartDate(date && date[0] ? toLocalDate(date[0]) : null);
         setEndDate(date && date[1] ? toLocalDate(date[1]) : null);
     };
+
 
     return (
         <>
@@ -136,12 +137,13 @@ const Metrics: React.FC = () => {
                     onClick={() => setModalActive("naikturun")}
                     Icon={DollarLineIcon}
                     title='Naik/Turun'
-                    count={modalNaikTurunSum}
+                    count={sumNegatif}
                     isDoubleTitle={true}
-                    secondTitle={1000000}
+                    count2={sumPositif}
                     FirstIcon={ArrowUpIcon}
                     SecondIcon={ArrowDownIcon}
-                    valueClassName={modalNaikTurunSum >= 0 ? "text-gray-800 dark:text-white/90" : "text-red-500"}
+                    valueClassName={"text-red-500"}
+                    valueClassName2={"text-green-500"}
                 />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("pd")} Icon={DollarLineIcon} title='PD' count={modalPDSum} />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("su")} Icon={DollarLineIcon} title='SU' count={modalSUSum} />

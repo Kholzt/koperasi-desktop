@@ -39,10 +39,15 @@ export default class PosisiUsaha {
                 endDate,
                 code
             }))
-            .select(db.raw('SUM(amount) as jumlah'))
+            .select(db.raw('SUM(amount) as jumlah'),
+                db.raw("SUM(CASE WHEN amount >= 0 THEN amount ELSE 0 END) as jumlah_positif"),
+                db.raw("SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as jumlah_negatif"))
             .first();
         const jumlah = posisiUsaha.jumlah
-        return jumlah
+        const jumlah_positif = posisiUsaha.jumlah_positif;
+        const jumlah_negatif = posisiUsaha.jumlah_negatif;
+
+        return { jumlah, jumlah_positif, jumlah_negatif }
     }
     static async getHistory({
         startDate,

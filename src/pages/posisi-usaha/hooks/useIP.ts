@@ -40,7 +40,7 @@ function useIp(date?: string | null, group?: number | null, id?: number) {
     const onsubmit = async (data: Props) => {
         const storting = unformatCurrency(data.storting.toString());
         const target = unformatCurrency(data.target.toString());
-        data.total = target > 0 ? Number(((storting / target) * 100).toFixed(1)) : 0;
+        data.total = target > 0 ? Number(Math.round(((storting / target) * 100))) : 0;
         data.raw_formula = JSON.stringify({
             storting:storting,
             target:target,
