@@ -52,7 +52,7 @@ export default function Action({ id, code, setIdEdit }: { id: number, code: stri
                 onClick={openDropdown}
                 className="flex items-center text-gray-700 px-4 hover:text-blue-600"
             >
-                <span className="font-bold text-lg">...</span>
+                <span className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400 px-4">...</span>
             </button>
 
             <Dropdown
@@ -66,7 +66,7 @@ export default function Action({ id, code, setIdEdit }: { id: number, code: stri
                             <DropdownItem
                                 onItemClick={() => setIdEdit(id)}
                                 tag="button"
-                                className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg hover:bg-gray-100"
+                                className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                             >
                                 <PencilIcon fontSize={20} /> Edit
                             </DropdownItem>
@@ -76,7 +76,7 @@ export default function Action({ id, code, setIdEdit }: { id: number, code: stri
                         <DropdownItem
                             onItemClick={openModal} // Memanggil fungsi openModal
                             tag="button"
-                            className="flex w-full items-center gap-3 px-3 py-2 font-medium text-red-600 rounded-lg hover:bg-red-50"
+                            className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
                         >
                             <TrashBinIcon fontSize={20} /> Hapus
                         </DropdownItem>
