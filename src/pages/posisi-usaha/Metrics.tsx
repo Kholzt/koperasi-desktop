@@ -10,7 +10,7 @@ import { toLocalDate } from '../../utils/helpers';
 import { MetricItem } from './MetricItem';
 import Modals from './Modals';
 import TargetAnggotaForm from './forms/TargetAnggotaForm';
-import { usePosisiUsaha, usePosisiUsahaGroup } from './hooks/usePosisiUsaha';
+import { usePosisiUsaha, usePosisiUsahaGroup, usePosisiUsahaSirkulasi } from './hooks/usePosisiUsaha';
 import TargetForm from './forms/TargetForm';
 import SirkulasiForm from './forms/SirkulasiForm';
 import IPForm from './forms/IPForm';
@@ -51,7 +51,7 @@ const Metrics: React.FC = () => {
     const {
         items: modalSirkulasi, sum: modalSirkulasiSum,
         pagination: paginationSirkulasi, fetchPage: fetchSirkulasi
-    } = usePosisiUsaha(posisiUsahaCode.SIRKULASI);
+    } = usePosisiUsahaSirkulasi(posisiUsahaCode.SIRKULASI);
     const {
         items: modalIp, sum: modalIpSum,
         pagination: paginationIp, fetchPage: fetchIp
@@ -125,7 +125,7 @@ const Metrics: React.FC = () => {
                     onClick={() => setModalActive("ip")}
                     Icon={DollarLineIcon}
                     title='IP'
-                    count={`${(Math.round(angsuranSum / modalTargetSum) * 100)}%`}
+                    count={`${modalTargetSum == 0 && angsuranSum == 0 ? 0 :(Math.round(angsuranSum / modalTargetSum) * 100)}%`}
                     valueClassName={(modalIpSum / (paginationIp.total || 1)) >= 100 ? "text-gray-800 dark:text-white/90" : "text-red-500"}
                 />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />

@@ -1,4 +1,7 @@
 import db from "../config/db";
+import {
+    getLast6DaysWithoutSunday
+} from "../helpers/helpers";
 
 export default class PosisiUsaha {
     static filter({
@@ -52,8 +55,116 @@ export default class PosisiUsaha {
         const jumlah_positif = posisiUsaha.jumlah_positif;
         const jumlah_negatif = posisiUsaha.jumlah_negatif;
 
-        return { jumlah, jumlah_positif, jumlah_negatif }
+        return {
+            jumlah,
+            jumlah_positif,
+            jumlah_negatif
+        }
     }
+
+    static async getTotalAmountSirkulasi({
+        startDate,
+        endDate,
+        code
+    }) {
+
+        function formatDate(date) {
+            return date.toISOString().slice(0, 10);
+        }
+
+        // ambil 6 hari kerja terakhir (skip Sunday)
+        function getDefaultRange() {
+            const dates = [];
+            const current = new Date();
+
+            while (dates.length < 6) {
+                if (current.getDay() !== 0) {
+                    dates.push(formatDate(current));
+                }
+                current.setDate(current.getDate() - 1);
+            }
+
+            dates.reverse();
+
+            return {
+                startDate: dates[0],
+                endDate: dates[dates.length - 1],
+                dates
+            };
+        }
+
+        function generateDates(startDate, endDate) {
+            const dates = [];
+            const current = new Date(startDate);
+            const end = new Date(endDate);
+
+            while (current <= end) {
+                if (current.getDay() !== 0) {
+                    dates.push(formatDate(current));
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            return dates;
+        }
+
+        // ===== Tentukan tanggal =====
+        let dates = [];
+
+        if (!startDate && !endDate) {
+            const range = getDefaultRange();
+            startDate = range.startDate;
+            endDate = range.endDate;
+            dates = range.dates;
+        } else if (!startDate && endDate) {
+            const range = getDefaultRange();
+            startDate = range.startDate;
+            dates = generateDates(startDate, endDate);
+        } else {
+            dates = generateDates(startDate, endDate);
+        }
+
+        // ===== cek tanggal yang ada di database =====
+        const existingDates = await db('posisi_usaha')
+            .whereIn('tanggal_input', dates)
+            .where('code', code)
+            .distinct('tanggal_input');
+
+        const existingSet = new Set(existingDates.map(d => formatDate(new Date(d.tanggal_input))));
+
+        // ===== fallback jika kosong =====
+        const finalDates = dates.map(d => {
+
+            if (!existingSet.has(d)) {
+                const fallback = new Date(d);
+                fallback.setDate(fallback.getDate() - 7);
+                return formatDate(fallback);
+            }
+
+            return d;
+        });
+
+        const posisiUsaha = await db('posisi_usaha')
+            .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
+            .whereIn("posisi_usaha.tanggal_input", finalDates)
+            .where(PosisiUsaha.filter({
+                code
+            }))
+            .select(db.raw('SUM(amount) as jumlah'),
+                db.raw("SUM(CASE WHEN amount >= 0 THEN amount ELSE 0 END) as jumlah_positif"),
+                db.raw("SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as jumlah_negatif"))
+            .first();
+        const jumlah = posisiUsaha.jumlah
+        const jumlah_positif = posisiUsaha.jumlah_positif;
+        const jumlah_negatif = posisiUsaha.jumlah_negatif;
+
+        return {
+            jumlah,
+            jumlah_positif,
+            jumlah_negatif
+        }
+    }
+
     static async getHistory({
         startDate,
         endDate,
@@ -240,7 +351,11 @@ export default class PosisiUsaha {
 
             data = await db("posisi_usaha")
                 .select("amount")
-                .where({ type_id: typeVar.id, group_id, tanggal_input: formattedDate })
+                .where({
+                    type_id: typeVar.id,
+                    group_id,
+                    tanggal_input: formattedDate
+                })
                 .whereNull("deleted_at")
                 .first();
 

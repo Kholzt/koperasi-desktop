@@ -187,6 +187,7 @@ apiRouter.get("/posisi-usaha/data-minggu-lalu", PosisiUsahaController.getDataMin
 apiRouter.get("/posisi-usaha/data-this-week", PosisiUsahaController.getDataThisWeek)
 apiRouter.get("/posisi-usaha-today", PosisiUsahaController.getPosisiUsahaToday)
 apiRouter.get("/posisi-usaha", PosisiUsahaController.getPosisiUsaha)
+apiRouter.get("/posisi-usaha/sirkulasi", PosisiUsahaController.getPosisiUsahaSirkulasi)
 apiRouter.get("/posisi-usaha/:id", PosisiUsahaController.getPosisiUsahaById)
 apiRouter.delete("/posisi-usaha/:id", PosisiUsahaController.deletePosisiUsaha)
 

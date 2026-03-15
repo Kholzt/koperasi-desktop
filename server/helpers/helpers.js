@@ -28,8 +28,40 @@ const formatDateLocal = (date) => {
     const day = String(d.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
 }
+const getLast6DaysWithoutSunday = (endDate) => {
+    const dates = [];
+    const current = new Date(endDate);
+
+    while (dates.length < 6) {
+        const day = current.getDay(); // 0 = Sunday
+        if (day !== 0) {
+            dates.push(current.toISOString().slice(0, 10));
+        }
+        current.setDate(current.getDate() - 1);
+    }
+
+    return dates.reverse();
+}
+
+const generateDates = (startDate, endDate) => {
+    const dates = [];
+    const current = new Date(startDate);
+    const end = new Date(endDate);
+
+    while (current <= end) {
+        if (current.getDay() !== 0) { // skip Sunday
+            dates.push(current.toISOString().slice(0, 10));
+        }
+        current.setDate(current.getDate() + 1);
+    }
+
+    return dates;
+}
 export {
     insertToPosisiUsaha,
     decreseTransaksi,
-    formatDateLocal
+    formatDateLocal,
+    getLast6DaysWithoutSunday,
 }
+
+

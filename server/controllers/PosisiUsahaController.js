@@ -54,6 +54,36 @@ export default class PosisiUsahaController {
         }
     }
 
+    static async getPosisiUsahaSirkulasi(req, res) {
+        try {
+            const { page = 1, limit = 10, search = "", code = null, startDate, endDate, group_id } = req.query;
+            const p = parseInt(page, 10) || 1;
+            const l = parseInt(limit, 10) || 10;
+            const offset = (p - 1) * l;
+
+            const { history, total: totalData } = await PosisiUsaha.getHistory({ startDate, endDate, offset, limit: l, code, group_id })
+            const { jumlah, jumlah_positif, jumlah_negatif } = await PosisiUsaha.getTotalAmountSirkulasi({ startDate, endDate, code })
+            const jumlahTotal = parseFloat(jumlah || 0);
+
+            const total = parseInt(totalData || 0, 10);
+            return res.status(200).json({
+                history,
+                jumlah: jumlahTotal,
+                jumlah_positif,
+                jumlah_negatif,
+                pagination: {
+                    total,
+                    page: p,
+                    limit: l,
+                    totalPages: Math.ceil(total / l),
+                },
+            });
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to fetch angsuran', errors: err.message });
+        }
+    }
+
     static async savePosisiUsaha(req, res) {
         const { tanggal_input, group_id, code, total, raw_formula } = req.body
         const id = req.params?.id || null
