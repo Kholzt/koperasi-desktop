@@ -13,6 +13,7 @@ import Loading from "../ui/Loading";
 import { useEffect } from "react";
 import axios from "../../utils/axios";
 import { useNavigate } from "react-router";
+import imgProfil from "./../../images/user/profile.png"
 
 
 interface UserFormInput {

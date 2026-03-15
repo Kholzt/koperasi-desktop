@@ -17,6 +17,8 @@ import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { PaginationProps, UserProps } from "../../utils/types";
 import Pagination from './../../components/tables/BasicTables/Pagination';
+import imgProfil from "./../../images/user/profile.png"
+
 // import { toast } from 'react-hot-toast';
 interface UserTableProps {
     data: UserProps[],
@@ -26,8 +28,8 @@ interface UserTableProps {
 
 const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
-    const fallbackImage = "/images/user/profile.png";
-    const handleImageError = (e:any) => {
+    const fallbackImage = imgProfil;
+    const handleImageError = (e: any) => {
         e.target.src = fallbackImage;
     };
     return (
