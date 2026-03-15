@@ -212,7 +212,7 @@ app.post(
     authenticate,
     uploadProfile.single('photo'),
     (req, res, next) => {
-        console.log('🔥 HIT /upload');
+        console.log('🔥 HIT /upload', res);
         console.log('file:', req.file);
         next();
     },

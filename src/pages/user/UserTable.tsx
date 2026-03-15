@@ -26,6 +26,10 @@ interface UserTableProps {
 
 const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
+    const fallbackImage = "/images/user/profile.png";
+    const handleImageError = (e:any) => {
+        e.target.src = fallbackImage;
+    };
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
 
@@ -39,6 +43,12 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
                                 No
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                Foto
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -91,6 +101,16 @@ const UserTable: React.FC<UserTableProps> = ({ data, pagination, setPaginate }) 
                                             </span>
                                         </div>
                                     </div>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    {<img
+                                        src={user.foto_profile || fallbackImage}
+                                        alt={user.complete_name}
+                                        width={50}
+                                        height={50}
+                                        onError={handleImageError}
+                                        style={{ borderRadius: "50%" }}
+                                    />}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">

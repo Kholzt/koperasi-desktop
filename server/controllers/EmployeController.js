@@ -167,6 +167,7 @@ export default class EmployeController {
 
     // Mengupdate data pengguna dengan pengecekan
     static async update(req, res) {
+        
         await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
         await body('jenis_ijazah').notEmpty().withMessage('Jenis Ijazah wajib diisi').run(req);
         await body('tanggal_masuk').notEmpty().withMessage('Tanggal Masuk wajib diisi').run(req);
@@ -187,7 +188,7 @@ export default class EmployeController {
 
         try {
             const { id } = req.params;
-            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address, nip } = req.body;
+            const { complete_name, position, status, tanggal_masuk, tanggal_keluar, jenis_ijazah, status_ijazah, pos_id, address, nip, foto_profile } = req.body;
 
             const existingUser = await db('users').where('id', id).first();
             if (!existingUser) {
@@ -196,7 +197,7 @@ export default class EmployeController {
 
             const { oldValue, newValue } = diffObject(existingUser, {
                 complete_name, position, status, tanggal_masuk, tanggal_keluar,
-                jenis_ijazah, status_ijazah, pos_id, address, nip
+                jenis_ijazah, status_ijazah, pos_id, address, nip, foto_profile
             });
 
             await db('users')
@@ -212,7 +213,8 @@ export default class EmployeController {
                     status_ijazah,
                     pos_id,
                     address,
-                    nip
+                    nip,
+                    foto_profile
                 });
 
             logActivity({

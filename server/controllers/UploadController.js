@@ -1,5 +1,5 @@
 export async function uploadProfileController(req, res) {
-    console.log(req.file);
+    
     try {
         if (!req.file) {
             return res.status(400).json({

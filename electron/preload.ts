@@ -40,3 +40,7 @@ contextBridge.exposeInMainWorld('updater', {
 contextBridge.exposeInMainWorld("appInfo", {
     getVersion: () => ipcRenderer.invoke("get-app-version")
 });
+
+contextBridge.exposeInMainWorld("appPath", {
+  getUserDataPath: () => ipcRenderer.invoke("get-user-data-path")
+});

@@ -1,5 +1,6 @@
 export interface UserProps{
     id:number,
+    foto_profile:string,
     username:string,
     password:string,
     complete_name:string,
@@ -9,6 +10,7 @@ export interface UserProps{
     status:"aktif"|"nonAktif",
     status_ijazah:"sudah diambil"|"belum diambil",
     jenis_ijazah:string,
+    nip:string,
     pos_id:string,
     pos:PosProps,
     tanggal_masuk:Date,
@@ -20,6 +22,7 @@ export interface UserProps{
 export interface EmployeProps{
     id:number,
     nip:string,
+    foto_profile:string,
     address:string,
     name:string,
     job_title:string,

@@ -18,15 +18,23 @@ import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { PaginationProps, UserProps } from "../../utils/types";
 import { calculateDuration, formatDate } from "../../utils/helpers";
+
 // import { toast } from 'react-hot-toast';
 interface EmployeTableProps {
     data: UserProps[],
     pagination: PaginationProps,
-    setPaginate: (page: number) => void
+    pathImage: string,
+    setPaginate: (page: number) => void,
 }
 
-const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPaginate }) => {
+const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, pathImage, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
+    const fallbackImage = "/images/user/profile.png";
+    
+    
+    const handleImageError = (e: any) => {
+        e.target.src = fallbackImage;
+    };
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
 
@@ -40,6 +48,12 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
                                 No
+                            </TableCell>
+                            <TableCell
+                                isHeader
+                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                            >
+                                Foto
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -120,6 +134,8 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                         {data.map((user: UserProps, index: number) => {
                             let masa_kerja = "-";
+                            console.log(pathImage+ user.foto_profile);
+                            
                             if (user.tanggal_masuk && user.tanggal_keluar) {
                                 const start = new Date(user.tanggal_masuk);
                                 const end = new Date(user.tanggal_keluar);
@@ -137,6 +153,16 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, setPagina
                                             </span>
                                         </div>
                                     </div>
+                                </TableCell>
+                                <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                    {<img
+                                        src={ pathImage+ user.foto_profile || fallbackImage}
+                                        alt={user.complete_name}
+                                        width={50}
+                                        height={50}
+                                        onError={handleImageError}
+                                        style={{ borderRadius: "50%" }}
+                                    />}
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     <span className="block   text-theme-sm dark:text-white/90 capitalize">
@@ -239,6 +265,7 @@ function Action({ id, complete_name }: { id: number, complete_name: string }) {
             }
         }
     }
+
     return <div className="">
         <button
             onClick={openDropdown}

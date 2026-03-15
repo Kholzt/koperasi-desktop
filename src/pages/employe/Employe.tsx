@@ -20,11 +20,15 @@ const Employe: React.FC = () => {
         limit: 10,
         total: 0
     });
+    const [pathImage, setPathImage] = useState<string>(""); 
     const { reload } = useTheme();
     useEffect(() => {
         axios.get(`/api/employees?page=${pagination?.page}&search=${search}&status=all`).then((res: any) => {
             setUsers(res.data.employees)
             setPagination(res.data.pagination)
+        });
+        window.appPath.getUserDataPath().then((path: string) => {
+            setPathImage(path);
         });
     }, [pagination.page, reload, search]);
 
@@ -67,6 +71,7 @@ const Employe: React.FC = () => {
                     <Table
                         pagination={pagination}
                         data={users}
+                        pathImage={pathImage}
                         setPaginate={(page) => {
                             setPagination((prev) => ({
                                 ...prev,

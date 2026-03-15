@@ -76,7 +76,7 @@ export function usePaginatedResource(endpoint: string, itemsKey: string,code:str
 }
 
 export function usePosisiUsaha(code:string) {
-    return usePaginatedResource('/api/posisi-usaha', 'history',code);
+    return usePaginatedResource('/api/posisi-usaha', 'history', code);
 }
 export  function usePosisiUsahaToday(code :string) {
     const [amount, setAmount] = useState<number>(0);

@@ -49,15 +49,20 @@ import fs from 'fs';
 import { app } from 'electron'; // Pastikan bisa di-import, atau gunakan process.env
 
 const getUploadDir = () => {
+    const base = app.getPath("userData");
+    const dir = path.join(base, "uploads", "profiles");
+    
+    
     // 1. Tentukan Root Path (AppData)
-    const userDataPath = app ? app.getPath('userData') : path.join(process.env.APPDATA, 'koperasi-seferine');
+    // const userDataPath = app ? app.getPath('userData') : path.join(process.env.APPDATA, 'koperasi-seferine');
 
     // 2. Tentukan Folder Tujuan
-    const dir = path.join(userDataPath, 'uploads', 'profiles');
+    // const dir = path.join(userDataPath, 'uploads', 'profiles');
 
     // 3. Buat Folder jika belum ada (Seperti di fungsi getBackupDir)
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
+        console.log(`path upload: ${dir}`);
     }
     return dir;
 };

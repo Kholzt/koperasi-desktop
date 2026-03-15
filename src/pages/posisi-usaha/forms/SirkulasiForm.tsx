@@ -54,8 +54,8 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
     const { sirkulasiMingguLalu, stortingThisWeekTotal, onsubmit, data } = useSirkulasi(watchTanggal, watchGroup, id);
 
     React.useEffect(() => {
-        setValue("target_minggu_lalu", formatCurrency(sirkulasiMingguLalu ?? 0), { shouldDirty: true });
-        setValue("storting", formatCurrency(stortingThisWeekTotal ?? 0), { shouldDirty: true });
+        setValue("target_minggu_lalu", formatCurrency(sirkulasiMingguLalu ?? 0, false), { shouldDirty: true });
+        setValue("storting", formatCurrency(stortingThisWeekTotal ?? 0, false), { shouldDirty: true });
         console.log(formatCurrency(sirkulasiMingguLalu), formatCurrency(stortingThisWeekTotal));
 
         if (data) {
@@ -79,8 +79,8 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
         if (!watchTanggal || !watchGroup) return;
         const unformattedSirkulasi= unformatCurrency(String(sirkulasiMingguLalu?? 0)) ;
         const unformattedStorting = unformatCurrency(String(stortingThisWeekTotal ?? 0));
-        setValue("target_minggu_lalu", formatCurrency(unformattedSirkulasi ?? 0));
-        setValue("storting", formatCurrency(unformattedStorting ?? 0));
+        setValue("target_minggu_lalu", formatCurrency(unformattedSirkulasi ?? 0, false));
+        setValue("storting", formatCurrency(unformattedStorting ?? 0, false));
     }, [watchTanggal, watchGroup, sirkulasiMingguLalu, stortingThisWeekTotal]);
 
 
