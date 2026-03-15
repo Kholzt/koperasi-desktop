@@ -18,7 +18,7 @@ import { PencilIcon, TrashBinIcon } from "../../icons";
 import axios from "../../utils/axios";
 import { PaginationProps, UserProps } from "../../utils/types";
 import { calculateDuration, formatDate } from "../../utils/helpers";
-
+import imgProfil from "./../../images/user/profile.png"
 // import { toast } from 'react-hot-toast';
 interface EmployeTableProps {
     data: UserProps[],
@@ -29,9 +29,9 @@ interface EmployeTableProps {
 
 const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, pathImage, setPaginate }) => {
     const { page, totalPages, limit } = pagination;
-    const fallbackImage = "/images/user/profile.png";
-    
-    
+    const fallbackImage = imgProfil;
+
+
     const handleImageError = (e: any) => {
         e.target.src = fallbackImage;
     };
@@ -134,8 +134,9 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, pathImage
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                         {data.map((user: UserProps, index: number) => {
                             let masa_kerja = "-";
-                            console.log(pathImage+ user.foto_profile);
-                            
+                            console.log(pathImage + user.foto_profile);
+                            if (index == 0) console.log(pathImage + user.foto_profile);
+
                             if (user.tanggal_masuk && user.tanggal_keluar) {
                                 const start = new Date(user.tanggal_masuk);
                                 const end = new Date(user.tanggal_keluar);
@@ -156,7 +157,7 @@ const EmployeTable: React.FC<EmployeTableProps> = ({ data, pagination, pathImage
                                 </TableCell>
                                 <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                     {<img
-                                        src={ pathImage+ user.foto_profile || fallbackImage}
+                                        src={pathImage + user.foto_profile || fallbackImage}
                                         alt={user.complete_name}
                                         width={50}
                                         height={50}

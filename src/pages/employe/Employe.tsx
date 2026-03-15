@@ -20,7 +20,7 @@ const Employe: React.FC = () => {
         limit: 10,
         total: 0
     });
-    const [pathImage, setPathImage] = useState<string>(""); 
+    const [pathImage, setPathImage] = useState<string>("");
     const { reload } = useTheme();
     useEffect(() => {
         axios.get(`/api/employees?page=${pagination?.page}&search=${search}&status=all`).then((res: any) => {
@@ -29,6 +29,7 @@ const Employe: React.FC = () => {
         });
         window.appPath.getUserDataPath().then((path: string) => {
             setPathImage(path);
+            console.log(path);
         });
     }, [pagination.page, reload, search]);
 
