@@ -23,6 +23,11 @@ export default class PosisiUsaha {
                 qb.whereRaw('DATE(posisi_usaha.tanggal_input) = ?', [startDate]);
             } else if (endDate) {
                 qb.whereRaw('DATE(posisi_usaha.tanggal_input) = ?', [endDate]);
+            } else {
+                const date = new Date();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                // Hasil: "03" (untuk Maret)
+                qb.whereRaw('MONTH(posisi_usaha.tanggal_input) = ?', [month]);
             }
         };
     }
@@ -221,15 +226,29 @@ export default class PosisiUsaha {
         });
     }
 
+
     static async getDataMingguLalu(date, group_id, code) {
         const typeVar = await db("type_variabel").where("code", code).first();
-        return await db("posisi_usaha")
-            .select("amount")
-            .where("type_id", typeVar.id)
-            .where("group_id", group_id)
-            .whereNull("deleted_at")
-            .whereRaw(`posisi_usaha.tanggal_input = DATE_SUB('${date}', INTERVAL 7 DAY)`)
-            .first()
+        if (!typeVar) return null;
+
+        let data = null;
+        let searchDate = new Date(date);
+
+        while (!data) {
+            searchDate.setDate(searchDate.getDate() - 7);
+            const formattedDate = searchDate.toISOString().split('T')[0];
+
+            data = await db("posisi_usaha")
+                .select("amount")
+                .where({ type_id: typeVar.id, group_id, tanggal_input: formattedDate })
+                .whereNull("deleted_at")
+                .first();
+
+            // break jika data terlalu jauh
+            if (searchDate.getFullYear() < 2020) break;
+        }
+
+        return data;
     }
 
     static async getDataThisWeek(date, group_id, code) {
