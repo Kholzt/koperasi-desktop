@@ -127,9 +127,9 @@ export default class PosisiUsaha {
         // ===== cek tanggal yang ada di database =====
         const existingDates = await db('posisi_usaha')
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .whereIn('tanggal_input', dates)
-            .where('code', code)
-            .distinct('tanggal_input');
+            .whereIn('posisi_usaha.tanggal_input', dates)
+            .where('type_variabel.code', code)
+            .distinct('posisi_usaha.tanggal_input');
 
         const existingSet = new Set(existingDates.map(d => formatDate(new Date(d.tanggal_input))));
 
