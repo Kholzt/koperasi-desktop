@@ -14,7 +14,7 @@ import useSirkulasi from '../hooks/useSirkulasi';
 
 
 interface Props {
-    drop: number;
+    drop: string;
     storting: string;
     group_id: number;
     target_minggu_lalu: string;
@@ -45,12 +45,14 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
     const { handleSubmit, register, setValue, watch, getValues, formState: { errors } } = useForm<Props>({
         resolver: yupResolver(schema),
         defaultValues: {
-            code: posisiUsahaCode.SIRKULASI
+            code: posisiUsahaCode.SIRKULASI,
+            drop: "0",
         }
     });
 
     const watchTanggal = watch("tanggal_input");
     const watchGroup = watch("group_id");
+    const drop_watch = watch("drop");
     const { sirkulasiMingguLalu, stortingThisWeekTotal, onsubmit, data } = useSirkulasi(watchTanggal, watchGroup, id);
 
     React.useEffect(() => {
@@ -60,12 +62,18 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
 
         if (data) {
             const rawFormula = data.raw_formula;
+            
             setValue("drop", rawFormula?.drop ?? 0, { shouldDirty: true })
             // setValue("storting", rawFormula?.storting ?? 0, { shouldDirty: true })
             setValue("group_id", data.group_id, { shouldDirty: true })
             setValue("tanggal_input", toLocalDate(new Date(data.tanggal_input)), { shouldDirty: true })
         }
     }, [sirkulasiMingguLalu, setValue, data]);
+
+     React.useEffect(() => {
+            const drop_unformat = unformatCurrency(String(drop_watch));
+            setValue("drop", formatCurrency(drop_unformat, false));
+        }, [drop_watch]);
 
     // React.useEffect(() => {
     //     setValue("target_minggu_lalu", sirkulasiMingguLalu ?? 0);
@@ -88,6 +96,7 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
         setValue("tanggal_input", toLocalDate(date[0]));
     };
     const onSubmitForm = async (data: Props) => {
+        data.drop = data.drop.replace(/[^0-9]/g, '');
         data.storting = data.storting.replace(/[^0-9]/g, '');
         data.target_minggu_lalu = data.target_minggu_lalu.replace(/[^0-9]/g, '');
         const status = await onsubmit(data)
@@ -136,7 +145,7 @@ export default function SirkulasiForm({ id, onClose, groups }: PropsForm) {
                 <div className="flex flex-col">
                     <Label>Nominal Drop <span className="text-error-500">*</span></Label>
                     <Input
-                        type="number"
+                        type="text"
                         placeholder="0"
                         {...register("drop")}
                     />

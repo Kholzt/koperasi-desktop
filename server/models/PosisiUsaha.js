@@ -35,6 +35,32 @@ export default class PosisiUsaha {
         };
     }
 
+    static filterSirkulasi({
+        startDate,
+        endDate,
+        code,
+        group_id
+    }) {
+        return (qb) => {
+            qb.whereNull("posisi_usaha.deleted_at")
+
+            qb.where("type_variabel.code", code)
+            if (group_id) {
+                qb.where("group_id", group_id)
+            }
+            if (startDate && endDate) {
+                qb.whereBetween(
+                    qb.client.raw('DATE(posisi_usaha.tanggal_input)'),
+                    [startDate, endDate]
+                );
+            } else if (startDate) {
+                qb.whereRaw('DATE(posisi_usaha.tanggal_input) = ?', [startDate]);
+            } else if (endDate) {
+                qb.whereRaw('DATE(posisi_usaha.tanggal_input) = ?', [endDate]);
+            } 
+        };
+    }
+
     static async getTotalAmount({
         startDate,
         endDate,
@@ -47,6 +73,7 @@ export default class PosisiUsaha {
                 endDate,
                 code
             }))
+            .whereNull('posisi_usaha.deleted_at')
             .select(db.raw('SUM(amount) as jumlah'),
                 db.raw("SUM(CASE WHEN amount >= 0 THEN amount ELSE 0 END) as jumlah_positif"),
                 db.raw("SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as jumlah_negatif"))
@@ -129,6 +156,7 @@ export default class PosisiUsaha {
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
             .whereIn('posisi_usaha.tanggal_input', dates)
             .where('type_variabel.code', code)
+            .whereNull('posisi_usaha.deleted_at')
             .distinct('posisi_usaha.tanggal_input');
 
         const existingSet = new Set(existingDates.map(d => formatDate(new Date(d.tanggal_input))));
@@ -145,19 +173,29 @@ export default class PosisiUsaha {
             return d;
         });
 
+        // const posisiUsaha = await db('posisi_usaha')
+        //     .whereIn("posisi_usaha.tanggal_input", finalDates)
+        //     .whereIn("posisi_usaha.type_id", function () {
+        //         this.select("id")
+        //             .from("type_variabel")
+        //             .where(PosisiUsaha.filterSirkulasi({ code }));
+        //     })
+        //     .whereNull('posisi_usaha.deleted_at')
+        //     .sum('posisi_usaha.amount as jumlah')
+        //     .first();
         const posisiUsaha = await db('posisi_usaha')
-            .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .whereIn("posisi_usaha.tanggal_input", finalDates)
-            .where(PosisiUsaha.filter({
-                code
-            }))
-            .select(db.raw('SUM(amount) as jumlah'),
-                db.raw("SUM(CASE WHEN amount >= 0 THEN amount ELSE 0 END) as jumlah_positif"),
-                db.raw("SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as jumlah_negatif"))
+            .whereIn('posisi_usaha.tanggal_input', finalDates)
+            .whereNull('posisi_usaha.deleted_at')
+            .whereIn('posisi_usaha.type_id', function () {
+                this.select('id')
+                    .from('type_variabel')
+                    .where('type_variabel.code', code);
+            })
+            .sum('posisi_usaha.amount as jumlah')
             .first();
         const jumlah = posisiUsaha.jumlah
-        const jumlah_positif = posisiUsaha.jumlah_positif;
-        const jumlah_negatif = posisiUsaha.jumlah_negatif;
+        const jumlah_positif = 0;
+        const jumlah_negatif = 0;
 
         return {
             jumlah,

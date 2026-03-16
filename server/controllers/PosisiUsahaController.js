@@ -66,6 +66,7 @@ export default class PosisiUsahaController {
             const jumlahTotal = parseFloat(jumlah || 0);
 
             const total = parseInt(totalData || 0, 10);
+            
             return res.status(200).json({
                 history,
                 jumlah: jumlahTotal,
