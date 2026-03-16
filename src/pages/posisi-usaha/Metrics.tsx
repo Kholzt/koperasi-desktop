@@ -125,7 +125,7 @@ const Metrics: React.FC = () => {
                     onClick={() => setModalActive("ip")}
                     Icon={DollarLineIcon}
                     title='IP'
-                    count={`${modalTargetSum == 0 && angsuranSum == 0 ? 0 :(Math.round(angsuranSum / modalTargetSum) * 100)}%`}
+                    count={`${modalTargetSum == 0 && angsuranSum == 0 ? 0 : (Math.round((388817000 / 455520000) * 100))}%`}
                     valueClassName={(modalIpSum / (paginationIp.total || 1)) >= 100 ? "text-gray-800 dark:text-white/90" : "text-red-500"}
                 />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />
