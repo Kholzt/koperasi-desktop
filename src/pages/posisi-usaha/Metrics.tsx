@@ -51,6 +51,10 @@ const Metrics: React.FC = () => {
     const {
         items: modalSirkulasi, sum: modalSirkulasiSum,
         pagination: paginationSirkulasi, fetchPage: fetchSirkulasi
+    } = usePosisiUsaha(posisiUsahaCode.SIRKULASI);
+    const {
+        items: modalSirkulasiJalan, sum: modalSirkulasiSumJalan,
+        pagination: paginationSirkulasiJalan, fetchPage: fetchSirkulasiJalan
     } = usePosisiUsahaSirkulasi(posisiUsahaCode.SIRKULASI);
     const {
         items: modalIp, sum: modalIpSum,
@@ -87,7 +91,8 @@ const Metrics: React.FC = () => {
         fetchSU(1, paginationSU.limit, start, end);
         fetchNaikTurun(1, paginationNaikTurun.limit, start, end);
         fetchSirkulasi(1, paginationSirkulasi.limit, start, end);
-    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, fetchTarget, fetchIp, fetchPD, fetchSU, fetchNaikTurun, fetchSirkulasi, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit, paginationTarget.limit, paginationIp.limit, paginationPD.limit, paginationSU.limit, paginationNaikTurun.limit, paginationSirkulasi.limit]);
+        fetchSirkulasiJalan(1, paginationSirkulasiJalan.limit, start, end);
+    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, fetchTarget, fetchIp, fetchPD, fetchSU, fetchNaikTurun, fetchSirkulasi, fetchSirkulasiJalan, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit, paginationTarget.limit, paginationIp.limit, paginationPD.limit, paginationSU.limit, paginationNaikTurun.limit, paginationSirkulasi.limit, paginationSirkulasiJalan.limit]);
 
     // --- Effects ---
     useEffect(() => {
@@ -131,6 +136,7 @@ const Metrics: React.FC = () => {
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />
                 <MetricItem hasPointer onClick={() => setModalActive("targetanggota")} Icon={DollarLineIcon} title='Target Anggota' count={modalTargetAnggotaSum} />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("sirkulasi")} Icon={DollarLineIcon} title='Sirkulasi' count={modalSirkulasiSum} />
+                <MetricItem isCurrency hasPointer onClick={() => setModalActive("sirkulasiJalan")} Icon={DollarLineIcon} title='Sirkulasi Jalan' count={modalSirkulasiSumJalan} />
                 <MetricItem
                     isCurrency
                     hasPointer

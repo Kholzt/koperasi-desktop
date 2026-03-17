@@ -147,8 +147,10 @@ export default class PosisiUsaha {
             const range = getDefaultRange();
             startDate = range.startDate;
             dates = generateDates(startDate, endDate);
-        } else {
-            dates = generateDates(startDate, endDate);
+        } else if(startDate == endDate) {
+            const range = getDefaultRange();
+            startDate = range.startDate;
+            dates = generateDates(startDate, endDate);   
         }
 
         // ===== cek tanggal yang ada di database =====
