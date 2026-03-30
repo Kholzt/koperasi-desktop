@@ -99,6 +99,18 @@ export default class PosisiUsaha {
             return date.toISOString().slice(0, 10);
         }
 
+        function minus7Days(dateStr) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+
+            const d = new Date(year, month - 1, day - 7);
+
+            return [
+                d.getFullYear(),
+                String(d.getMonth() + 1).padStart(2, '0'),
+                String(d.getDate()).padStart(2, '0')
+            ].join('-');
+        }
+
         // ambil 6 hari kerja terakhir (skip Sunday)
         function getDefaultRange() {
             const dates = [];
@@ -151,27 +163,28 @@ export default class PosisiUsaha {
             const range = getDefaultRange();
             startDate = range.startDate;
             dates = generateDates(startDate, endDate);   
+        }else {
+            dates = generateDates(startDate, endDate);
         }
 
         // ===== cek tanggal yang ada di database =====
         const existingDates = await db('posisi_usaha')
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .whereIn('posisi_usaha.tanggal_input', dates)
+            // .whereIn('posisi_usaha.tanggal_input', dates)
             .where('type_variabel.code', code)
             .whereNull('posisi_usaha.deleted_at')
-            .distinct('posisi_usaha.tanggal_input');
+            .select(
+                db.raw("DISTINCT DATE_FORMAT(posisi_usaha.tanggal_input, '%Y-%m-%d') AS tanggal_input")
+            );
 
-        const existingSet = new Set(existingDates.map(d => formatDate(new Date(d.tanggal_input))));
+        const existingSet = existingDates.map(d => d.tanggal_input);
 
         // ===== fallback jika kosong =====
         const finalDates = dates.map(d => {
 
-            if (!existingSet.has(d)) {
-                const fallback = new Date(d);
-                fallback.setDate(fallback.getDate() - 7);
-                return formatDate(fallback);
+           if (!existingSet.includes(d)) {
+                return minus7Days(d);
             }
-
             return d;
         });
 
@@ -202,7 +215,8 @@ export default class PosisiUsaha {
         return {
             jumlah,
             jumlah_positif,
-            jumlah_negatif
+            jumlah_negatif,
+            dates
         }
     }
 

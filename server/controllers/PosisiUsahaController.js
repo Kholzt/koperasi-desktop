@@ -62,7 +62,7 @@ export default class PosisiUsahaController {
             const offset = (p - 1) * l;
 
             const { history, total: totalData } = await PosisiUsaha.getHistory({ startDate, endDate, offset, limit: l, code, group_id })
-            const { jumlah, jumlah_positif, jumlah_negatif } = await PosisiUsaha.getTotalAmountSirkulasi({ startDate, endDate, code })
+            const { jumlah, jumlah_positif, jumlah_negatif, dates } = await PosisiUsaha.getTotalAmountSirkulasi({ startDate, endDate, code })
             const jumlahTotal = parseFloat(jumlah || 0);
 
             const total = parseInt(totalData || 0, 10);
@@ -72,6 +72,7 @@ export default class PosisiUsahaController {
                 jumlah: jumlahTotal,
                 jumlah_positif,
                 jumlah_negatif,
+                dates,
                 pagination: {
                     total,
                     page: p,
