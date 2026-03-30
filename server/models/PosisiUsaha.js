@@ -8,7 +8,8 @@ export default class PosisiUsaha {
         startDate,
         endDate,
         code,
-        group_id
+        group_id,
+        pos_id
     }) {
         return (qb) => {
             qb.whereNull("posisi_usaha.deleted_at")
@@ -16,6 +17,12 @@ export default class PosisiUsaha {
             qb.where("type_variabel.code", code)
             if (group_id) {
                 qb.where("group_id", group_id)
+            }
+            if (pos_id) {
+              qb.where((builder) => {
+                    builder.where("groups.pos_id", pos_id)
+                        .orWhereNull("posisi_usaha.group_id"); // Tetap tampilkan jika tidak punya group
+                });
             }
             if (startDate && endDate) {
                 qb.whereBetween(
@@ -39,7 +46,8 @@ export default class PosisiUsaha {
         startDate,
         endDate,
         code,
-        group_id
+        group_id,
+        pos_id
     }) {
         return (qb) => {
             qb.whereNull("posisi_usaha.deleted_at")
@@ -47,6 +55,9 @@ export default class PosisiUsaha {
             qb.where("type_variabel.code", code)
             if (group_id) {
                 qb.where("group_id", group_id)
+            }
+            if (pos_id) {
+                qb.where("pos_id", pos_id)
             }
             if (startDate && endDate) {
                 qb.whereBetween(
@@ -64,14 +75,17 @@ export default class PosisiUsaha {
     static async getTotalAmount({
         startDate,
         endDate,
-        code
+        code,
+        pos_id
     }) {
         const posisiUsaha = await db('posisi_usaha')
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
+            .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
             .where(PosisiUsaha.filter({
                 startDate,
                 endDate,
-                code
+                code,
+                pos_id
             }))
             .whereNull('posisi_usaha.deleted_at')
             .select(db.raw('SUM(amount) as jumlah'),
@@ -92,7 +106,8 @@ export default class PosisiUsaha {
     static async getTotalAmountSirkulasi({
         startDate,
         endDate,
-        code
+        code,
+        pos_id
     }) {
 
         function formatDate(date) {
@@ -171,11 +186,17 @@ export default class PosisiUsaha {
         const existingDates = await db('posisi_usaha')
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
             // .whereIn('posisi_usaha.tanggal_input', dates)
+            .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
             .where('type_variabel.code', code)
+            .where((builder) => {
+                    if(pos_id)
+                        builder.where("groups.pos_id", pos_id)
+                        .orWhereNull("posisi_usaha.group_id"); 
+                })
             .whereNull('posisi_usaha.deleted_at')
-            .select(
-                db.raw("DISTINCT DATE_FORMAT(posisi_usaha.tanggal_input, '%Y-%m-%d') AS tanggal_input")
-            );
+                    .select(
+                        db.raw("DISTINCT DATE_FORMAT(posisi_usaha.tanggal_input, '%Y-%m-%d') AS tanggal_input")
+                    );
 
         const existingSet = existingDates.map(d => d.tanggal_input);
 
@@ -226,15 +247,18 @@ export default class PosisiUsaha {
         offset,
         limit,
         code,
-        group_id
+        group_id,
+        pos_id
     }) {
         const isModalDo = code === "modaldo"
         const totalRes = await db('posisi_usaha')
+        .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
             .where(PosisiUsaha.filter({
                 startDate,
                 endDate,
                 code,
-                group_id
+                group_id,
+                pos_id
             }))
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
             .select(db.raw(isModalDo ? 'COUNT(DISTINCT DATE(posisi_usaha.tanggal_input)) as total' : 'COUNT(DISTINCT DATE(posisi_usaha.tanggal_input), group_id) as total'))
@@ -248,18 +272,22 @@ export default class PosisiUsaha {
                 db.raw("max(posisi_usaha.id) as id"),
                 db.raw("max(raw_formula) as raw_formula"),
                 db.raw("max(posisi_usaha.group_id) as group_id"),
+                db.raw("max(pos.nama_pos) as nama_pos"),
             )
+            .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
+            .leftJoin("pos", "groups.pos_id", "pos.id")
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
             // .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
             .where(PosisiUsaha.filter({
                 startDate,
                 endDate,
                 code,
-                group_id
+                group_id,
+                pos_id
             })).whereNull("posisi_usaha.deleted_at");
 
         if (!isModalDo) {
-            historyQuery.leftJoin("groups", "posisi_usaha.group_id", "groups.id")
+            historyQuery
                 .select(
                     db.raw("COALESCE(groups.group_name, '-') as group_name")
                 )

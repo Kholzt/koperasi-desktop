@@ -10,7 +10,7 @@ import { toLocalDate } from '../../utils/helpers';
 import { MetricItem } from './MetricItem';
 import Modals from './Modals';
 import TargetAnggotaForm from './forms/TargetAnggotaForm';
-import { usePosisiUsaha, usePosisiUsahaGroup, usePosisiUsahaSirkulasi } from './hooks/usePosisiUsaha';
+import { usePosisiUsaha, usePosisiUsahaGroup, usePosisiUsahaPos, usePosisiUsahaSirkulasi } from './hooks/usePosisiUsaha';
 import TargetForm from './forms/TargetForm';
 import SirkulasiForm from './forms/SirkulasiForm';
 import IPForm from './forms/IPForm';
@@ -20,15 +20,18 @@ import NaikTurunForm from './forms/NaikTurunForm';
 import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import Label from '../../components/form/Label';
+import Select from '../../components/form/Select';
 
 
 const Metrics: React.FC = () => {
     const [startDate, setStartDate] = useState<string | null>(null);
     const [endDate, setEndDate] = useState<string | null>(null);
+    const [posId, setPosId] = useState<string | undefined>('');
     const [modalActive, setModalActive] = useState<string | null>(null);
 
     // --- Hooks Data ---
     const { groups } = usePosisiUsahaGroup()
+    const { pos } = usePosisiUsahaPos()
     const {
         items: angsuranHistory, sum: angsuranSum,
         pagination: paginationAngsuran, fetchPage: fetchAngsuran
@@ -82,22 +85,23 @@ const Metrics: React.FC = () => {
     const loadAllData = useCallback((sDate: string | null, eDate: string | null) => {
         const start = sDate || '';
         const end = eDate || '';
-        fetchAngsuran(1, paginationAngsuran.limit, start, end);
-        fetchModalDo(1, paginationModalDo.limit, start, end);
-        fetchTargetAnggota(1, paginationTargetAnggota.limit, start, end);
-        fetchTarget(1, paginationTarget.limit, start, end);
-        fetchIp(1, paginationIp.limit, start, end);
-        fetchPD(1, paginationPD.limit, start, end);
-        fetchSU(1, paginationSU.limit, start, end);
-        fetchNaikTurun(1, paginationNaikTurun.limit, start, end);
-        fetchSirkulasi(1, paginationSirkulasi.limit, start, end);
-        fetchSirkulasiJalan(1, paginationSirkulasiJalan.limit, start, end);
-    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, fetchTarget, fetchIp, fetchPD, fetchSU, fetchNaikTurun, fetchSirkulasi, fetchSirkulasiJalan, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit, paginationTarget.limit, paginationIp.limit, paginationPD.limit, paginationSU.limit, paginationNaikTurun.limit, paginationSirkulasi.limit, paginationSirkulasiJalan.limit]);
+        fetchAngsuran(1, paginationAngsuran.limit, start, end,'',posId);
+        fetchModalDo(1, paginationModalDo.limit, start, end,'',posId);
+        fetchTargetAnggota(1, paginationTargetAnggota.limit, start, end,'',posId);
+        fetchTarget(1, paginationTarget.limit, start, end,'',posId);
+        fetchIp(1, paginationIp.limit, start, end,'',posId);
+        fetchPD(1, paginationPD.limit, start, end,'',posId);
+        fetchSU(1, paginationSU.limit, start, end,'',posId);
+        fetchNaikTurun(1, paginationNaikTurun.limit, start, end,'',posId);
+        fetchSirkulasi(1, paginationSirkulasi.limit, start, end,'',posId);
+        fetchSirkulasiJalan(1, paginationSirkulasiJalan.limit, start, end,'',posId);
+        console.log(1, paginationSirkulasiJalan.limit, start, end,'',posId)
+    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, fetchTarget, fetchIp, fetchPD, fetchSU, fetchNaikTurun, fetchSirkulasi, fetchSirkulasiJalan, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit, paginationTarget.limit, paginationIp.limit, paginationPD.limit, paginationSU.limit, paginationNaikTurun.limit, paginationSirkulasi.limit, paginationSirkulasiJalan.limit,posId]);
 
     // --- Effects ---
     useEffect(() => {
         loadAllData(startDate, endDate);
-    }, [startDate, endDate, loadAllData]);
+    }, [startDate, endDate,posId, loadAllData]);
 
     const handleDateChange = (date: (Date | null)[]) => {
         setStartDate(date && date[0] ? toLocalDate(date[0]) : null);
@@ -109,16 +113,38 @@ const Metrics: React.FC = () => {
         <>
             <PageMeta title={`Posisi Usaha | ${import.meta.env.VITE_APP_NAME}`} description="" />
             <PageBreadcrumb pageTitle="Posisi Usaha" />
-            <div className="md:w-[50%] w-full">
-                <Label htmlFor="" className="mb-2 inline-block">Filter Rentang Tanggal</Label>
+            <div className="flex flex-col md:flex-row items-start gap-4 w-full">
+            {/* Filter Rentang Tanggal */}
+            <div className="w-full md:w-[40%]">
+                <Label htmlFor="globalFilter" className="mb-2 block text-sm font-medium">
+                Filter Rentang Tanggal
+                </Label>
                 <DatePicker
-                    hasClear
-                    id={"globalFilter"}
-                    mode="range"
-                    placeholder="Tanggal Mulai - Tanggal Selesai"
-                    defaultDate={startDate && endDate ? [new Date(startDate), new Date(endDate)] : undefined}
-                    onChange={handleDateChange}
+                hasClear
+                id="globalFilter"
+                mode="range"
+                placeholder="Tanggal Mulai - Tanggal Selesai"
+                defaultDate={startDate && endDate ? [new Date(startDate), new Date(endDate)] : undefined}
+                onChange={handleDateChange}
+                className="w-full" // Pastikan datepicker mengisi penuh container-nya
                 />
+            </div>
+
+            {/* Filter Pos */}
+            <div className="w-full md:w-[30%]">
+                <Label htmlFor="posSelect" className="mb-2 block text-sm font-medium">
+                Pos
+                </Label>
+                <Select
+                id="posSelect"
+                options={[{ label: "Pilih semua", value: '' }, ...pos]}
+                placeholder="Pilih pos"
+                onChange={e => setPosId(e.target.value)}
+                className="w-full"
+                />
+            </div>
+
+            {/* Jika ada tombol Reset atau Search, letakkan di sini agar sejajar */}
             </div>
 
             {/* CARD */}
@@ -130,7 +156,7 @@ const Metrics: React.FC = () => {
                     onClick={() => setModalActive("ip")}
                     Icon={DollarLineIcon}
                     title='IP'
-                    count={`${modalTargetSum == 0 && angsuranSum == 0 ? 0 : (Math.round((angsuranSum / modalTargetSum) * 100))}%`}
+                    count={`${modalTargetSum == 0  ? 0 : (Math.round((angsuranSum / modalTargetSum) * 100))}%`}
                     valueClassName={(modalIpSum / (paginationIp.total || 1)) >= 100 ? "text-gray-800 dark:text-white/90" : "text-red-500"}
                 />
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("target")} Icon={DollarLineIcon} title='Target' count={modalTargetSum} />
@@ -166,8 +192,8 @@ const Metrics: React.FC = () => {
                 pagination={paginationAngsuran}
                 useGroupName={true}
                 titleHeader2="Kelompok"
-                onPageChange={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onPageChange={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
+                onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
                 hasGroup
             />
@@ -182,8 +208,8 @@ const Metrics: React.FC = () => {
                 pagination={paginationModalDo}
                 useGroupName={true}
                 titleHeader2="Kelompok"
-                onPageChange={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onPageChange={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
+                onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
             />
 
@@ -196,8 +222,8 @@ const Metrics: React.FC = () => {
                 useGroupName={true}
                 titleHeader2="Kelompok"
                 pagination={paginationTargetAnggota}
-                onPageChange={(filter) => fetchTargetAnggota(filter.page, paginationTargetAnggota.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchTargetAnggota(filter.page, paginationTargetAnggota.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onPageChange={(filter) => fetchTargetAnggota(filter.page, paginationTargetAnggota.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
+                onFilter={(filter) => fetchTargetAnggota(filter.page, paginationTargetAnggota.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
                 hasGroup
                 Form={TargetAnggotaForm}
@@ -212,8 +238,8 @@ const Metrics: React.FC = () => {
                 useGroupName={true}
                 titleHeader2="Kelompok"
                 pagination={paginationTarget}
-                onPageChange={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onPageChange={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
+                onFilter={(filter) => fetchTarget(filter.page, paginationTarget.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
                 hasGroup
                 Form={TargetForm}
@@ -228,8 +254,8 @@ const Metrics: React.FC = () => {
                 items={modalSirkulasi}
                 isCurrency={true}
                 pagination={paginationSirkulasi}
-                onPageChange={(filter) => fetchSirkulasi(filter.page, paginationSirkulasi.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchSirkulasi(filter.page, paginationSirkulasi.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onPageChange={(filter) => fetchSirkulasi(filter.page, paginationSirkulasi.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
+                onFilter={(filter) => fetchSirkulasi(filter.page, paginationSirkulasi.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
                 hasGroup
                 Form={SirkulasiForm}
@@ -243,8 +269,8 @@ const Metrics: React.FC = () => {
                 useGroupName={true}
                 titleHeader2="Kelompok"
                 pagination={paginationIp}
-                onPageChange={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onPageChange={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
+                onFilter={(filter) => fetchIp(filter.page, paginationIp.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
                 hasGroup
                 Form={IPForm}
@@ -259,8 +285,8 @@ const Metrics: React.FC = () => {
                 useGroupName={true}
                 titleHeader2="Kelompok"
                 pagination={paginationNaikTurun}
-                onPageChange={(filter) => fetchNaikTurun(filter.page, paginationNaikTurun.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchNaikTurun(filter.page, paginationNaikTurun.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onPageChange={(filter) => fetchNaikTurun(filter.page, paginationNaikTurun.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
+                onFilter={(filter) => fetchNaikTurun(filter.page, paginationNaikTurun.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
                 hasGroup
                 Form={NaikTurunForm}
@@ -277,8 +303,8 @@ const Metrics: React.FC = () => {
                 useGroupName={true}
                 titleHeader2="Kelompok"
                 pagination={paginationPD}
-                onPageChange={(filter) => fetchPD(filter.page, paginationPD.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchPD(filter.page, paginationPD.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onPageChange={(filter) => fetchPD(filter.page, paginationPD.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
+                onFilter={(filter) => fetchPD(filter.page, paginationPD.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
                 hasGroup
                 Form={PDForm}
@@ -293,8 +319,8 @@ const Metrics: React.FC = () => {
                 useGroupName={true}
                 titleHeader2="Kelompok"
                 pagination={paginationSU}
-                onPageChange={(filter) => fetchSU(filter.page, paginationSU.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
-                onFilter={(filter) => fetchSU(filter.page, paginationSU.limit, filter.startDate || '', filter.endDate || '', filter.group || "")}
+                onPageChange={(filter) => fetchSU(filter.page, paginationSU.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
+                onFilter={(filter) => fetchSU(filter.page, paginationSU.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
                 hasGroup
                 Form={SUForm}

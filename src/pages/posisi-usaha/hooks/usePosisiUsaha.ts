@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import axios from '../../../utils/axios';
-import { GroupProps } from '../../../utils/types';
+import { GroupProps, PosProps } from '../../../utils/types';
 
 export interface PaginationProps {
     page: number;
@@ -21,13 +21,13 @@ export function usePaginatedResource(endpoint: string, itemsKey: string,code:str
         total: 0,
     });
 
-    const fetchPage = useCallback(async (page = 1, limit = pagination.limit, startDate = '', endDate = '',group='') => {
+    const fetchPage = useCallback(async (page = 1, limit = pagination.limit, startDate = '', endDate = '',group='',pos = '') => {
         try {
             let url = `${endpoint}?page=${page}&limit=${limit}&code=${code}`;
             if (group) url += `&group_id=${group}`;
+            if (pos) url += `&pos_id=${pos}`;
             if (startDate) url += `&startDate=${startDate}`;
             if (endDate) url += `&endDate=${endDate}`;
-
             const res: any = await axios.get(url);
             const data = res.data || {};
             const body = data.data || data;
@@ -71,7 +71,6 @@ export function usePaginatedResource(endpoint: string, itemsKey: string,code:str
         sumNegatif,
         pagination,
         fetchPage,
-        setPagination,
     } as const;
 }
 
@@ -99,4 +98,13 @@ export  function usePosisiUsahaGroup() {
     });    }, []);
 
     return  {groups};
+}
+export  function usePosisiUsahaPos() {
+    const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
+    useEffect(() => {
+        axios.get("/api/pos?limit=20000000").then(res => {
+            setPos(res.data.pos.map((pos: PosProps) => ({ label: pos.nama_pos, value: pos.id })))
+    });    }, []);
+
+    return  {pos};
 }

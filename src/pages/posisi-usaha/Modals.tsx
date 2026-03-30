@@ -99,6 +99,12 @@ export default function Modals({
                             isHeader
                             className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                         >
+                            Pos
+                        </TableCell>
+                        <TableCell
+                            isHeader
+                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                        >
                             Tanggal
                         </TableCell>
                         {/* {hasGroup && <TableCell
@@ -138,6 +144,9 @@ export default function Modals({
                             {useGroupName ? <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {item.group_name ?? "-"}
                             </TableCell> : <></>}
+                            <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
+                                {item.nama_pos ?? "-"}
+                            </TableCell>
                             <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {formatDate(item.tanggal)}
                             </TableCell>
