@@ -53,25 +53,27 @@ const schema: yup.SchemaOf<EmployeFormInput> = yup.object({
     status_ijazah: yup.mixed<'belum diambil' | 'sudah diambil'>()
         .oneOf(['belum diambil', 'sudah diambil'], 'Status ijazah tidak valid')
         .required('Status ijazah wajib dipilih'),
-    foto_profile: yup.mixed()
-        .nullable() // Mengizinkan nilai null jika user tidak menyentuh input
-        .notRequired() // Menegaskan bahwa ini tidak wajib
-        .test('fileSize', 'Ukuran file terlalu besar', (value) => {
-            // Jika tidak ada file (null, undefined, atau array kosong), anggap VALID (true)
-            if (!value || (value instanceof FileList && value.length === 0) || value.length === 0) {
-                return true;
-            }
-            // Jika ada file, baru cek ukurannya
-            const file = value instanceof FileList ? value[0] : value;
-            return file.size <= 2 * 1024 * 1024;
-        })
-        .test('fileType', 'Tipe file tidak didukung', (value) => {
-            if (!value || (value instanceof FileList && value.length === 0) || value.length === 0) {
-                return true;
-            }
-            const file = value instanceof FileList ? value[0] : value;
-            return ['image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
-        }),
+   foto_profile: yup.mixed()
+    .nullable()
+    .notRequired()
+    .test('fileSize', 'Ukuran file terlalu besar', (value) => {
+        // jika tidak ada file → valid
+        if (!value) return true;
+        // jika FileList kosong → valid
+        if (value instanceof FileList && value.length === 0) return true;
+        // ambil file
+        const file = value instanceof FileList ? value[0] : value;
+        // jika bukan File (misalnya string dari backend) → skip validasi
+        if (!(file instanceof File)) return true;
+        return file.size <= 2 * 1024 * 1024;
+    })
+    .test('fileType', 'Tipe file tidak didukung', (value) => {
+        if (!value) return true;
+        if (value instanceof FileList && value.length === 0) return true;
+        const file = value instanceof FileList ? value[0] : value;
+        if (!(file instanceof File)) return true;
+        return ['image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
+    }),
 });
 
 const EmployeForm: React.FC = () => {
@@ -404,6 +406,8 @@ const EmployeForm: React.FC = () => {
                                         accept="image/*"
                                         {...register("foto_profile", {
                                             onChange: (e) => {
+                                                console.log(e);
+                                                
                                                 const file = e.target.files?.[0];
                                                 if (!file) return;
 
