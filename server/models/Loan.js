@@ -1,7 +1,7 @@
 import db from "../config/db";
 
 export default class Loan {
-    static async findAll({ limit, offset, startDate, endDate, status, day, group, search }) {
+    static async findAll({ limit, offset, startDate, endDate, status, day, group,pos, search }) {
         const query = db('pinjaman')
             .join('members', 'pinjaman.anggota_id', 'members.id')
             .leftJoin("pos", "members.pos_id", "pos.id")
@@ -49,6 +49,9 @@ export default class Loan {
                 )
                 .join("group_details", "pj.staff_id", "group_details.staff_id")
                 .where("group_details.group_id", group);
+        }
+        if (pos && pos !== "all") {
+            query.where("members.pos_id", pos);
         }
 
         let loans = await query

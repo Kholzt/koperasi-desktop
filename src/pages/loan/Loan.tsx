@@ -23,6 +23,7 @@ const Loan: React.FC = () => {
     const {
         loans,
         groups,
+        pos,
         pagination,
         setPagination,
         filter,
@@ -31,6 +32,8 @@ const Loan: React.FC = () => {
         setDayFilter,
         groupFilter,
         setGroupFilter,
+        posFilter,
+        setPosFilter,
         search,
         setSearch,
         isFiltersLoaded,
@@ -43,7 +46,7 @@ const Loan: React.FC = () => {
         fetchLoans(pagination.page);
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search]);
+    }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, search]);
 
     useEffect(() => {
 
@@ -81,7 +84,7 @@ const Loan: React.FC = () => {
 
             <div className="">
                 <div className="flex gap-2 mb-2 items-center">
-                    <ul className="flex mt-1.5">
+                    <ul className="flex mt-6">
                         {days.map((day, i) => {
                             const isActive = dayFilter === day;
                             return (
@@ -105,16 +108,25 @@ const Loan: React.FC = () => {
                             );
                         })}
                     </ul>
+                     <div className="max-w-[300px] w-full">
+                        {isFiltersLoaded && <SelectSearch
+                            label="Pos"
+                            placeholder="Pilih pos"
+                            options={[{ label: "All", value: "all" }, ...pos]}
+                            defaultValue={posFilter}
+                            onChange={(val: any) => setPosFilter(val)}
+                        />}
+                    </div>
                     <div className="max-w-[300px] w-full">
                         {isFiltersLoaded && <SelectSearch
-                            label=""
+                            label="Kelompok"
                             placeholder="Pilih kelompok"
                             options={[{ label: "All", value: "all" }, ...groups]}
                             defaultValue={groupFilter}
                             onChange={(val: any) => setGroupFilter(val)}
                         />}
-
                     </div>
+                   
                 </div>
 
                 <ComponentCard

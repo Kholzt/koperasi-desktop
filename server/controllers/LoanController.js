@@ -13,14 +13,14 @@ export default class LoanController {
     // Menampilkan daftar area dengan pagination
     static async index(req, res) {
         try {
-            const { page = 1, limit = 10, startDate = null, endDate = new Date(), status = null, day = "all", group = "all", search = null
+            const { page = 1, limit = 10, startDate = null, endDate = new Date(), status = null, day = "all", group = "all",pos="all", search = null
             } = req.query;
             const pageInt = parseInt(page);
             const limitInt = parseInt(limit);
             const offset = (pageInt - 1) * limitInt;
 
             // Query loans with join to members
-            const { loans, total } = await Loan.findAll({ limit, offset, startDate, endDate, status, day, group, search })
+            const { loans, total } = await Loan.findAll({ limit, offset, startDate, endDate, status, day, group,pos, search })
 
             // Total count
 
