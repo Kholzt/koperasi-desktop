@@ -302,9 +302,12 @@ const LoanForm: React.FC = () => {
                                     options={anggota}
                                     fetchOptions={async (query) => {
                                         const qr = query != getValues("anggota_id") ? query : memberNameEdit
+                                        if(!qr){
+                                            const res = await axios.get(`/api/members?limit=20`);
+                                            return res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id }))
+                                        }
                                         const res = await axios.get(`/api/members?search=${qr}&limit=20000000`);
                                         return res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id }))
-
                                     }}
                                     defaultValue={getValues("anggota_id")}
                                     {...register("anggota_id")}

@@ -135,7 +135,7 @@ export function useLoan() {
       page: pagination.page,
     };
     localStorage.setItem('filters', JSON.stringify(savedFilters));
-  }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, isFiltersLoaded, pagination.page]);
+  }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, isFiltersLoaded, pagination.page]);
 
   return {
     loans,
