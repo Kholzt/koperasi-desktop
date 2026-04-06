@@ -58,12 +58,13 @@ const Loan: React.FC = () => {
             status: filter.status,
             dayFilter,
             groupFilter,
+            posFilter,
             // search,
             page: pagination?.page
         };
         localStorage.setItem('filters', JSON.stringify(savedFilters));
 
-    }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, search, isFiltersLoaded, pagination?.page]);
+    }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, search, isFiltersLoaded, pagination?.page]);
 
     const searchAction = (e: any) => {
         const value = e.target.value;
