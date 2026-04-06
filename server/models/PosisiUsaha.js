@@ -56,7 +56,7 @@ export default class PosisiUsaha {
             if (group_id) {
                 qb.where("group_id", group_id)
             }
-            if (pos_id) {
+            if (pos_id != null) {
                 qb.where((builder) => {
                     builder.where("groups.pos_id", pos_id)
                         .orWhereNull("posisi_usaha.group_id"); // Tetap tampilkan jika tidak punya group
@@ -94,7 +94,7 @@ export default class PosisiUsaha {
             if (group_id) {
                 qb.where("group_id", group_id)
             }
-            if (pos_id) {
+            if (pos_id != null) {
                 qb.where("pos_id", pos_id)
             }
             if (startDate && endDate) {
@@ -116,37 +116,37 @@ export default class PosisiUsaha {
         code,
         pos_id
     }) {
-        let posisiUsaha ;
-        if (code =='sirkulasi') {
+        let posisiUsaha;
+        if (code == 'sirkulasi') {
             posisiUsaha = await db('posisi_usaha').join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
-            .where(PosisiUsaha.filterSirkulasiDaily({
-                startDate,
-                endDate,
-                code,
-                pos_id
-            }))
-            .whereNull('posisi_usaha.deleted_at')
-            .select(db.raw('SUM(amount) as jumlah'),
-                db.raw("SUM(CASE WHEN amount >= 0 THEN amount ELSE 0 END) as jumlah_positif"),
-                db.raw("SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as jumlah_negatif"))
-            .first();
+                .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
+                .where(PosisiUsaha.filterSirkulasiDaily({
+                    startDate,
+                    endDate,
+                    code,
+                    pos_id
+                }))
+                .whereNull('posisi_usaha.deleted_at')
+                .select(db.raw('SUM(amount) as jumlah'),
+                    db.raw("SUM(CASE WHEN amount >= 0 THEN amount ELSE 0 END) as jumlah_positif"),
+                    db.raw("SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as jumlah_negatif"))
+                .first();
         } else {
             posisiUsaha = await db('posisi_usaha').join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
-            .where(PosisiUsaha.filter({
-                startDate,
-                endDate,
-                code,
-                pos_id
-            }))
-            .whereNull('posisi_usaha.deleted_at')
-            .select(db.raw('SUM(amount) as jumlah'),
-                db.raw("SUM(CASE WHEN amount >= 0 THEN amount ELSE 0 END) as jumlah_positif"),
-                db.raw("SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as jumlah_negatif"))
-            .first();
+                .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
+                .where(PosisiUsaha.filter({
+                    startDate,
+                    endDate,
+                    code,
+                    pos_id
+                }))
+                .whereNull('posisi_usaha.deleted_at')
+                .select(db.raw('SUM(amount) as jumlah'),
+                    db.raw("SUM(CASE WHEN amount >= 0 THEN amount ELSE 0 END) as jumlah_positif"),
+                    db.raw("SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as jumlah_negatif"))
+                .first();
         }
-            
+
         const jumlah = posisiUsaha.jumlah
         const jumlah_positif = posisiUsaha.jumlah_positif;
         const jumlah_negatif = posisiUsaha.jumlah_negatif;
@@ -167,18 +167,6 @@ export default class PosisiUsaha {
 
         function formatDate(date) {
             return date.toISOString().slice(0, 10);
-        }
-
-        function minus7Days(dateStr) {
-            const [year, month, day] = dateStr.split('-').map(Number);
-
-            const d = new Date(year, month - 1, day - 7);
-
-            return [
-                d.getFullYear(),
-                String(d.getMonth() + 1).padStart(2, '0'),
-                String(d.getDate()).padStart(2, '0')
-            ].join('-');
         }
 
         // ambil 6 hari kerja terakhir (skip Sunday)
@@ -202,21 +190,6 @@ export default class PosisiUsaha {
             };
         }
 
-        function generateDates(startDate, endDate) {
-            const dates = [];
-            const current = new Date(startDate);
-            const end = new Date(endDate);
-
-            while (current <= end) {
-                if (current.getDay() !== 0) {
-                    dates.push(formatDate(current));
-                }
-                current.setDate(current.getDate() + 1);
-            }
-
-            return dates;
-        }
-
         // ===== Tentukan tanggal =====
         let dates = [];
 
@@ -224,39 +197,64 @@ export default class PosisiUsaha {
         startDate = range.startDate;
         endDate = range.endDate;
         dates = range.dates;
-        // if (!startDate && !endDate) {
-        // } else if (!startDate && endDate) {
-        //     const range = getDefaultRange();
-        //     startDate = range.startDate;
-        //     dates = generateDates(startDate, endDate);
-        // } else if(startDate == endDate) {
-        //     const range = getDefaultRange();
-        //     startDate = range.startDate;
-        //     dates = generateDates(startDate, endDate);   
-        // }else {
-        //     dates = generateDates(startDate, endDate);
-        // }
 
         // ===== cek tanggal yang ada di database =====
-        const existingDates = await db('posisi_usaha')
+        let query = db('posisi_usaha')
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            // .whereIn('posisi_usaha.tanggal_input', dates)
             .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
             .where('type_variabel.code', code)
-            .where((builder) => {
-                if (pos_id)
-                    builder.where("groups.pos_id", pos_id)
-                    .orWhereNull("posisi_usaha.group_id");
-            })
-            .whereNull('posisi_usaha.deleted_at')
-            .select(
-                db.raw("DISTINCT DATE_FORMAT(posisi_usaha.tanggal_input, '%Y-%m-%d') AS tanggal_input")
-            );
-
+            .whereNull('posisi_usaha.deleted_at');
+        if (pos_id != null && pos_id !== '' && pos_id !== undefined) {
+            query.where((b) => {
+                b.where("groups.pos_id", pos_id)
+                .orWhereNull("posisi_usaha.group_id");
+            });
+        }
+        const existingDates = await query.select(
+            db.raw("DISTINCT DATE_FORMAT(posisi_usaha.tanggal_input, '%Y-%m-%d') AS tanggal_input")
+        );
+        // const existingDates = await db('posisi_usaha')
+        //     .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
+        //     .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
+        //     .where('type_variabel.code', code)
+        //     .where((builder) => {
+        //         if (pos_id != null) {
+        //             builder.where((b) => {
+        //                 b.where("groups.pos_id", pos_id)
+        //                 .orWhereNull("posisi_usaha.group_id");
+        //             });
+        //         }
+        //     })
+        //     .whereNull('posisi_usaha.deleted_at')
+        //     .select(
+        //         db.raw("DISTINCT DATE_FORMAT(posisi_usaha.tanggal_input, '%Y-%m-%d') AS tanggal_input")
+        //     );
+        const existingList = existingDates
+        .map(d => d.tanggal_input)
+        .sort() // ASC dulu
+        .reverse(); // jadi DESC (terbaru dulu)
+        const usedWeekdays = [];
+        const finalDates = [];
         const existingSet = existingDates.map(d => d.tanggal_input);
 
         // ===== fallback jika kosong =====
-        const finalDates = existingSet.slice(-6);
+        // const finalDates = existingSet.slice(-6);
+
+        for (const dateStr of existingList) {
+            const day = new Date(dateStr).getDay();
+
+            // skip Minggu
+            if (day === 0) continue;
+
+            // skip jika weekday sudah dipakai
+            if (usedWeekdays.includes(day)) continue;
+
+            finalDates.push(dateStr);
+            usedWeekdays.push(day);
+
+            // stop kalau sudah 6 hari
+            if (finalDates.length === 6) break;
+        }
         // const finalDates = existingSet.map(d => {
 
         //     // if (!existingSet.includes(d)) {
@@ -276,12 +274,21 @@ export default class PosisiUsaha {
         //     .sum('posisi_usaha.amount as jumlah')
         //     .first();
         const posisiUsaha = await db('posisi_usaha')
+            .leftJoin("groups", "posisi_usaha.group_id", "groups.id")
             .whereIn('posisi_usaha.tanggal_input', finalDates)
             .whereNull('posisi_usaha.deleted_at')
             .whereIn('posisi_usaha.type_id', function () {
                 this.select('id')
                     .from('type_variabel')
                     .where('type_variabel.code', code);
+            })
+            .where((builder) => {
+                if (pos_id != null) {
+                    builder.where((b) => {
+                        b.where("groups.pos_id", pos_id)
+                        .orWhereNull("posisi_usaha.group_id");
+                    });
+                }
             })
             .sum('posisi_usaha.amount as jumlah')
             .first();
