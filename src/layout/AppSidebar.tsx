@@ -76,20 +76,20 @@ const masterDataItems: NavItem[] = [
         icon: <LocationIcon />,
         name: "Wilayah",
         path: "/area",
-        access: ["pusat", "super admin"]
+        access: ["pusat", "super admin", "controller"]
 
     },
     {
         icon: <GroupIcon />,
         name: "Kelompok",
         path: "/group",
-        access: ["pusat", "super admin"]
+        access: ["pusat", "controller","super admin"]
     },
     {
         icon: <LocationIcon />,
         name: "POS",
         path: "/pos",
-        access: ["pusat", "super admin"]
+        access: ["pusat", "controller","super admin"]
     },
     {
         icon: <LocationIcon />,
@@ -124,7 +124,7 @@ const othersItems: NavItem[] = [
         icon: <CalenderIcon />,
         name: "Jadwal Kunjungan",
         path: "/schedule",
-        access: ["pusat", "super admin"]
+        access: ["pusat", "controller","super admin"]
     },
 ];
 

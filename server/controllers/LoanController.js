@@ -188,6 +188,7 @@ export default class LoanController {
 
 
         try {
+            var tmpLoanId = null;
             const newPeminjaman = await transaction(async () => {
 
                 const {
@@ -277,13 +278,14 @@ export default class LoanController {
                     }
                 }
                 const group = await Loan.getGroupNameByIdPinjaman(loanId);
-
+                tmpLoanId = loanId;
                 const dataTransaksi = {
                     amount: modal_do,
                     code: "modaldo",
                     user_id: user.id,
                     tanggal_input: formatDateLocal(tanggal_pinjam),
-                    group_id: group.group_id
+                    group_id: group.group_id,
+                    pos_id: group.pos_id
                 }
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
 
@@ -294,7 +296,7 @@ export default class LoanController {
                 message: 'Pinjaman berhasil dibuat',
                 pinjaman: newPeminjaman
             });
-
+            
             logActivity({
                 user: req.user,
                 action: ACTIVITY_ACTION.CREATE,
@@ -302,6 +304,7 @@ export default class LoanController {
                 entityReff: ACTIVITY_ENTITY.PINJAMAN,
                 entityId: newPeminjaman.id,
                 description: `Menambahkan pinjaman untuk anggota ID ${req.body.anggota_id}`,
+                entityId: tmpLoanId,
                 newValue: req.body,
             }).catch(err => console.error('Failed to log activity:', err));
 
