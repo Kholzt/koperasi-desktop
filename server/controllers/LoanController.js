@@ -8,6 +8,7 @@ import Transaction from '../models/Transaction.js';
 import { logActivity } from './services/logActivity.js';
 import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
 import { diffObject } from '../helpers/diffObject.js';
+import Member from '../models/Member.js';
 
 export default class LoanController {
     // Menampilkan daftar area dengan pagination
@@ -211,6 +212,10 @@ export default class LoanController {
                 if (loanExist) {
                     return res.status(400).json({ errors: { kode: 'Kode sudah ada' } });
                 }
+                const member = await Member.findById(anggota_id);
+                if (!member) {
+                    return res.status(404).json({ errors: { anggota_id: 'Anggota tidak ditemukan' } });
+                }
 
                 // Hitung tanggal angsuran pertama (7 hari dari sekarang)
                 const now = new Date();
@@ -243,6 +248,7 @@ export default class LoanController {
                     total_bunga,
                     tanggal_angsuran_pertama: formatDate(tanggalAngsuranPertama),
                     created_at: now,
+                    pos_id: member.pos_id,
                 });
 
                 // Loop angsuran per bulan
