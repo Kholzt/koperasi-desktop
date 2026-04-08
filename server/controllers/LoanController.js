@@ -291,7 +291,8 @@ export default class LoanController {
                     user_id: user.id,
                     tanggal_input: formatDateLocal(tanggal_pinjam),
                     group_id: group.group_id,
-                    pos_id: group.pos_id
+                    pos_id: member.pos_id,
+                    ref_id:loanId
                 }
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
 
@@ -404,7 +405,8 @@ export default class LoanController {
                     code: "modaldo",
                     user_id: user.id,
                     tanggal_input: formatDateLocal(tanggal),
-                    group_id: group.group_id
+                    group_id: group.group_id,
+                    ref_id:id
                 }
 
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
@@ -486,7 +488,8 @@ export default class LoanController {
                     code: "modaldo",
                     user_id: user.id,
                     tanggal_input: formatDateLocal(tanggal),
-                    group_id: group.group_id
+                    group_id: group.group_id,
+                    ref_id:id
                 }
 
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)

@@ -223,7 +223,8 @@ export default class AngsuranController {
                 code: "storting",
                 user_id: user.id,
                 tanggal_input: tanggal_bayar ? formatDateLocal(tanggal_bayar) : formatDateLocal(angsuran.tanggal_pembayaran),
-                group_id: ag?.group_id || null
+                group_id: ag?.group_id || null,
+                ref_id:angsuran_id
             }
             if (notHoliday) {
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
@@ -364,7 +365,8 @@ export default class AngsuranController {
                 code: "storting",
                 user_id: user.id,
                 tanggal_input: formatDateLocal(angsuran.tanggal_pembayaran),
-                group_id: ag.group_id
+                group_id: ag.group_id,
+                ref_id: id
             }
 
             await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
@@ -475,7 +477,8 @@ export default class AngsuranController {
                 code: "storting",
                 user_id: user.id,
                 tanggal_input: formatDateLocal(angsuran.tanggal_pembayaran),
-                group_id: ag.group_id
+                group_id: ag.group_id,
+                ref_id: id
             }
             await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
             await trx.commit();

@@ -21,7 +21,7 @@ export default class PosisiUsaha {
             if (pos_id) {
                 qb.where((builder) => {
                     builder.where("groups.pos_id", pos_id)
-                        .orWhereNull("posisi_usaha.group_id"); // Tetap tampilkan jika tidak punya group
+                        // .orWhereNull("posisi_usaha.group_id"); // Tetap tampilkan jika tidak punya group
                 });
             }
             if (startDate && endDate) {
@@ -286,7 +286,7 @@ export default class PosisiUsaha {
                 if (pos_id != null) {
                     builder.where((b) => {
                         b.where("groups.pos_id", pos_id)
-                        .orWhereNull("posisi_usaha.group_id");
+                        // .orWhereNull("posisi_usaha.group_id");
                     });
                 }
             })
@@ -324,7 +324,7 @@ export default class PosisiUsaha {
                 pos_id
             }))
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
-            .select(db.raw(isModalDo ? 'COUNT(DISTINCT DATE(posisi_usaha.tanggal_input)) as total' : 'COUNT(DISTINCT DATE(posisi_usaha.tanggal_input), group_id) as total'))
+            .select(db.raw( 'COUNT(DISTINCT DATE(posisi_usaha.tanggal_input), group_id) as total'))
             .first();
 
         const historyQuery = db("posisi_usaha")
@@ -349,15 +349,15 @@ export default class PosisiUsaha {
                 pos_id
             })).whereNull("posisi_usaha.deleted_at");
 
-        if (!isModalDo) {
+        // if (!isModalDo) {
             historyQuery
                 .select(
                     db.raw("COALESCE(groups.group_name, '-') as group_name")
                 )
                 .groupByRaw("DATE(posisi_usaha.tanggal_input), posisi_usaha.group_id");
-        } else {
-            historyQuery.groupByRaw("DATE(posisi_usaha.tanggal_input)");
-        }
+        // } else {
+        //     historyQuery.groupByRaw("DATE(posisi_usaha.tanggal_input)");
+        // }
 
         const history = await historyQuery
             .orderBy("tanggal", "desc")
@@ -376,7 +376,9 @@ export default class PosisiUsaha {
         amount,
         user_id,
         group_id,
+        ref_id,
         tanggal_input
+
     }) {
         const typeVar = await db("type_variabel").where("code", code).first();
         const isModalDo = code == "modaldo"
@@ -385,10 +387,14 @@ export default class PosisiUsaha {
             let query = db("posisi_usaha")
                 .where("type_id", typeVar.id)
                 .whereRaw(`DATE(tanggal_input) = '${tanggal_input}'`)
-                .whereNull("deleted_at");
-            if (!isModalDo) {
-                query.where("group_id", group_id);
-            }
+                .whereNull("deleted_at")
+                .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
+                .where("type_variabel.code", code)
+                .where("group_id", group_id)
+                .where("reference_id", ref_id)
+                ;
+            // if (!isModalDo) {
+            // }
 
             return query;
         };
@@ -401,7 +407,8 @@ export default class PosisiUsaha {
                 amount,
                 created_by: user_id,
                 tanggal_input: tanggal_input,
-                group_id: isModalDo ? null : group_id,
+                group_id:  group_id,
+                reference_id:ref_id
             });
         }
 
@@ -425,9 +432,9 @@ export default class PosisiUsaha {
                 .where("type_id", typeVar.id)
                 .whereRaw(`DATE(tanggal_input) = '${tanggal_input}'`)
                 .whereNull("deleted_at");
-            if (!isModalDo) {
+            // if (!isModalDo) {
                 query.where("group_id", group_id);
-            }
+            // }
             if (ignoreId) {
                 query.whereNot("id", ignoreId);
             }
