@@ -397,11 +397,10 @@ export default class LoanController {
                 const newTotalBayar =
                     (modal_do ?? 0)
 
-                const jumlahBayarTotal = newTotalBayar - oldTotalBayar
                 const tanggal = new Date(pinjaman.tanggal_angsuran_pertama);
                 tanggal.setDate(tanggal.getDate() - 7);
                 const dataTransaksi = {
-                    amount: jumlahBayarTotal,
+                    amount: newTotalBayar,
                     code: "modaldo",
                     user_id: user.id,
                     tanggal_input: formatDateLocal(tanggal),
@@ -484,7 +483,7 @@ export default class LoanController {
 
 
                 const dataTransaksi = {
-                    amount: -(pinjaman.total_pinjaman),
+                    amount: 0,
                     code: "modaldo",
                     user_id: user.id,
                     tanggal_input: formatDateLocal(tanggal),

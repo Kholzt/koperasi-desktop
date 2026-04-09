@@ -413,8 +413,8 @@ export default class PosisiUsaha {
         }
 
         return await baseQuery().update({
-            amount: Math.max(parseInt(posisiUsaha.amount) + parseInt(amount), 0),
-            updated_by: user_id,
+            "posisi_usaha.amount": parseInt(amount),
+            "posisi_usaha.updated_by": user_id,
         });
     }
 

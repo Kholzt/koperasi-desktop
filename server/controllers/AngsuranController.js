@@ -358,10 +358,9 @@ export default class AngsuranController {
                 (jumlah_bayar ?? 0) +
                 (jumlah_katrol ?? 0)
 
-            const jumlahBayarTotal = newTotalBayar - oldTotalBayar
 
             const dataTransaksi = {
-                amount: jumlahBayarTotal,
+                amount: newTotalBayar,
                 code: "storting",
                 user_id: user.id,
                 tanggal_input: formatDateLocal(angsuran.tanggal_pembayaran),
@@ -473,7 +472,7 @@ export default class AngsuranController {
 
 
             const dataTransaksi = {
-                amount: -(angsuran.jumlah_bayar + angsuran.jumlah_katrol),
+                amount: 0,
                 code: "storting",
                 user_id: user.id,
                 tanggal_input: formatDateLocal(angsuran.tanggal_pembayaran),
