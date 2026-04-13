@@ -216,6 +216,8 @@ export default class Loan {
             .select(db.raw("MIN(groups.id) as group_id"))
             .select(db.raw("MIN(groups.group_name) as group_name"))
             .where("pinjaman.id", idPinjaman)
+            .whereNull("pinjaman.deleted_at")
+            .whereNull("groups.deleted_at")
             .joinRaw(
                 `JOIN JSON_TABLE(pinjaman.penanggung_jawab, '$[*]'
               COLUMNS (staff_id INT PATH '$')) pj ON TRUE`

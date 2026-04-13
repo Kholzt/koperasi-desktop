@@ -118,9 +118,10 @@ export default class Angsuran {
             .select(db.raw("MIN(groups.id) as group_id"))
             .where("angsuran.id", idAngsuran)
             .whereNull("angsuran.deleted_at")
+            .whereNull("groups.deleted_at")
             .join("penagih_angsuran", "angsuran.id", "penagih_angsuran.id_angsuran")
-            .leftJoin("group_details", "penagih_angsuran.id_karyawan", "group_details.staff_id")
-            .leftJoin("groups", "group_details.group_id", "groups.id")
+            .join("group_details", "penagih_angsuran.id_karyawan", "group_details.staff_id")
+            .join("groups", "group_details.group_id", "groups.id")
             .groupBy("angsuran.id", "angsuran.jumlah_bayar", "angsuran.jumlah_katrol", "angsuran.tanggal_pembayaran")
             .first();
     }

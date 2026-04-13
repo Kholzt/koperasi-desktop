@@ -89,6 +89,7 @@ export function useLoan() {
     } catch (err) {
       setLoans([]);
     }
+  // },[]);
   }, [dayFilter, filter.endDate, filter.startDate, filter.status, groupFilter,posFilter, search]);
 
   // initial + deps fetch
@@ -96,6 +97,8 @@ export function useLoan() {
     fetchLoans(pagination.page);
     fetchGroups();
     fetchPos();    
+  // },[]);
+
   }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, search]);
 
   // restore saved filters when mounted
