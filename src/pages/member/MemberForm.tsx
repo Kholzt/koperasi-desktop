@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from 'react-toastify';
 import * as yup from 'yup';
@@ -19,6 +19,7 @@ import axios from "../../utils/axios";
 import { AreaProps } from "../../utils/types";
 import Loading from "../../components/ui/Loading"
 import { useUser } from './../../hooks/useUser';
+import SelectSearch from "../../components/form/SelectSearch";
 interface MemberFormInput {
     pos_id: string;
     nik: string;
@@ -52,6 +53,7 @@ const MemberForm: React.FC = () => {
     const [nikExist, setNikExist] = useState(false);
     const [noKKExist, setNoKKExist] = useState(false);
     const [hasPinjaman, setHasPinjaman] = useState(false);
+    const [areaName, setAreaName] = useState("");
     const [pos, setPos] = useState<{ label: string, value: string }[]>([]);
     const { user } = useUser();
     const { id } = useParams();
@@ -65,6 +67,7 @@ const MemberForm: React.FC = () => {
         reset,
         setValue,
         watch,
+        getValues,
         formState: { errors }
     } = useForm<MemberFormInput>({
         resolver: yupResolver(schema),
@@ -84,7 +87,7 @@ const MemberForm: React.FC = () => {
             axios.get("/api/members/" + id).then(res => {
                 const data = res.data.member
                 setHasPinjaman(data.hasPinjaman && (user?.role == "pusat" || user?.role == "controller"))
-                console.log(res.data, "halo");
+                setAreaName(data.area.area_name)
                 reset(data)
                 setTimeout(() => {
                     setLoading(false)
@@ -248,12 +251,31 @@ const MemberForm: React.FC = () => {
                             <Label>
                                 Wilayah <span className="text-error-500">*</span>
                             </Label>
-                            <Select
+                            {/* <Select
                                 disabled={nikExist}
                                 options={areas} placeholder="Pilih area" {...register("area_id")} />
+                             */}
+                                <SelectSearch
+                                    disabled={nikExist}
+                                    label=""
+                                    placeholder="Pilih area"
+                                    options={areas}
+                                    fetchOptions={async (query) => {
+                                        const qr = query != getValues("area_id") ? query : areaName
+                                        if(!qr){
+                                            const res = await axios.get(`/api/areas?limit=20`);
+                                            return res.data.areas.map((member: AreaProps) => ({ label: member.area_name, value: member.id }))
+                                        }
+                                        const res = await axios.get(`/api/areas?search=${qr}&limit=20000000`);
+                                        return res.data.areas.map((member: AreaProps) => ({ label: member.area_name , value: member.id }))
+                                    }}
+                                    defaultValue={getValues("area_id")}
+                                    {...register("area_id")}
+                                    onChange={(val: any) => setValue("area_id", val, { shouldDirty: true })}
+                                />
                             {errors.area_id && (
-                                <p className="mt-1 text-sm text-red-500">{errors.area_id.message}</p>
-                            )}
+                                    <p className="mt-1 text-sm text-red-500">{errors.area_id.message}</p>
+                                )}
                         </div>
                         <div>
                             <Label>

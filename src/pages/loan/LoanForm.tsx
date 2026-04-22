@@ -75,7 +75,7 @@ const LoanForm: React.FC = () => {
     const [hasAngsuran, setHasAngsuran] = useState(false);
     const [employes, setEmployes] = useState<EmployeProps[]>([]);
     const [totalPinjamanLama, setTotalPinjamanLama] = useState(0);
-    const [memberNameEdit, setMemberNameEdit] = useState("halo");
+    const [memberNameEdit, setMemberNameEdit] = useState("");
     const [configLoan, setConfigLoan] = useState({
         totalBulan: 10,
         modalDo: 30
