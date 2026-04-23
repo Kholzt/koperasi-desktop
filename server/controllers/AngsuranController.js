@@ -479,7 +479,7 @@ export default class AngsuranController {
                 group_id: ag.group_id,
                 ref_id: id
             }
-            await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
+            await PosisiUsaha.deletePosisiUsahaSync(dataTransaksi)
             await trx.commit();
 
             logActivity({

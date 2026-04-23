@@ -417,6 +417,27 @@ export default class PosisiUsaha {
             "posisi_usaha.updated_by": user_id,
         });
     }
+    static async deletePosisiUsahaSync({
+        code,
+        ref_id,
+    }) {
+        const baseQuery = () => {
+            let query = db("posisi_usaha")
+                .whereNull("posisi_usaha.deleted_at")
+                .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
+                .where("type_variabel.code", code)
+                .where("reference_id", ref_id)
+                ;
+            // if (!isModalDo) {
+            // }
+
+            return query;
+        };
+
+        return await baseQuery().update({
+           "posisi_usaha.deleted_at": new Date()
+        });
+    }
 
     static async checkDataByDate({
         code,

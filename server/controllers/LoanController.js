@@ -491,7 +491,7 @@ export default class LoanController {
                     ref_id:id
                 }
 
-                await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
+                await PosisiUsaha.deletePosisiUsahaSync(dataTransaksi)
                 return pinjaman; // 🔥 return data ke luar
             });
 
