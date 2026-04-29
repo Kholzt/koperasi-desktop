@@ -157,7 +157,8 @@ export default function Modals({
                             {/* {hasGroup && <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {item.group_name || "-"}
                             </TableCell>} */}
-                            {(canDelete || canEdit) && <Action setIdEdit={(id: number) => {
+                            {(canDelete || canEdit) && <Action refresh={()=>onFilter({ startDate,endDate,group, page: pagination.page })
+                            } setIdEdit={(id: number) => {
                                 setIdEdit(id)
                                 setIsOpenForm(true)
                             }} 

@@ -9,7 +9,7 @@ import { useUser } from '../../hooks/useUser';
 import { PencilIcon, TrashBinIcon } from '../../icons';
 import axios from '../../utils/axios';
 
-export default function Action({ id, code, setIdEdit, label, canDelete, canEdit }: { id: number, code: string, setIdEdit: (id: number) => void, label: string, canDelete?: boolean, canEdit?: boolean }) {
+export default function Action({ id, code, setIdEdit, label, canDelete, canEdit, refresh }: { id: number, code: string, setIdEdit: (id: number) => void, label: string, canDelete?: boolean, canEdit?: boolean, refresh: () => void }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const [isOpenModal, setIsOpenModal] = useState(false); // Perbaikan: Tambahkan state Modal
     const [reason, setReason] = useState("");
@@ -33,6 +33,7 @@ export default function Action({ id, code, setIdEdit, label, canDelete, canEdit 
             await axios.delete(`/api/posisi-usaha/${id}`, { data: { reason } });
 
             toast.success("Posisi Usaha berhasil dihapus");
+            refresh(); // Refresh data setelah hapus
             closeModal();
 
         } catch (error: any) {

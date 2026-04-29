@@ -387,11 +387,11 @@ export default class PosisiUsaha {
         const baseQuery = () => {
             let query = db("posisi_usaha")
                 .where("type_id", typeVar.id)
-                .whereRaw(`DATE(tanggal_input) = '${tanggal_input}'`)
+                // .whereRaw(`DATE(tanggal_input) = '${tanggal_input}'`)
                 .whereNull("deleted_at")
                 .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
                 .where("type_variabel.code", code)
-                .where("group_id", group_id)
+                // .where("group_id", group_id)
                 .where("reference_id", ref_id)
                 ;
             // if (!isModalDo) {
@@ -416,6 +416,7 @@ export default class PosisiUsaha {
         return await baseQuery().update({
             "posisi_usaha.amount": parseInt(amount),
             "posisi_usaha.updated_by": user_id,
+            "posisi_usaha.group_id":  group_id,
         });
     }
     static async deletePosisiUsahaSync({
