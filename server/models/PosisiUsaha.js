@@ -323,6 +323,7 @@ export default class PosisiUsaha {
                 group_id,
                 pos_id
             }))
+            .whereNull("posisi_usaha.deleted_at")
             .join("type_variabel", "posisi_usaha.type_id", "type_variabel.id")
             .select(db.raw( 'COUNT(DISTINCT DATE(posisi_usaha.tanggal_input), group_id) as total'))
             .first();

@@ -29,6 +29,8 @@ interface ModalsProps {
     useGroupName?: boolean;
     hasGroup?: boolean
     isCurrency?: boolean
+    canDelete?: boolean
+    canEdit?: boolean
 }
 
 export default function Modals({
@@ -48,6 +50,8 @@ export default function Modals({
     isCurrency,
     addButtonText = "Tambah",
     isPercentage = false,
+    canDelete = true,
+    canEdit = true,
 }: ModalsProps & { addButtonText?: string, isPercentage?: boolean }) {
     const [startDate, setStartDate] = useState<string | null>(null);
     const [endDate, setEndDate] = useState<string | null>(null);
@@ -113,7 +117,7 @@ export default function Modals({
                         >
                             Kelompok
                         </TableCell>} */}
-                        {Form && <TableCell
+                        {(canDelete || canEdit)&& <TableCell
                             isHeader
                             className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                         >
@@ -153,10 +157,14 @@ export default function Modals({
                             {/* {hasGroup && <TableCell className="px-4 py-3 text-gray-800 font-medium text-start text-theme-sm dark:text-gray-400">
                                 {item.group_name || "-"}
                             </TableCell>} */}
-                            {Form && <Action setIdEdit={(id: number) => {
+                            {(canDelete || canEdit) && <Action setIdEdit={(id: number) => {
                                 setIdEdit(id)
                                 setIsOpenForm(true)
-                            }} id={item.id} code='s' />}
+                            }} 
+                            id={item.id} 
+                            code={item.id.toString()} label={item.group_name+ " - " + item.nama_pos+ " - "+ formatDate(item.tanggal)} 
+                            canDelete={canDelete} canEdit={canEdit} 
+                            />}
                         </TableRow>
                     ))}
 

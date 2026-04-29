@@ -149,7 +149,7 @@ const Metrics: React.FC = () => {
 
             {/* CARD */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
-                <MetricItem isCurrency hasPointer onClick={() => setModalActive("storting")} Icon={DollarLineIcon} title='Storting' count={angsuranSum} />
+                <MetricItem isCurrency hasPointer onClick={() => setModalActive("storting")} Icon={DollarLineIcon} title='Storting' count={angsuranSum}/>
                 <MetricItem isCurrency hasPointer onClick={() => setModalActive("modaldo")} Icon={DollarLineIcon} title='Modal DO' count={modalDoSum} />
                 <MetricItem
                     hasPointer
@@ -196,6 +196,8 @@ const Metrics: React.FC = () => {
                 onFilter={(filter) => fetchAngsuran(filter.page, paginationAngsuran.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
                 hasGroup
+                canDelete={true}
+                canEdit={false}
             />
 
             <Modals
@@ -211,6 +213,8 @@ const Metrics: React.FC = () => {
                 onPageChange={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 onFilter={(filter) => fetchModalDo(filter.page, paginationModalDo.limit, filter.startDate || '', filter.endDate || '', filter.group || "",posId)}
                 groups={groups}
+                canDelete={true}
+                canEdit={false}
             />
 
             <Modals
@@ -227,6 +231,8 @@ const Metrics: React.FC = () => {
                 groups={groups}
                 hasGroup
                 Form={TargetAnggotaForm}
+                canDelete={true}
+                canEdit={true}
             />
             <Modals
                 isCurrency
@@ -243,6 +249,8 @@ const Metrics: React.FC = () => {
                 groups={groups}
                 hasGroup
                 Form={TargetForm}
+                canDelete={true}
+                canEdit={true}
             />
             <Modals
                 title="History Sirkulasi"
@@ -259,6 +267,8 @@ const Metrics: React.FC = () => {
                 groups={groups}
                 hasGroup
                 Form={SirkulasiForm}
+                canDelete={true}
+                canEdit={true}
             />
             <Modals
                 title="History IP"
@@ -275,6 +285,8 @@ const Metrics: React.FC = () => {
                 hasGroup
                 Form={IPForm}
                 isPercentage={true}
+                canDelete={true}
+                canEdit={true}
             />
             <Modals
                 title="History Naik/Turun"
@@ -292,6 +304,8 @@ const Metrics: React.FC = () => {
                 Form={NaikTurunForm}
                 isCurrency={true}
                 addButtonText="Generate Naik/Turun"
+                canDelete={true}
+                canEdit={true}
             />
             <Modals
                 isCurrency
@@ -308,6 +322,8 @@ const Metrics: React.FC = () => {
                 groups={groups}
                 hasGroup
                 Form={PDForm}
+                canDelete={true}
+                canEdit={true}
             />
             <Modals
                 isCurrency
@@ -324,6 +340,8 @@ const Metrics: React.FC = () => {
                 groups={groups}
                 hasGroup
                 Form={SUForm}
+                canDelete={true}
+                canEdit={true}
             />
         </>
     );

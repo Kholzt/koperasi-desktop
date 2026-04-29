@@ -9,7 +9,7 @@ import { useUser } from '../../hooks/useUser';
 import { PencilIcon, TrashBinIcon } from '../../icons';
 import axios from '../../utils/axios';
 
-export default function Action({ id, code, setIdEdit }: { id: number, code: string, setIdEdit: (id: number) => void }) {
+export default function Action({ id, code, setIdEdit, label, canDelete, canEdit }: { id: number, code: string, setIdEdit: (id: number) => void, label: string, canDelete?: boolean, canEdit?: boolean }) {
     const [isOpenDropdown, setIsOpenDropdown] = useState(false);
     const [isOpenModal, setIsOpenModal] = useState(false); // Perbaikan: Tambahkan state Modal
     const [reason, setReason] = useState("");
@@ -61,7 +61,7 @@ export default function Action({ id, code, setIdEdit }: { id: number, code: stri
                 className="absolute right-0 z-10 mt-2 w-52 rounded-2xl border border-gray-200 bg-white p-2 shadow-lg"
             >
                 <ul className="flex flex-col gap-1">
-                    {user?.role !== "staff" && (
+                    {canEdit && (
                         <li>
                             <DropdownItem
                                 onItemClick={() => setIdEdit(id)}
@@ -72,15 +72,17 @@ export default function Action({ id, code, setIdEdit }: { id: number, code: stri
                             </DropdownItem>
                         </li>
                     )}
-                    <li>
-                        <DropdownItem
-                            onItemClick={openModal} // Memanggil fungsi openModal
-                            tag="button"
-                            className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-                        >
-                            <TrashBinIcon fontSize={20} /> Hapus
-                        </DropdownItem>
-                    </li>
+                    {canDelete && (
+                        <li>
+                            <DropdownItem
+                                onItemClick={openModal} // Memanggil fungsi openModal
+                                tag="button"
+                                className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+                            >
+                                <TrashBinIcon fontSize={20} /> Hapus
+                            </DropdownItem>
+                        </li>
+                    )}
                 </ul>
             </Dropdown>
 
@@ -94,7 +96,7 @@ export default function Action({ id, code, setIdEdit }: { id: number, code: stri
                         Pemberitahuan
                     </h5>
                     <p className="text-base text-gray-800 mb-2">
-                        Apakah Anda yakin untuk menghapus posisi usaha dengan kode <span className="font-bold">{code}</span>?
+                        Apakah Anda yakin untuk menghapus posisi usaha <span className="font-bold">{label}</span>?
                     </p>
                     <p className="text-sm text-gray-500 mb-6 font-italic">
                         * Data yang dihapus dapat dikembalikan nanti (Soft Delete)
