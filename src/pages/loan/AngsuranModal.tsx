@@ -152,6 +152,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                 toast.success("Angsuran berhasil diubah")
             }
             if (res.status === 201 || res.status === 200) {
+                const descriptionBeforeUpdate = employes.find((e) => originalData?.penagih.includes(e.id.toString()))?.group_name
                 const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
 
                 if (data.status != "Libur Operasional" && data.status != "libur") {
@@ -160,6 +161,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
                     const dataTransaction = {
                         transaction_type: 'debit',
                         category_id: 1,
+                        descriptionBeforeUpdate: descriptionBeforeUpdate ?? description,
                         description: description ?? "Kelompok 0",
                         nominal: jumlahBayar,
                         pos_id: user?.pos_id,

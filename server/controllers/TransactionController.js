@@ -130,7 +130,7 @@ export default class TransactionController {
         }
 
         try {
-            const { category_id, pos_id, description, transaction_type, nominal, date, user, resource, meta, reason, status } = req.body;
+            const { category_id, pos_id, description, transaction_type, nominal, date, user, resource, meta, reason, status,descriptionBeforeUpdate } = req.body;
             const now = new Date();
             const transactionDate = date ?? now;
 
@@ -138,7 +138,7 @@ export default class TransactionController {
             const existingTransaction = await Transaction.getTransactionsByInfo({
                 category: category_id,
                 date: transactionDate,
-                desc: description,
+                desc: descriptionBeforeUpdate,
                 type: transaction_type,
                 resource
             });
@@ -151,7 +151,7 @@ export default class TransactionController {
 
                 const totalNewAmount = Number(cleanExisting) + Number(cleanNominal);
 
-                await Transaction.update({ amount: totalNewAmount }, existingTransaction.id);
+                await Transaction.update({ amount: totalNewAmount , description}, existingTransaction.id);
                 await Transaction.createLog({
                     id_transaksi: existingTransaction.id,
                     updated_by: user,

@@ -24,6 +24,7 @@ import { formatCurrency, formatDate, insertToTransaction, toLocalDate, unformatC
 import { EmployeProps, MemberProps, UserProps } from "../../utils/types";
 import SelectSearch from './../../components/form/SelectSearch';
 import MultiSelect from "../../components/form/MultiSelect";
+import { debug } from "node:console";
 
 interface LoanFormInput {
     kode: string;
@@ -193,7 +194,25 @@ const LoanForm: React.FC = () => {
             setLoading(true);
             axios.get("/api/loans/" + id).then((res: any) => {
                 const loan = res.data.loan
-                const initialData = { ...loan, penanggung_jawab: JSON.parse(loan.penanggung_jawab), tanggal_pinjam: new Date(loan.tanggal_peminjaman as string), besar_tunggakan: loan.besar_tunggakan.toString(), sisa_pembayaran: loan.sisa_pembayaran.toString() };
+                const initialData: LoanFormInput = {
+                    kode: loan.kode ?? "",
+                    jumlah_pinjaman: loan.jumlah_pinjaman?.toString() ?? "0",
+                    persen_bunga: loan.persen_bunga?.toString() ?? "0",
+                    total_bunga: loan.total_bunga?.toString() ?? "0",
+                    anggota_id: loan.anggota_id ?? "",
+                    total_pinjaman: loan.total_pinjaman?.toString() ?? "0",
+                    total_pinjaman_diterima: loan.total_pinjaman_diterima?.toString() ?? "0",
+                    jumlah_angsuran: loan.jumlah_angsuran?.toString() ?? "0",
+                    tanggal_angsuran_pertama: loan.tanggal_angsuran_pertama ?? "",
+                    modal_do: loan.modal_do?.toString() ?? "0",
+                    penanggung_jawab: (JSON.parse(loan.penanggung_jawab) as any[]).map(String),
+                    petugas_input: loan.petugas_input ?? user?.id ?? 1,
+                    sisa_pembayaran: loan.sisa_pembayaran?.toString() ?? "0",
+                    besar_tunggakan: loan.besar_tunggakan?.toString() ?? "0",
+                    tanggal_pinjam: loan.tanggal_peminjaman ? new Date(loan.tanggal_peminjaman as string).toISOString() : new Date().toISOString(),
+                    status: loan.status ?? 'aktif',
+                };
+                
                 setTotalPinjamanLama(loan.total_pinjaman)
                 reset(initialData);
                 setHasAngsuran(loan.hasAngsuran);
@@ -215,7 +234,7 @@ const LoanForm: React.FC = () => {
 
     const onSubmit = async (data: LoanFormInput) => {
         try {
-
+       
             data.besar_tunggakan = unformatCurrency(data.besar_tunggakan).toString();
             data.jumlah_angsuran = unformatCurrency(data.jumlah_angsuran).toString();
             data.jumlah_pinjaman = unformatCurrency(data.jumlah_pinjaman).toString();
@@ -225,19 +244,25 @@ const LoanForm: React.FC = () => {
             data.total_bunga = unformatCurrency(data.total_bunga).toString();
             data.petugas_input = user?.id ?? 1;
             let meta: any = {};
-            Object.keys(dirtyFields).forEach((key: string) => {
-                meta[key] = originalData
-                    ? { original: originalData[key], updated: data[key] }
-                    : { original: data[key], updated: "-" };
-            });
+            (Object.keys(dirtyFields) as Array<keyof LoanFormInput>).forEach((key) => {
+                const originalValue = originalData ? originalData[key] : undefined;
+                const updatedValue = data[key];
 
+                if (originalData) {
+                    if (originalValue !== updatedValue) {
+                        meta[key] = { original: originalValue, updated: updatedValue };
+                    }
+                } else {
+                    meta[key] = { original: updatedValue, updated: "-" };
+                }
+            });
             let res;
             if (!id) {
                 res = await axios.post("/api/loans", data);
             } else {
                 res = await axios.put("/api/loans/" + id, data);
-
             }
+            const descriptionBeforeUpdate = employes.find((e) => originalData?.penanggung_jawab.includes(e.id.toString()))?.group_name
             const description = employes.find((e) => data.penanggung_jawab.includes(e.id.toString()))?.group_name
 
             if (res.status === 201 || res.status === 200) {
@@ -246,6 +271,7 @@ const LoanForm: React.FC = () => {
                 const dataTransaction = {
                     transaction_type: 'credit',
                     category_id: 1,
+                    descriptionBeforeUpdate : descriptionBeforeUpdate ?? description,
                     description: description ?? "Kelompok 0",
                     nominal: nominal,
                     pos_id: user?.pos_id,
@@ -256,7 +282,8 @@ const LoanForm: React.FC = () => {
                     reason: id ? "edit pinjaman" : "add pinjaman",
                     date: toLocalDate(new Date(data.tanggal_pinjam))
                 }
-
+                
+                
                 // await axios.post("/api/transactions", dataTransaction);
                 toast.success(`Pinjaman berhasil ${!id ? "ditambah" : "diubah"}`);
                 navigate("/loan?isFromTransaction=true");
@@ -307,6 +334,8 @@ const LoanForm: React.FC = () => {
                                             return res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id }))
                                         }
                                         const res = await axios.get(`/api/members?search=${qr}&limit=20000000`);
+                                        console.log(res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id })));
+                                        
                                         return res.data.members.map((member: MemberProps) => ({ label: member.complete_name + " / " + (member.nik ?? "-"), value: member.id }))
                                     }}
                                     defaultValue={getValues("anggota_id")}

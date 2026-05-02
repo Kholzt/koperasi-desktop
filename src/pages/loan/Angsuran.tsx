@@ -183,6 +183,7 @@ const Angsuran: React.FC = () => {
                 res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
             }
             if (res.status === 201 || res.status === 200) {
+                const descriptionBeforeUpdate = employes.find((e) => originalData?.penagih.includes(e.id.toString()))?.group_name
                 const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
                 if (data.status != "Libur Operasional" && data.status != "libur") {
                     const jumlahBayar = unformatCurrency(data.jumlah_bayar ?? "0") + unformatCurrency(data.jumlah_katrol ?? "0");
@@ -191,6 +192,7 @@ const Angsuran: React.FC = () => {
                     const dataTransaction = {
                         transaction_type: 'debit',
                         category_id: 1,
+                        descriptionBeforeUpdate: descriptionBeforeUpdate ?? description,
                         description: description ?? "Kelompok 0",
                         nominal: nominal,
                         pos_id: user?.pos_id,
