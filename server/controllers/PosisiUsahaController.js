@@ -33,7 +33,7 @@ export default class PosisiUsahaController {
             console.log("ERROR APAH : ",req.query);
             
             const { history, total: totalData } = await PosisiUsaha.getHistory({ startDate, endDate, offset, limit: l, code, group_id ,pos_id})
-            const { jumlah, jumlah_positif, jumlah_negatif } = await PosisiUsaha.getTotalAmount({ startDate, endDate, code, pos_id })
+            const { jumlah, jumlah_positif, jumlah_negatif } = await PosisiUsaha.getTotalAmount({ startDate, endDate, code, pos_id ,group_id})
             const jumlahTotal = parseFloat(jumlah || 0);
 
             const total = parseInt(totalData || 0, 10);
@@ -63,7 +63,7 @@ export default class PosisiUsahaController {
             const offset = (p - 1) * l;
 
             const { history, total: totalData } = await PosisiUsaha.getHistory({ startDate, endDate, offset, limit: l, code, group_id ,pos_id})
-            const { jumlah, jumlah_positif, jumlah_negatif, finalDates } = await PosisiUsaha.getTotalAmountSirkulasi({ startDate, endDate, code,pos_id })
+            const { jumlah, jumlah_positif, jumlah_negatif, finalDates } = await PosisiUsaha.getTotalAmountSirkulasi({ startDate, endDate, code,pos_id ,group_id})
             const jumlahTotal = parseFloat(jumlah || 0);
 
             const total = parseInt(totalData || 0, 10);

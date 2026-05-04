@@ -21,12 +21,14 @@ import PageMeta from '../../components/common/PageMeta';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import Label from '../../components/form/Label';
 import Select from '../../components/form/Select';
+import SelectSearch from '../../components/form/SelectSearch';
 
 
 const Metrics: React.FC = () => {
     const [startDate, setStartDate] = useState<string | null>(null);
     const [endDate, setEndDate] = useState<string | null>(null);
     const [posId, setPosId] = useState<string | undefined>('');
+    const [groupFilter, setGroupFilter] = useState<string | undefined>('');
     const [modalActive, setModalActive] = useState<string | null>(null);
 
     // --- Hooks Data ---
@@ -55,6 +57,7 @@ const Metrics: React.FC = () => {
         items: modalSirkulasi, sum: modalSirkulasiSum,
         pagination: paginationSirkulasi, fetchPage: fetchSirkulasi
     } = usePosisiUsaha(posisiUsahaCode.SIRKULASI);
+
     const {
         items: modalSirkulasiJalan, sum: modalSirkulasiSumJalan,
         pagination: paginationSirkulasiJalan, fetchPage: fetchSirkulasiJalan
@@ -85,23 +88,24 @@ const Metrics: React.FC = () => {
     const loadAllData = useCallback((sDate: string | null, eDate: string | null) => {
         const start = sDate || '';
         const end = eDate || '';
-        fetchAngsuran(1, paginationAngsuran.limit, start, end,'',posId);
-        fetchModalDo(1, paginationModalDo.limit, start, end,'',posId);
-        fetchTargetAnggota(1, paginationTargetAnggota.limit, start, end,'',posId);
-        fetchTarget(1, paginationTarget.limit, start, end,'',posId);
-        fetchIp(1, paginationIp.limit, start, end,'',posId);
-        fetchPD(1, paginationPD.limit, start, end,'',posId);
-        fetchSU(1, paginationSU.limit, start, end,'',posId);
-        fetchNaikTurun(1, paginationNaikTurun.limit, start, end,'',posId);
-        fetchSirkulasi(1, paginationSirkulasi.limit, start, end,'',posId);
-        fetchSirkulasiJalan(1, paginationSirkulasiJalan.limit, start, end,'',posId);
-        console.log(1, paginationSirkulasiJalan.limit, start, end,'',posId)
-    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, fetchTarget, fetchIp, fetchPD, fetchSU, fetchNaikTurun, fetchSirkulasi, fetchSirkulasiJalan, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit, paginationTarget.limit, paginationIp.limit, paginationPD.limit, paginationSU.limit, paginationNaikTurun.limit, paginationSirkulasi.limit, paginationSirkulasiJalan.limit,posId]);
+        fetchAngsuran(1, paginationAngsuran.limit, start, end,groupFilter,posId);
+        fetchModalDo(1, paginationModalDo.limit, start, end,groupFilter,posId);
+        fetchTargetAnggota(1, paginationTargetAnggota.limit, start, end,groupFilter,posId);
+        fetchTarget(1, paginationTarget.limit, start, end,groupFilter,posId);
+        fetchIp(1, paginationIp.limit, start, end,groupFilter,posId);
+        fetchPD(1, paginationPD.limit, start, end,groupFilter,posId);
+        fetchSU(1, paginationSU.limit, start, end,groupFilter,posId);
+        fetchNaikTurun(1, paginationNaikTurun.limit, start, end,groupFilter,posId);
+        fetchSirkulasi(1, paginationSirkulasi.limit, start, end,groupFilter,posId);
+        fetchSirkulasiJalan(1, paginationSirkulasiJalan.limit, start, end,groupFilter,posId);
+
+    }, [fetchAngsuran, fetchModalDo, fetchTargetAnggota, fetchTarget, fetchIp, fetchPD, fetchSU, fetchNaikTurun, fetchSirkulasi, fetchSirkulasiJalan, paginationAngsuran.limit, paginationModalDo.limit, paginationTargetAnggota.limit, paginationTarget.limit, paginationIp.limit, paginationPD.limit, paginationSU.limit, paginationNaikTurun.limit, paginationSirkulasi.limit, paginationSirkulasiJalan.limit,posId,groupFilter]);
+
 
     // --- Effects ---
     useEffect(() => {
         loadAllData(startDate, endDate);
-    }, [startDate, endDate,posId, loadAllData]);
+    }, [startDate, endDate,posId, loadAllData,groupFilter]);
 
     const handleDateChange = (date: (Date | null)[]) => {
         setStartDate(date && date[0] ? toLocalDate(date[0]) : null);
@@ -144,6 +148,15 @@ const Metrics: React.FC = () => {
                 />
             </div>
 
+        <div className="max-w-[300px] w-full">
+             <SelectSearch
+                label="Kelompok"
+                placeholder="Pilih kelompok"
+                options={[{ label: "Pilih Semua", value: "" }, ...groups]}
+                defaultValue={groupFilter}
+                onChange={(val: any) => setGroupFilter(val)}
+            />
+        </div>
             {/* Jika ada tombol Reset atau Search, letakkan di sini agar sejajar */}
             </div>
 

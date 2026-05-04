@@ -16,7 +16,7 @@ export default class PosisiUsaha {
 
             qb.where("type_variabel.code", code)
             if (group_id) {
-                qb.where("group_id", group_id)
+                qb.where("posisi_usaha.group_id", group_id)
             }
             if (pos_id) {
                 qb.where((builder) => {
@@ -114,7 +114,8 @@ export default class PosisiUsaha {
         startDate,
         endDate,
         code,
-        pos_id
+        pos_id,
+        group_id
     }) {
         let posisiUsaha;
         if (code == 'sirkulasi') {
@@ -124,7 +125,8 @@ export default class PosisiUsaha {
                     startDate,
                     endDate,
                     code,
-                    pos_id
+                    pos_id,
+                    group_id
                 }))
                 .whereNull('posisi_usaha.deleted_at')
                 .select(db.raw('SUM(amount) as jumlah'),
@@ -138,7 +140,8 @@ export default class PosisiUsaha {
                     startDate,
                     endDate,
                     code,
-                    pos_id
+                    pos_id,
+                    group_id
                 }))
                 .whereNull('posisi_usaha.deleted_at')
                 .select(db.raw('SUM(amount) as jumlah'),
@@ -146,6 +149,7 @@ export default class PosisiUsaha {
                     db.raw("SUM(CASE WHEN amount < 0 THEN amount ELSE 0 END) as jumlah_negatif"))
                 .first();
         }
+
 
         const jumlah = posisiUsaha.jumlah
         const jumlah_positif = posisiUsaha.jumlah_positif;
@@ -162,7 +166,8 @@ export default class PosisiUsaha {
         startDate,
         endDate,
         code,
-        pos_id
+        pos_id,
+        group_id
     }) {
 
         function formatDate(date) {
@@ -208,6 +213,11 @@ export default class PosisiUsaha {
             query.where((b) => {
                 b.where("groups.pos_id", pos_id)
                 .orWhereNull("posisi_usaha.group_id");
+            });
+        }
+        if (group_id != null && group_id !== '' && group_id !== undefined) {
+            query.where((b) => {
+                b.where("posisi_usaha.group_id", group_id);
             });
         }
         const existingDates = await query.select(
@@ -286,6 +296,12 @@ export default class PosisiUsaha {
                 if (pos_id != null) {
                     builder.where((b) => {
                         b.where("groups.pos_id", pos_id)
+                        // .orWhereNull("posisi_usaha.group_id");
+                    });
+                }
+                if (group_id != null) {
+                    builder.where((b) => {
+                        b.where("posisi_usaha.group_id", group_id)
                         // .orWhereNull("posisi_usaha.group_id");
                     });
                 }

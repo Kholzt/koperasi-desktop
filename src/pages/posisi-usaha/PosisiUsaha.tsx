@@ -14,7 +14,7 @@ export default function PosisiUsaha() {
                 <div className="col-span-12 space-y-6">
                     <Metrics />
                 </div>
-
+                    
             </div>
         </>
     );

@@ -182,6 +182,7 @@ const Angsuran: React.FC = () => {
                 status = "edit"
                 res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
             }
+            
             if (res.status === 201 || res.status === 200) {
                 const descriptionBeforeUpdate = employes.find((e) => originalData?.penagih.includes(e.id.toString()))?.group_name
                 const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
@@ -203,6 +204,7 @@ const Angsuran: React.FC = () => {
                         status: status,
                         date: angsuran?.tanggal_pembayaran ? toLocalDate(new Date(angsuran?.tanggal_pembayaran)) : toLocalDate(new Date())
                     }
+
                     // await axios.post("/api/transactions", dataTransaction);
 
 

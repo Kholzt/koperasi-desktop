@@ -126,6 +126,7 @@ const AngsuranModal: React.FC<AngsuranModalProps> = ({ onClose }) => {
             setValue("jumlah_katrol", formatCurrency(jumlahKatrolFormat), { shouldDirty: true });
         }
     }, [jumlahBayar, jumlahKatrol]);
+    
     const onSubmit = async (data: FormInputs) => {
         let meta: any = {};
         Object.keys(dirtyFields).forEach((key: string) => {
