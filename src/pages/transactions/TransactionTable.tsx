@@ -116,7 +116,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                     Diubah oleh
                                 </TableCell></>}
 
-                            {isAdminAndPusat && <TableCell
+                            {isAdminPusatController && <TableCell
                                 rowSpan={2}
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -203,7 +203,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, tableRef }) =
                                     </TableCell></>}
 
 
-                                {isAdminAndPusat && index != 0 && <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
+                                {isAdminPusatController && index != 0 && <TableCell className="px-4 py-3 border-e border-t border-gray-100 dark:border-white/[0.05] text-gray-500 text-start text-theme-sm dark:text-gray-400 capitalize">
                                     <Action id={user.id} code={user.code} />
                                 </TableCell>}
 
