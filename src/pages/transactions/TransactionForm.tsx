@@ -29,9 +29,10 @@ interface TransactionFormInput {
     transaction_type: 'credit' | 'debit';
     category_id: string;
     description: string;
+    descriptionBeforeUpdate: string;
     nominal: string;
     pos_id: string;
-    date: string;
+    // date: string;
     user?: number;
     reason?: string;
     resource?: string;
@@ -127,6 +128,7 @@ const TransactionForm: React.FC = () => {
             data.nominal = unformatCurrency(data.nominal).toString();
             data.user = user?.id;
             data.resource = "transaksi"
+            data.descriptionBeforeUpdate = data.description;
             let res;
             console.log(data);
 
@@ -142,7 +144,7 @@ const TransactionForm: React.FC = () => {
                 navigate("/transactions");
             }
         } catch (error: any) {
-            console.error(error);
+            console.error(error.response);
             console.log(error)
             if (error.status === 400 && error.response.data.errors) {
                 Object.keys(error.response.data.errors).forEach((key: any) => {
