@@ -230,6 +230,8 @@ export default class Loan {
         const pinjaman = await db("pinjaman").where("id", idPinjaman).first();
         const [sumResult] = await db("angsuran")
             .where("id_pinjaman", idPinjaman)
+            .where("status", "<>","aktif")
+            .whereNull("deleted_at")
             .sum({ total_katrol: "jumlah_katrol" })
             .sum({ total_bayar: "jumlah_bayar" });
 
