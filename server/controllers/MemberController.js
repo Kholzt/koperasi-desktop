@@ -1,5 +1,5 @@
 import { body, validationResult } from "express-validator";
-import db from "../config/db.js";
+import db, { transaction } from "../config/db.js";
 import Member from "../models/Member.js";
 import { logActivity } from './services/logActivity.js';
 import { ACTIVITY_ACTION, ACTIVITY_ENTITY, ACTIVITY_MENU } from '../constants/activityConstant.js';
@@ -8,6 +8,9 @@ import { diffObject } from '../helpers/diffObject.js';
 export default class MemberController {
     static async index(req, res) {
         try {
+            // Resolve duplicate sequence numbers if any exist
+            await Member.resolveDuplicateSequences();
+
             const { page = 1, limit = 10, search = "" } = req.query;
             const offset = (parseInt(page) - 1) * parseInt(limit);
 
@@ -51,6 +54,7 @@ export default class MemberController {
                 },
             });
         } catch (error) {
+            console.error('Failed to fetch members:', error);
             res.status(500).json({ error: error.message });
         }
     }
@@ -216,7 +220,39 @@ export default class MemberController {
             const { oldValue, newValue } = diffObject(oldData, { complete_name, area_id, address, nik, no_kk, pos_id, description });
 
             const data = { complete_name, area_id, address, id, nik, no_kk, pos_id, description }
-            await Member.update(data, id);
+
+            if (parseInt(oldData.area_id) !== parseInt(area_id)) {
+                await transaction(async () => {
+                    // Shift down sequence numbers of other members in the old area
+                    await Member.updateMemberSequenceAndLoanKode(oldData);
+
+                    // Get newest sequence number in the new area
+                    const latestMemberInNewArea = await Member.getSequenceNumber(area_id);
+                    const newSequenceNumber = latestMemberInNewArea ? latestMemberInNewArea.sequence_number + 1 : 1;
+
+                    data.sequence_number = newSequenceNumber;
+
+                    // Update member details
+                    await Member.update(data, id);
+
+                    // Update member's own loan codes to use the new sequence number
+                    const pinjaman = await db("pinjaman")
+                        .where("anggota_id", id)
+                        .whereNull("deleted_at");
+
+                    for (const p of pinjaman) {
+                        if (p.kode && p.kode.includes("/")) {
+                            const [prefix, numberStr] = p.kode.split("/");
+                            const newKode = `${prefix}/${newSequenceNumber}`;
+                            await db("pinjaman")
+                                .where("id", p.id)
+                                .update({ kode: newKode });
+                        }
+                    }
+                });
+            } else {
+                await Member.update(data, id);
+            }
 
             logActivity({
                 user: req.user,

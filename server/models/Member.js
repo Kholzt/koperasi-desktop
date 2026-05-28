@@ -1,4 +1,4 @@
-import db from "../config/db";
+import db, { transaction } from "../config/db";
 
 export default class Member {
     static async findAll({ offset, limit, search }) {
@@ -31,9 +31,9 @@ export default class Member {
             .offset(offset);
 
         // Query total count
-        const [{ total }] = await db('members')
-            .count('id as total')
-            .whereNull('deleted_at')
+        const [{ total }] = await db('members as m')
+            .count('m.id as total')
+            .whereNull('m.deleted_at')
             .andWhere(function () {
                 this.where('m.complete_name', 'like', `%${search}%`)
                     .orWhere('m.nik', 'like', `%${search}%`)
@@ -148,6 +148,7 @@ export default class Member {
         const members = await db('members')
             .where("area_id", member.area_id)
             .whereRaw("sequence_number > " + member.sequence_number)
+            .whereNull("deleted_at");
 
         await Promise.all(
             members.map(async (member) => {
@@ -169,18 +170,55 @@ export default class Member {
                         .where("pinjaman.id", p.id)
                         .update({ kode: newKode });
                 }
-                // if (pinjaman) {
-                //     // Update kode
-                //     const [prefix, numberStr] = pinjaman.kode.split("/");
-                //     const newNumber = parseInt(numberStr) - 1;
-                //     const newKode = `${prefix}/${newNumber}`;
-
-                //     await db("pinjaman")
-                //         .where("anggota_id", member.id)
-                //         .update({ kode: newKode });
-                // }
             })
         );
         return true;
+    }
+
+    static async resolveDuplicateSequences() {
+        const areasWithDuplicates = await db("members")
+            .select("area_id")
+            .whereNull("deleted_at")
+            .groupBy("area_id", "sequence_number")
+            .havingRaw("count(*) > 1");
+
+        if (areasWithDuplicates.length === 0) return;
+
+        const areaIds = [...new Set(areasWithDuplicates.map(a => a.area_id))];
+
+        await transaction(async () => {
+            for (const areaId of areaIds) {
+                const members = await db("members")
+                    .where("area_id", areaId)
+                    .whereNull("deleted_at")
+                    .orderBy("created_at", "asc")
+                    .orderBy("id", "asc");
+
+                for (let i = 0; i < members.length; i++) {
+                    const member = members[i];
+                    const correctSequence = i + 1;
+
+                    if (member.sequence_number !== correctSequence) {
+                        await db("members")
+                            .where("id", member.id)
+                            .update({ sequence_number: correctSequence });
+
+                        const pinjaman = await db("pinjaman")
+                            .where("anggota_id", member.id)
+                            .whereNull("deleted_at");
+
+                        for (const p of pinjaman) {
+                            if (p.kode && p.kode.includes("/")) {
+                                const [prefix, numberStr] = p.kode.split("/");
+                                const newKode = `${prefix}/${correctSequence}`;
+                                await db("pinjaman")
+                                    .where("id", p.id)
+                                    .update({ kode: newKode });
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 }
