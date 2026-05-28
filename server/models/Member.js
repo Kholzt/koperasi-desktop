@@ -23,6 +23,7 @@ export default class Member {
                 this.where('m.complete_name', 'like', `%${search}%`)
                     .orWhere('m.nik', 'like', `%${search}%`)
                     .orWhere('m.no_kk', 'like', `%${search}%`)
+                    .orWhere('m.sequence_number', 'like', `%${search}%`)
             })
             .leftJoin("pos", "m.pos_id", "pos.id")
             .orderBy('m.created_at', 'desc')
@@ -33,7 +34,12 @@ export default class Member {
         const [{ total }] = await db('members')
             .count('id as total')
             .whereNull('deleted_at')
-            .andWhere('complete_name', 'like', `%${search}%`);
+            .andWhere(function () {
+                this.where('m.complete_name', 'like', `%${search}%`)
+                    .orWhere('m.nik', 'like', `%${search}%`)
+                    .orWhere('m.no_kk', 'like', `%${search}%`)
+                    .orWhere('m.sequence_number', 'like', `%${search}%`)
+            });
 
         return { total, rows }
     }
@@ -153,23 +159,28 @@ export default class Member {
                 // Ambil data pinjaman
                 const pinjaman = await db("pinjaman")
                     .where("anggota_id", member.id)
-                    .first();
-
-                if (pinjaman) {
+                    .whereNull("deleted_at");
+                for (const p of pinjaman) {
                     // Update kode
-                    const [prefix, numberStr] = pinjaman.kode.split("/");
+                    const [prefix, numberStr] = p.kode.split("/");
                     const newNumber = parseInt(numberStr) - 1;
                     const newKode = `${prefix}/${newNumber}`;
-
                     await db("pinjaman")
-                        .where("anggota_id", member.id)
+                        .where("pinjaman.id", p.id)
                         .update({ kode: newKode });
                 }
+                // if (pinjaman) {
+                //     // Update kode
+                //     const [prefix, numberStr] = pinjaman.kode.split("/");
+                //     const newNumber = parseInt(numberStr) - 1;
+                //     const newKode = `${prefix}/${newNumber}`;
+
+                //     await db("pinjaman")
+                //         .where("anggota_id", member.id)
+                //         .update({ kode: newKode });
+                // }
             })
         );
-
-
-
         return true;
     }
 }

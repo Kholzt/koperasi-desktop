@@ -35,7 +35,7 @@ const LoanDetail: React.FC = () => {
     useEffect(() => {
         axios.get(`/api/loans/${id}`).then((res: any) => {
             setLoan(res.data.loan)
-
+            console.log("res", res.data.loan)
         });
     }, [showModal, reload]);
 

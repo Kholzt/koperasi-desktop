@@ -45,6 +45,7 @@ export default class LoanController {
     static async show(req, res) {
         try {
             const { id } = req.params;
+            await Loan.updateSisaPembayaran(id);
             const rows = await Loan.findById(id);
 
             const map = new Map();
@@ -295,6 +296,7 @@ export default class LoanController {
                     ref_id:loanId
                 }
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
+                await Loan.updateSisaPembayaran(loanId);
 
                 return await Loan.findById(loanId);
             });

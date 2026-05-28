@@ -161,7 +161,7 @@ export default class MemberController {
                 entityReff: ACTIVITY_ENTITY.MEMBER,
                 entityId: memberId,
                 description: `Menambahkan anggota ${complete_name}`,
-                newValue: { complete_name, area_id, address, nik, no_kk, pos_id, description },
+                newValue: { complete_name, area_id, address, nik, no_kk, pos_id, description ,sequence_number},
             }).catch(err => {
                 console.error('Failed to log activity:', err);
             });

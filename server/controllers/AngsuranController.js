@@ -229,6 +229,7 @@ export default class AngsuranController {
             if (notHoliday) {
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
             }
+            await Loan.updateSisaPembayaran(idPinjaman);
 
             await trx.commit();
 
@@ -317,7 +318,7 @@ export default class AngsuranController {
                     id_angsuran: id
                 });
             }
-            await Angsuran.updateSisaPembayaran(angsuran.id_pinjaman);
+            await Loan.updateSisaPembayaran(angsuran.id_pinjaman);
             await Angsuran.updateTunggakan(angsuran.id_pinjaman);
 
 
@@ -470,6 +471,7 @@ export default class AngsuranController {
                 resource: "angsuran"
             });
 
+            await Loan.updateSisaPembayaran(angsuran.id_pinjaman);
 
             const dataTransaksi = {
                 amount: 0,
