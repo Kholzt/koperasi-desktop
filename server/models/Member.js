@@ -177,7 +177,7 @@ export default class Member {
 
     static async resolveDuplicateSequences() {
         const areasWithDuplicates = await db("members")
-            .select("area_id")
+            .select("area_id","sequence_number")
             .whereNull("deleted_at")
             .groupBy("area_id", "sequence_number")
             .havingRaw("count(*) > 1");
