@@ -134,7 +134,7 @@ const LoanDetail: React.FC = () => {
 
                 </ComponentCard>
                 <ComponentCard title="Detail Angsuran" option={
-                    <Button type="button" onClick={() => setShowModal(true)}>Tambah angsuran</Button>
+                    loan?.status != "lunas" ? <Button type="button" onClick={() => setShowModal(true)}>Tambah angsuran</Button> : null
                 }>
                     <table className="min-w-full text-sm border rounded-md overflow-hidden bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
                         <thead className=" text-gray-700">

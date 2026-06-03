@@ -159,7 +159,7 @@ const Angsuran: React.FC = () => {
             const sisaPembayaran = cleanNumber(loans?.sisa_pembayaran);
             console.log("jumlahBayar:", jumlahBayar);
             console.log("sisaPembayaran:", sisaPembayaran);
-            if (jumlahBayar > sisaPembayaran) {
+            if (!idAngsuran && jumlahBayar > sisaPembayaran) {
                 console.log('lebih', parseInt(data.jumlah_bayar.replace(/[^0-9]/g, "")));
                 console.log(`sisa`, parseInt(String(loans?.sisa_pembayaran)));
                 setError("jumlah_bayar", {
@@ -182,7 +182,7 @@ const Angsuran: React.FC = () => {
                 status = "edit"
                 res = await axios.put(`/api/angsuran/${idAngsuran}`, { ...data, jumlah_bayar: ["Libur Operasional", "Libur Operasional"].includes(data.status) ? 0 : unformatCurrency(data.jumlah_bayar), jumlah_katrol: unformatCurrency(data.jumlah_katrol ?? "0") });
             }
-            
+
             if (res.status === 201 || res.status === 200) {
                 const descriptionBeforeUpdate = employes.find((e) => originalData?.penagih.includes(e.id.toString()))?.group_name
                 const description = employes.find((e) => data.penagih.includes(e.id.toString()))?.group_name
