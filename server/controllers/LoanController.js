@@ -20,6 +20,7 @@ export default class LoanController {
             const limitInt = parseInt(limit);
             const offset = (pageInt - 1) * limitInt;
 
+            await Loan.resolveDuplicateKode();
             // Query loans with join to members
             const { loans, total } = await Loan.findAll({ limit, offset, startDate, endDate, status, day, group,pos, search })
 

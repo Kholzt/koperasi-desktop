@@ -77,7 +77,7 @@ export function useLoan() {
         pos: posFilter || '',
         search: search || '',
       });
-
+      
       setLoans(data.loans || []);
       setPagination((prev) => ({
         ...prev,

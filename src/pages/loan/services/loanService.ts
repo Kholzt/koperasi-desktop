@@ -22,8 +22,13 @@ export async function getLoans(params: LoanFetchParams) {
   const search = params.search || '';
 
   const url = `/api/loans?page=${p}&pos=${encodeURIComponent(pos)}&status=${encodeURIComponent(status)}&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}&day=${encodeURIComponent(day)}&group=${encodeURIComponent(group)}&search=${encodeURIComponent(search)}`;
-  const res = await axios.get(url);
-  return res.data;
+  try {    
+    const res = await axios.get(url);
+    return res.data;
+  } catch (error) {
+    console.log('Error fetching loans:', error);
+    throw error;
+  }
 }
 
 export async function getGroups(limit = 20000000,pos = "") {
