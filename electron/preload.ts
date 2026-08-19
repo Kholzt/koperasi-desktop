@@ -18,27 +18,17 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     const [channel, ...omit] = args
     return ipcRenderer.invoke(channel, ...omit)
   },
-  savePDF: (judul,htmlString) => ipcRenderer.invoke('save-pdf', judul,htmlString)
+  savePDF: (judul, htmlString) => ipcRenderer.invoke('save-pdf', judul, htmlString)
 })
 
 
 contextBridge.exposeInMainWorld('electron', {
-  openFile: (path:string) => ipcRenderer.invoke('open-file', path)
-});
-
-
-contextBridge.exposeInMainWorld('updater', {
-  check: () => ipcRenderer.invoke('check-update'),
-  install: () => ipcRenderer.invoke('install-update'),
-  onStatus: (callback:any) =>
-    ipcRenderer.on('update-status', (_, status) => callback(status)),
-  onProgress: (callback:any) =>
-    ipcRenderer.on('update-progress', (_, percent) => callback(percent)),
+  openFile: (path: string) => ipcRenderer.invoke('open-file', path)
 });
 
 
 contextBridge.exposeInMainWorld("appInfo", {
-    getVersion: () => ipcRenderer.invoke("get-app-version")
+  getVersion: () => ipcRenderer.invoke("get-app-version")
 });
 
 contextBridge.exposeInMainWorld("appPath", {

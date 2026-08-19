@@ -12,7 +12,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 
-dotenv.config();
 
 /**
  * @type {import('knex').Knex}
@@ -33,14 +32,24 @@ const getBackupDir = () => {
 // --- 1. LOAD ENVIRONMENT CONFIG ---
 const loadEnvConfig = () => {
     const appDataEnvPath = getEnvPath();
-    const devEnvPath = path.join(process.cwd(), '.env');
+    
+    // Cari .env di root project (saat dev) atau di sebelah executable (saat production)
+    const rootEnvPath = app.isPackaged 
+        ? path.join(path.dirname(app.getPath('exe')), '.env') 
+        : path.join(process.cwd(), '.env');
 
+    // Jika ada .env di root, salin ke AppData (agar selanjutnya bisa dibaca dari AppData)
+    if (fs.existsSync(rootEnvPath)) {
+        fs.copyFileSync(rootEnvPath, appDataEnvPath);
+        console.log('🔄 .env disalin dari Root ke AppData');
+    }
+
+    // Load config dari AppData (override true memastikan variabel ditimpa dengan yang terbaru)
     if (fs.existsSync(appDataEnvPath)) {
-        dotenv.config({ path: appDataEnvPath });
-        console.log('✅ Config loaded from AppData');
-    } else if (fs.existsSync(devEnvPath)) {
-        dotenv.config({ path: devEnvPath });
-        console.log('⚠️ Config loaded from Process (Dev Mode)');
+        dotenv.config({ path: appDataEnvPath, override: true });
+        console.log('✅ Config loaded from AppData:', appDataEnvPath);
+    } else {
+        console.log('⚠️ File .env tidak ditemukan di Root maupun AppData!');
     }
 };
 

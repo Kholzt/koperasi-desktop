@@ -1,5 +1,4 @@
 import { Route, HashRouter as Router, Routes } from "react-router";
-import CheckUpdate from './CheckUpdate';
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import AppLayout from "./layout/AppLayout";
 import SignIn from "./pages/AuthPages/SignIn";
@@ -42,7 +41,7 @@ export default function App() {
 
     return (
         <>
-            <CheckUpdate />
+            {/* <CheckUpdate /> */}
             <Router>
                 <ScrollToTop />
                 <Routes>

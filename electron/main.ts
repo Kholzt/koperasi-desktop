@@ -1,12 +1,10 @@
-import { app, BrowserWindow, ipcMain, shell, dialog,protocol,net } from "electron";
+import { app, BrowserWindow, ipcMain, shell, dialog, protocol, net } from "electron";
 import { spawn } from "child_process";
 import fs from "fs";
 import { createRequire } from "node:module";
 import { pathToFileURL } from 'url';
 const require = createRequire(import.meta.url);
-// Ganti import { autoUpdater } from 'electron-updater' dengan ini:
-const { autoUpdater } = require("electron-updater");
-// import { autoUpdater } from 'electron-updater';
+
 
 // import { createRequire } from 'node:module'
 import { fileURLToPath } from "node:url";
@@ -14,8 +12,7 @@ import path from "node:path";
 import "../server/Server.js";
 import log from "electron-log/main";
 log.initialize();
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
+
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app-data', privileges: { standard: true, secure: true, supportFetchAPI: true } }
@@ -115,15 +112,15 @@ function startExpressServer() {
 }
 app.whenReady().then(() => {
   startExpressServer();
-    protocol.handle('app-data', (request) => {
-        const filePath = request.url.slice('app-data://'.length);
-        const decodedPath = decodeURIComponent(filePath);
+  protocol.handle('app-data', (request) => {
+    const filePath = request.url.slice('app-data://'.length);
+    const decodedPath = decodeURIComponent(filePath);
 
-        // Gabungkan dengan path userData secara otomatis
-        const fullPath = path.join(app.getPath('userData'), decodedPath);
+    // Gabungkan dengan path userData secara otomatis
+    const fullPath = path.join(app.getPath('userData'), decodedPath);
 
-        return net.fetch(pathToFileURL(fullPath).toString());
-    });
+    return net.fetch(pathToFileURL(fullPath).toString());
+  });
   ipcMain.handle("save-pdf", async (_, judul, htmlString) => {
     const { filePath } = await dialog.showSaveDialog({
       title: "Simpan Laporan Kas",
@@ -155,52 +152,12 @@ app.whenReady().then(() => {
     return app.getPath("userData");
   });
 
-  autoUpdater.setFeedURL({
-    provider: "github",
-    owner: "kholzt",
-    repo: "koperasi-desktop",
-    private: true,
-    token: process.env.GH_TOKEN,
-  });
 
-  ipcMain.handle("check-update", async () => {
-    return autoUpdater.checkForUpdates();
-  });
-
-  ipcMain.handle("install-update", () => {
-    autoUpdater.quitAndInstall();
-  });
   ipcMain.handle("get-app-version", () => {
     return app.getVersion();
   });
 
-  /* =========================
-        AUTO UPDATER EVENTS
-    ========================= */
-  autoUpdater.on("checking-for-update", () => {
-    win?.webContents.send("update-status", "checking");
-  });
 
-  autoUpdater.on("update-available", () => {
-    win?.webContents.send("update-status", "available");
-  });
-
-  autoUpdater.on("update-not-available", () => {
-    win?.webContents.send("update-status", "none");
-  });
-
-  autoUpdater.on("error", (err) => {
-    win?.webContents.send("update-status", "error");
-    log.error("Updater error:", err);
-  });
-
-  autoUpdater.on("download-progress", (progress) => {
-    win?.webContents.send("update-progress", Math.round(progress.percent));
-  });
-
-  autoUpdater.on("update-downloaded", () => {
-    win?.webContents.send("update-status", "downloaded");
-  });
   createWindow();
-  autoUpdater.checkForUpdates();
+
 });

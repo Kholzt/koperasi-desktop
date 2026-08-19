@@ -484,7 +484,6 @@ export default class LoanController {
                     });
                 }
 
-
                 const dataTransaksi = {
                     amount: 0,
                     code: "modaldo",
