@@ -42,29 +42,6 @@ const Loan: React.FC = () => {
     const [searchParams] = useSearchParams();
     const { reload } = useTheme();
 
-    useEffect(() => {
-        fetchLoans(pagination.page);
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, search]);
-
-    useEffect(() => {
-
-        if (!isFiltersLoaded) return;
-
-        const savedFilters = {
-            endDate: filter.endDate,
-            startDate: filter.startDate,
-            status: filter.status,
-            dayFilter,
-            groupFilter,
-            posFilter,
-            // search,
-            page: pagination?.page
-        };
-        localStorage.setItem('filters', JSON.stringify(savedFilters));
-
-    }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, search, isFiltersLoaded, pagination?.page]);
 
     const searchAction = (e: any) => {
         const value = e.target.value;

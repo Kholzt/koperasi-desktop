@@ -94,12 +94,15 @@ export function useLoan() {
 
   // initial + deps fetch
   useEffect(() => {
+    if (!isFiltersLoaded) return;
     fetchLoans(pagination.page);
-    fetchGroups();
-    fetchPos();    
-  // },[]);
+  }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, search, isFiltersLoaded, fetchLoans]);
 
-  }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, search]);
+  useEffect(() => {
+    if (!isFiltersLoaded) return;
+    fetchGroups();
+    fetchPos();
+  }, [isFiltersLoaded, fetchGroups, fetchPos]);
 
   // restore saved filters when mounted
   useEffect(() => {

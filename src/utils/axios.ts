@@ -11,6 +11,8 @@ const axios = axiosLib.create({
   }
 });
 
+axios.defaults.timeout = 50000; 
+
 // Interceptor request (opsional)
 axios.interceptors.request.use(
   (config) => {
