@@ -17,7 +17,7 @@ export default class AuthController {
             if (!valid) {
                 return res.status(404).json({ message: 'Pengguna tidak ditemukan' });
             }
-
+            delete user.password;
             const secret = process.env.VITE_APP_JWT_SECRET || process.env.JWT_SECRET || 'changeme';
             const token = jwt.sign({ id: user.id }, secret, { expiresIn: '7d' });
             return res.json({ message: 'Berhasil login', user, token });

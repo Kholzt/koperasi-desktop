@@ -17,11 +17,17 @@ export default class MemberController {
             // Query data dengan join dan filter search
             const { rows, total } = await Member.findAll({ offset, search, limit });
 
+            const memberIds = rows.map(r => r.member_id);
+            const pinjamanRecords = memberIds.length > 0 ? await db("pinjaman")
+                .whereIn("anggota_id", memberIds)
+                .whereNull("deleted_at")
+                .select("anggota_id") : [];
+            const membersWithPinjaman = new Set(pinjamanRecords.map(p => p.anggota_id));
+
             // Grouping (meski sebenarnya data sudah unik di sini)
             const map = new Map();
             for (const row of rows) {
                 if (!map.has(row.member_id)) {
-                    const hasPinjaman = await Member.hasPinjaman(row.member_id);
                     map.set(row.member_id, {
                         id: row.member_id,
                         nik: row.nik,
@@ -32,7 +38,7 @@ export default class MemberController {
                         sequence_number: row.sequence_number,
                         area_id: row.area_id,
                         description: row.description,
-                        hasPinjaman: hasPinjaman,
+                        hasPinjaman: membersWithPinjaman.has(row.member_id),
                         pos: { nama_pos: row.nama_pos },
                         area: {
                             id: row.area_id,

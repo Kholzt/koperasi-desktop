@@ -50,9 +50,9 @@ export default class LoanController {
             const rows = await Loan.findById(id);
 
             const map = new Map();
-            const hasAngsuran = await Loan.checkStatusAngsuran(id)
+            const hasAngsuran = await Loan.checkStatusAngsuran(id);
+            const penanggungJawab = rows.length > 0 ? await Loan.findPenanggungJawab(rows[0].penanggung_jawab) : null;
             for (const row of rows) {
-                const penanggungJawab = await Loan.findPenanggungJawab(row.penanggung_jawab)
                 if (!map.has(row.id)) {
                     map.set(row.id, {
                         ...row,

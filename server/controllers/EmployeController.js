@@ -167,7 +167,7 @@ export default class EmployeController {
 
     // Mengupdate data pengguna dengan pengecekan
     static async update(req, res) {
-        
+
         await body('complete_name').notEmpty().withMessage('Nama lengkap wajib diisi').run(req);
         await body('jenis_ijazah').notEmpty().withMessage('Jenis Ijazah wajib diisi').run(req);
         await body('tanggal_masuk').notEmpty().withMessage('Tanggal Masuk wajib diisi').run(req);
@@ -320,15 +320,5 @@ export default class EmployeController {
 
 
 async function updateNip(id) {
-    const users = await db("users").whereRaw("id > " + id).whereNull("users.deleted_at")
-    await Promise.all(
-        users.map(async (user) => {
-            const nipNumber = parseInt(user.nip, 10);
-            const newNipNumber = nipNumber - 1;
-            await db("users").where("id", user.id).update({
-                nip:
-                    String(newNipNumber).padStart(6, "0")
-            })
-        })
-    )
+    await db.raw(`UPDATE users SET nip = LPAD(CAST(nip AS UNSIGNED) - 1, 6, '0') WHERE id > ${id} AND deleted_at IS NULL`);
 }
