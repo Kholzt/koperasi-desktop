@@ -1,5 +1,4 @@
 import { app, BrowserWindow, ipcMain, shell, dialog, protocol, net } from "electron";
-import { spawn } from "child_process";
 import fs from "fs";
 import { createRequire } from "node:module";
 import { pathToFileURL } from 'url';
@@ -95,25 +94,10 @@ ipcMain.handle("open-file", async (event, filePath) => {
   shell.showItemInFolder(filePath);
 });
 
-function startExpressServer() {
-  const serverPath = path.join(process.env.APP_ROOT!, "server", "Server.js");
+app.commandLine.appendSwitch('disable-http-cache');
+app.commandLine.appendSwitch('disable-site-isolation-trials');
 
-  const child = spawn("node", [serverPath], {
-    //   stdio: 'inherit',
-    stdio: "ignore",
-    //   shell: true,
-    detached: true,
-    windowsHide: true,
-  });
-
-  child.on("error", (err) => {
-    log.error("Failed to start Express server:", err);
-  });
-
-  log.info("Express server started");
-}
 app.whenReady().then(() => {
-  startExpressServer();
   protocol.handle('app-data', (request) => {
     const filePath = request.url.slice('app-data://'.length);
     const decodedPath = decodeURIComponent(filePath);

@@ -68,17 +68,13 @@ if (!globalThis.__knexInstance) {
         pool: { min: 2, max: 10 },
     });
     globalThis.__knexInstance.on('query', (queryData) => {
-        // cek apakah query mengandung nama tabel "transactions"
-        console.log('--- Transactions Query ---');
-        console.log('SQL:', queryData.sql);
-        console.log('Bindings:', queryData.bindings);
-        console.log('--------------------------');
-        // if (queryData.sql.toLowerCase().includes('angsuran')) {
-        //     console.log('--- Transactions Query ---');
-        //     console.log('SQL:', queryData.sql);
-        //     console.log('Bindings:', queryData.bindings);
-        //     console.log('--------------------------');
-        // }
+        if (process.env.NODE_ENV !== 'production') {
+            // cek apakah query mengandung nama tabel "transactions"
+            console.log('--- Transactions Query ---');
+            console.log('SQL:', queryData.sql);
+            console.log('Bindings:', queryData.bindings);
+            console.log('--------------------------');
+        }
     });
 
 
