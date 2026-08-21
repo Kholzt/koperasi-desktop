@@ -3,13 +3,13 @@ import { getLoans, getGroups, getPos } from '../services/loanService';
 import { GroupProps, LoanProps, PaginationProps, PosProps } from '../../../utils/types';
 import { useTheme } from '../../../context/ThemeContext';
 const dayMap: any = {
-    all: 'all',
-    senin: 'monday',
-    selasa: 'tuesday',
-    rabu: 'wednesday',
-    kamis: 'thursday',
-    jumat: 'friday',
-    sabtu: 'saturday'
+  all: 'all',
+  senin: 'monday',
+  selasa: 'tuesday',
+  rabu: 'wednesday',
+  kamis: 'thursday',
+  jumat: 'friday',
+  sabtu: 'saturday'
 };
 export function useLoan() {
   const [filter, setFilter] = useState<{ startDate: string | null; endDate: string | null; status: string | null }>({
@@ -36,10 +36,10 @@ export function useLoan() {
 
   const { reload } = useTheme();
 
-  const fetchGroups = useCallback(async () => {    
+  const fetchGroups = useCallback(async () => {
     try {
-      const data: any = await getGroups(20000000,posFilter);
-    console.log("DARI FILTER DIDALAM",posFilter);
+      const data: any = await getGroups(20000000, posFilter);
+      console.log("DARI FILTER DIDALAM", posFilter);
 
       const { groups } = data;
       setGroups(groups
@@ -72,31 +72,31 @@ export function useLoan() {
         status: filter.status,
         startDate: startDate || filter.startDate || '',
         endDate: endDate || filter.endDate || '',
-        day:dayMap[dayFilter] || '',
+        day: dayMap[dayFilter] || '',
         group: groupFilter || '',
         pos: posFilter || '',
         search: search || '',
       });
-      
+
       setLoans(data.loans || []);
       setPagination((prev) => ({
         ...prev,
-        page: data.pagination?.page || page,
-        totalPages: data.pagination?.totalPages || prev.totalPages,
-        total: data.pagination?.total || prev.total,
-        limit: data.pagination?.limit || prev.limit,
+        page: Number(page),
+        totalPages: Number(data.pagination?.totalPages || prev.totalPages),
+        total: Number(data.pagination?.total || prev.total),
+        limit: Number(data.pagination?.limit || prev.limit),
       }));
     } catch (err) {
       setLoans([]);
     }
-  // },[]);
-  }, [dayFilter, filter.endDate, filter.startDate, filter.status, groupFilter,posFilter, search]);
+    // },[]);
+  }, [dayFilter, filter.endDate, filter.startDate, filter.status, groupFilter, posFilter, search]);
 
   // initial + deps fetch
   useEffect(() => {
     if (!isFiltersLoaded) return;
     fetchLoans(pagination.page);
-  }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, search, isFiltersLoaded, fetchLoans]);
+  }, [pagination.page, reload, filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, posFilter, search, isFiltersLoaded, fetchLoans]);
 
   useEffect(() => {
     if (!isFiltersLoaded) return;
@@ -120,7 +120,7 @@ export function useLoan() {
         setGroupFilter(parsed.groupFilter || '');
         setPosFilter(parsed.posFilter || '');
         setSearch(parsed.search || '');
-        setPagination((prev) => ({ ...prev, page: parsed.page || prev.page }));
+        setPagination((prev) => ({ ...prev, page: Number(parsed.page) || prev.page }));
       }
     } catch (e) {
       // ignore
@@ -141,7 +141,7 @@ export function useLoan() {
       page: pagination.page,
     };
     localStorage.setItem('filters', JSON.stringify(savedFilters));
-  }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter,posFilter, isFiltersLoaded, pagination.page]);
+  }, [filter.endDate, filter.startDate, filter.status, dayFilter, groupFilter, posFilter, isFiltersLoaded, pagination.page]);
 
   return {
     loans,
