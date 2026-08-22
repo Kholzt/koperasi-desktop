@@ -11,11 +11,16 @@ export default class MemberController {
             // Resolve duplicate sequence numbers if any exist
             await Member.resolveDuplicateSequences();
 
-            const { page = 1, limit = 10, search = "" } = req.query;
+            let { page = 1, limit = 10, search = "", pos = null } = req.query;
             const offset = (parseInt(page) - 1) * parseInt(limit);
 
+            const user = req.user;
+            if (!['pusat'].includes(user.role)) {
+                pos = user.pos_id;
+            }
+
             // Query data dengan join dan filter search
-            const { rows, total } = await Member.findAll({ offset, search, limit });
+            const { rows, total } = await Member.findAll({ offset, search, limit, pos });
 
             const memberIds = rows.map(r => r.member_id);
             const pinjamanRecords = memberIds.length > 0 ? await db("pinjaman")

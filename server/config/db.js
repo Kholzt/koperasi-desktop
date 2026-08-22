@@ -32,10 +32,10 @@ const getBackupDir = () => {
 // --- 1. LOAD ENVIRONMENT CONFIG ---
 const loadEnvConfig = () => {
     const appDataEnvPath = getEnvPath();
-    
+
     // Cari .env di root project (saat dev) atau di sebelah executable (saat production)
-    const rootEnvPath = app.isPackaged 
-        ? path.join(path.dirname(app.getPath('exe')), '.env') 
+    const rootEnvPath = app.isPackaged
+        ? path.join(path.dirname(app.getPath('exe')), '.env')
         : path.join(process.cwd(), '.env');
 
     // Jika ada .env di root, salin ke AppData (agar selanjutnya bisa dibaca dari AppData)
@@ -68,7 +68,7 @@ if (!globalThis.__knexInstance) {
         pool: { min: 2, max: 10 },
     });
     globalThis.__knexInstance.on('query', (queryData) => {
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV == 'develop') {
             // cek apakah query mengandung nama tabel "transactions"
             console.log('--- Transactions Query ---');
             console.log('SQL:', queryData.sql);

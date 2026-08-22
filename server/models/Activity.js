@@ -5,7 +5,8 @@ class ActivityModel {
         page = 1,
         limit = 100,
         search = '',
-        menu = ''
+        menu = '',
+        pos = null
     }) {
         const offset = (page - 1) * limit;
 
@@ -47,6 +48,12 @@ class ActivityModel {
             query.where('la.menu', cleanMenu);
             countQuery.where('la.menu', cleanMenu);
         }
+
+        if (pos) {
+            query.where('la.pos_id', pos);
+            countQuery.where('la.pos_id', pos);
+        }
+
         const rows = await query;
         const [{
             total

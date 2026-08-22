@@ -11,14 +11,20 @@ import { diffObject } from '../helpers/diffObject.js';
 export default class UserController {
     static async index(req, res) {
         try {
-            const {
-                page = 1, limit = 10, search = '', status = "aktif"
+            let {
+                page = 1, limit = 10, search = '', status = "aktif", pos = null
             } = req.query;
+
+            const currentUser = req.user;
+            if (currentUser && !['pusat'].includes(currentUser.role)) {
+                pos = currentUser.pos_id;
+            }
             const pagination = await User.findAll({
                 page: parseInt(page),
                 limit: parseInt(limit),
                 search,
-                status
+                status,
+                pos
             });
             const map = new Map();
             for (const row of pagination.users) {

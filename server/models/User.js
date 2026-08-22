@@ -2,7 +2,7 @@
 import db from '../config/db.js';
 
 export default class User {
-    static async findAll({ page, limit, search, status = "aktif" }) {
+    static async findAll({ page, limit, search, status = "aktif", pos = null }) {
         const offset = (page - 1) * limit;
 
         const usersQuery = db('users')
@@ -17,6 +17,7 @@ export default class User {
             .offset(offset);
 
         if (status != "all") usersQuery.where("users.status", status)
+        if (pos) usersQuery.where("users.pos_id", pos)
         const users = await usersQuery;
         const countQuery = db('users')
             .whereNull('deleted_at')
@@ -24,6 +25,7 @@ export default class User {
             .where('complete_name', 'like', `%${search}%`)
             .whereNot("role", "super admin");
         if (status != "all") countQuery.where("users.status", status)
+        if (pos) countQuery.where("users.pos_id", pos)
         const [{ count }] = await countQuery.count({ count: '*' });
         return { users, total: parseInt(count) };
     }

@@ -1,7 +1,7 @@
 import db, { transaction } from "../config/db";
 
 export default class Member {
-    static async findAll({ offset, limit, search }) {
+    static async findAll({ offset, limit, search, pos = null }) {
         const rows = await db('members as m')
             .join('areas as a', 'm.area_id', 'a.id')
             .select(
@@ -25,6 +25,9 @@ export default class Member {
                     .orWhere('m.no_kk', 'like', `%${search}%`)
                     .orWhere('m.sequence_number', 'like', `%${search}%`)
             })
+            .modify(qb => {
+                if (pos) qb.where('m.pos_id', pos);
+            })
             .leftJoin("pos", "m.pos_id", "pos.id")
             .orderBy('m.created_at', 'desc')
             .limit(parseInt(limit))
@@ -39,6 +42,9 @@ export default class Member {
                     .orWhere('m.nik', 'like', `%${search}%`)
                     .orWhere('m.no_kk', 'like', `%${search}%`)
                     .orWhere('m.sequence_number', 'like', `%${search}%`)
+            })
+            .modify(qb => {
+                if (pos) qb.where('m.pos_id', pos);
             });
 
         return { total, rows }

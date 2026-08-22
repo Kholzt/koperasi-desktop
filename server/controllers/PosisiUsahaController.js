@@ -26,14 +26,19 @@ export default class PosisiUsahaController {
 
     static async getPosisiUsaha(req, res) {
         try {
-            const { page = 1, limit = 10, search = "", code = null, startDate, endDate, group_id ,pos_id} = req.query;
+            let { page = 1, limit = 10, search = "", code = null, startDate, endDate, group_id, pos_id } = req.query;
+            
+            const currentUser = req.user;
+            if (currentUser && !['pusat'].includes(currentUser.role)) {
+                pos_id = currentUser.pos_id;
+            }
+
             const p = parseInt(page, 10) || 1;
             const l = parseInt(limit, 10) || 10;
             const offset = (p - 1) * l;
-            console.log("ERROR APAH : ",req.query);
-            
-            const { history, total: totalData } = await PosisiUsaha.getHistory({ startDate, endDate, offset, limit: l, code, group_id ,pos_id})
-            const { jumlah, jumlah_positif, jumlah_negatif } = await PosisiUsaha.getTotalAmount({ startDate, endDate, code, pos_id ,group_id})
+
+            const { history, total: totalData } = await PosisiUsaha.getHistory({ startDate, endDate, offset, limit: l, code, group_id, pos_id })
+            const { jumlah, jumlah_positif, jumlah_negatif } = await PosisiUsaha.getTotalAmount({ startDate, endDate, code, pos_id, group_id })
             const jumlahTotal = parseFloat(jumlah || 0);
 
             const total = parseInt(totalData || 0, 10);
@@ -57,17 +62,23 @@ export default class PosisiUsahaController {
 
     static async getPosisiUsahaSirkulasi(req, res) {
         try {
-            const { page = 1, limit = 10, search = "", code = null, startDate, endDate, group_id ,pos_id} = req.query;
+            let { page = 1, limit = 10, search = "", code = null, startDate, endDate, group_id, pos_id } = req.query;
+            
+            const currentUser = req.user;
+            if (currentUser && !['pusat'].includes(currentUser.role)) {
+                pos_id = currentUser.pos_id;
+            }
+
             const p = parseInt(page, 10) || 1;
             const l = parseInt(limit, 10) || 10;
             const offset = (p - 1) * l;
 
-            const { history, total: totalData } = await PosisiUsaha.getHistory({ startDate, endDate, offset, limit: l, code, group_id ,pos_id})
-            const { jumlah, jumlah_positif, jumlah_negatif, finalDates } = await PosisiUsaha.getTotalAmountSirkulasi({ startDate, endDate, code,pos_id ,group_id})
+            const { history, total: totalData } = await PosisiUsaha.getHistory({ startDate, endDate, offset, limit: l, code, group_id, pos_id })
+            const { jumlah, jumlah_positif, jumlah_negatif, finalDates } = await PosisiUsaha.getTotalAmountSirkulasi({ startDate, endDate, code, pos_id, group_id })
             const jumlahTotal = parseFloat(jumlah || 0);
 
             const total = parseInt(totalData || 0, 10);
-            
+
             return res.status(200).json({
                 history,
                 jumlah: jumlahTotal,

@@ -16,16 +16,23 @@ import { diffObject } from '../helpers/diffObject.js';
 export default class PosController {
     static async index(req, res) {
         try {
-            const {
-                page = 1, limit = 10, search = ''
+            let {
+                page = 1, limit = 10, search = '', pos = null
             } = req.query;
+
+            const user = req.user;
+            if (!['pusat'].includes(user.role)) {
+                pos = user.pos_id;
+            }
+
             const {
                 rows,
                 total
             } = await PosModel.findAll({
                 page,
                 limit,
-                search
+                search,
+                pos
             });
 
             const map = new Map();

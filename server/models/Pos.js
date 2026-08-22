@@ -1,7 +1,7 @@
 import db from '../config/db.js';
 
 class PosModel {
-    static async findAll({ page = 1, limit = 10, search = '' }) {
+    static async findAll({ page = 1, limit = 10, search = '', pos = null }) {
         const offset = (page - 1) * limit;
 
         const rows = await db('pos as p')
@@ -13,14 +13,20 @@ class PosModel {
             // .join('users as u', 'p.penanggung_jawab', 'u.id')
             .whereNull('p.deleted_at')
             .andWhere('p.nama_pos', 'like', `%${search}%`)
+            .modify(qb => {
+                if (pos) qb.where('p.id', pos);
+            })
             .orderBy('p.id', 'desc')
             .limit(limit)
             .offset(offset);
 
-        const [{ total }] = await db('pos')
+        const [{ total }] = await db('pos as p')
             .count('* as total')
-            .whereNull('deleted_at')
-            .andWhere('nama_pos', 'like', `%${search}%`);
+            .whereNull('p.deleted_at')
+            .andWhere('p.nama_pos', 'like', `%${search}%`)
+            .modify(qb => {
+                if (pos) qb.where('p.id', pos);
+            });
 
         return { rows, total };
     }

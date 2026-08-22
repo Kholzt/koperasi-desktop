@@ -1,10 +1,10 @@
 import db from '../config/db.js';
 
 class Group {
-    static async findAll({ page = 1, limit = 10, search = '' ,pos}) {
+    static async findAll({ page = 1, limit = 10, search = '', pos }) {
         const offset = (page - 1) * limit;
 
-        const query =  db('groups as g')
+        const query = db('groups as g')
             .select(
                 "g.*",
                 'g.id as group_id',
@@ -22,8 +22,8 @@ class Group {
             .andWhere('g.group_name', 'like', `%${search}%`)
             ;
 
-        if(pos && pos != "all"){
-            query.where("g.pos_id",pos)
+        if (pos && pos != "all") {
+            query.where("g.pos_id", pos)
         }
         const rows = await query.orderBy('g.id', 'desc')
             .limit(limit)
@@ -31,6 +31,9 @@ class Group {
 
         const [{ total }] = await db('groups')
             .count('* as total')
+            .modify(qb => {
+                if (pos) qb.where("groups.pos_id", pos);
+            })
             .whereNull('deleted_at')
             .andWhere('group_name', 'like', `%${search}%`);
 

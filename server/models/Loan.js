@@ -119,7 +119,9 @@ export default class Loan {
         'DAYNAME(pinjaman.tanggal_angsuran_pertama) = "' + day + '"',
       );
     }
-
+    if (pos && pos !== "all") {
+      countQuery.where("members.pos_id", pos);
+    }
     if (group && group !== "all") {
       countQuery
         .joinRaw(

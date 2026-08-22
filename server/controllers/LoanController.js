@@ -14,15 +14,19 @@ export default class LoanController {
     // Menampilkan daftar area dengan pagination
     static async index(req, res) {
         try {
-            const { page = 1, limit = 10, startDate = null, endDate = new Date(), status = null, day = "all", group = "all",pos="all", search = null
-            } = req.query;
+            let { page = 1, limit = 10, startDate = null, endDate = new Date(), status = null, day = "all", group = "all", pos = "all", search = null } = req.query;
             const pageInt = parseInt(page);
             const limitInt = parseInt(limit);
             const offset = (pageInt - 1) * limitInt;
 
+            const user = req.user;
+            if (!['pusat'].includes(user.role)) {
+                pos = user.pos_id;
+            }
+
             await Loan.resolveDuplicateKode();
             // Query loans with join to members
-            const { loans, total } = await Loan.findAll({ limit, offset, startDate, endDate, status, day, group,pos, search })
+            const { loans, total } = await Loan.findAll({ limit, offset, startDate, endDate, status, day, group, pos, search })
 
             // Total count
 
@@ -37,7 +41,7 @@ export default class LoanController {
                 },
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: error });
         }
     }
 
@@ -294,7 +298,7 @@ export default class LoanController {
                     tanggal_input: formatDateLocal(tanggal_pinjam),
                     group_id: group.group_id,
                     pos_id: member.pos_id,
-                    ref_id:loanId
+                    ref_id: loanId
                 }
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
                 await Loan.updateSisaPembayaran(loanId);
@@ -306,7 +310,7 @@ export default class LoanController {
                 message: 'Pinjaman berhasil dibuat',
                 pinjaman: newPeminjaman
             });
-            
+
             logActivity({
                 user: req.user,
                 action: ACTIVITY_ACTION.CREATE,
@@ -408,7 +412,7 @@ export default class LoanController {
                     user_id: user.id,
                     tanggal_input: formatDateLocal(tanggal),
                     group_id: group.group_id,
-                    ref_id:id
+                    ref_id: id
                 }
 
                 await PosisiUsaha.insertUpdatePosisiUsaha(dataTransaksi)
@@ -490,7 +494,7 @@ export default class LoanController {
                     user_id: user.id,
                     tanggal_input: formatDateLocal(tanggal),
                     group_id: group.group_id,
-                    ref_id:id
+                    ref_id: id
                 }
 
                 await PosisiUsaha.deletePosisiUsahaSync(dataTransaksi)

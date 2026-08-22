@@ -4,9 +4,15 @@ import ActivityModel from "../models/Activity";
 export default class LogActivityController {
     static async index(req, res) {
         try {
-            const {
-                page = 1, limit = 100, search = '', menu = ''
+            let {
+                page = 1, limit = 10, search = '', menu = '', pos = null
             } = req.query;
+
+            const user = req.user;
+            if (!['pusat'].includes(user.role)) {
+                pos = user.pos_id;
+            }
+
             const {
                 rows,
                 total
@@ -14,7 +20,8 @@ export default class LogActivityController {
                 page,
                 limit,
                 search,
-                menu
+                menu,
+                pos
             });
             
             const map = new Map();

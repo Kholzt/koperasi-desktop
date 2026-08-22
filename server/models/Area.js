@@ -2,7 +2,7 @@
 import db from '../config/db.js';
 
 class AreaModel {
-    static async findAll({ search = "", limit = 10, offset = 0, status = "aktif" }) {
+    static async findAll({ search = "", limit = 10, offset = 0, status = "aktif", pos = null }) {
         const areasQuery = db('areas')
             .select('areas.*', "nama_pos")
             .whereNull('areas.deleted_at')
@@ -12,16 +12,18 @@ class AreaModel {
             .limit(limit)
             .offset(offset);
         if (status != "all") areasQuery.where("status", status);
+        if (pos) areasQuery.where("areas.pos_id", pos);
         return areasQuery;
     }
 
-    static async getTotal(search = "", status = "aktif") {
+    static async getTotal(search = "", status = "aktif", pos = null) {
         const areasQuery = db('areas')
             .whereNull('areas.deleted_at')
             .where("status", "aktif")
             .count('id as total')
             .andWhere('area_name', 'like', `%${search}%`);
         if (status != "all") areasQuery.where("status", status);
+        if (pos) areasQuery.where("areas.pos_id", pos);
         const result = await areasQuery;
         return result[0].total;
     }

@@ -6,13 +6,17 @@ import { diffObject } from '../helpers/diffObject.js';
 
 export default class ScheduleController {
     static async index(req, res) {
-        const { page = 1, limit = 10, day, status = "aktif" } = req.query;
-
         try {
-            const offset = (parseInt(page) - 1) * parseInt(limit);
-            const rows = await ScheduleModel.findAll({ limit: parseInt(limit), offset, day, status });
+            let { page = 1, limit = 10, day, status = "aktif", pos = null } = req.query;
 
-            const total = await ScheduleModel.getTotal(day, status);
+            const user = req.user;
+            if (!['pusat'].includes(user.role)) {
+                pos = user.pos_id;
+            }
+
+            const offset = (parseInt(page) - 1) * parseInt(limit);
+            const rows = await ScheduleModel.findAll({ limit: parseInt(limit), offset, day, status, pos });
+            const total = await ScheduleModel.getTotal(day, status, pos);
 
             const schedule = rows.map(row => ({
                 id: row.id,

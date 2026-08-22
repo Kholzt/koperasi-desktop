@@ -8,7 +8,13 @@ export default class EmployeController {
     // Menampilkan daftar pengguna dengan pagination
     static async index(req, res) {
         try {
-            const { page = 1, limit = 10, search = "", status = "aktif" } = req.query;
+            let { page = 1, limit = 10, search = "", status = "aktif", pos = null } = req.query;
+
+            const user = req.user;
+            if (!['pusat'].includes(user.role)) {
+                pos = user.pos_id;
+            }
+
             const pageInt = parseInt(page);
             const limitInt = parseInt(limit);
             const offset = (pageInt - 1) * limitInt;
@@ -24,6 +30,9 @@ export default class EmployeController {
                 .whereNull('users.deleted_at')
                 .andWhere('users.complete_name', 'like', `%${search}%`)
                 .andWhere('users.access_apps', 'noAccess')
+                .modify(qb => {
+                    if (pos) qb.where('users.pos_id', pos);
+                })
                 .groupBy("users.id")
                 .orderBy('users.id', 'desc')
                 .limit(limitInt)
@@ -36,6 +45,9 @@ export default class EmployeController {
                 .whereNull('deleted_at')
                 .andWhere('complete_name', 'like', `%${search}%`)
                 .andWhere('access_apps', 'noAccess')
+                .modify(qb => {
+                    if (pos) qb.where('users.pos_id', pos);
+                })
                 .count('id as total');
             if (status != "all") usersCount.where("status", status);
             const [{ total }] = await usersCount;

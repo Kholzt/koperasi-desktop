@@ -7,8 +7,14 @@ import { diffObject } from '../helpers/diffObject.js';
 export default class GroupController {
     static async index(req, res) {
         try {
-            const { page = 1, limit = 10, search = '',pos='' } = req.query;
-            const { rows, total } = await GroupModel.findAll({ page, limit, search,pos });
+            let { page = 1, limit = 10, search = '', pos='' } = req.query;
+
+            const user = req.user;
+            if (!['pusat'].includes(user.role)) {
+                pos = user.pos_id;
+            }
+
+            const { rows, total } = await GroupModel.findAll({ page, limit, search, pos });
 
             const map = new Map();
             for (const row of rows) {

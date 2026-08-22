@@ -12,7 +12,7 @@ export default class TransactionController {
     // Menampilkan daftar area dengan pagination
     static async index(req, res) {
         try {
-            const {
+            let {
                 startDate = new Date(),
                 endDate = null,
                 'transaction_type[]': rawTransaction_type = null,
@@ -21,6 +21,12 @@ export default class TransactionController {
                 pos = null,
                 isPusatAdmin
             } = req.query;
+            
+            const user = req.user;
+            if (!['pusat'].includes(user.role)) {
+                pos = user.pos_id;
+            }
+
             // pastikan jadi array
             const categories = rawCategories
                 ? Array.isArray(rawCategories) ? rawCategories : [rawCategories]
