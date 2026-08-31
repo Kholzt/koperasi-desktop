@@ -27,9 +27,9 @@ export default class PosisiUsahaController {
     static async getPosisiUsaha(req, res) {
         try {
             let { page = 1, limit = 10, search = "", code = null, startDate, endDate, group_id, pos_id } = req.query;
-            
+
             const currentUser = req.user;
-            if (currentUser && !['pusat'].includes(currentUser.role)) {
+            if (currentUser && !['pusat', 'controller'].includes(currentUser.role)) {
                 pos_id = currentUser.pos_id;
             }
 
@@ -63,9 +63,9 @@ export default class PosisiUsahaController {
     static async getPosisiUsahaSirkulasi(req, res) {
         try {
             let { page = 1, limit = 10, search = "", code = null, startDate, endDate, group_id, pos_id } = req.query;
-            
+
             const currentUser = req.user;
-            if (currentUser && !['pusat'].includes(currentUser.role)) {
+            if (currentUser && !['pusat', 'controller'].includes(currentUser.role)) {
                 pos_id = currentUser.pos_id;
             }
 

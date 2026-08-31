@@ -9,7 +9,7 @@ export default class LogActivityController {
             } = req.query;
 
             const user = req.user;
-            if (!['pusat'].includes(user.role)) {
+            if (!['pusat', 'controller'].includes(user.role)) {
                 pos = user.pos_id;
             }
 
@@ -23,7 +23,7 @@ export default class LogActivityController {
                 menu,
                 pos
             });
-            
+
             const map = new Map();
             for (const row of rows) {
                 if (!map.has(row.id)) {

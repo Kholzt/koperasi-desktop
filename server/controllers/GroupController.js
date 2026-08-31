@@ -7,10 +7,10 @@ import { diffObject } from '../helpers/diffObject.js';
 export default class GroupController {
     static async index(req, res) {
         try {
-            let { page = 1, limit = 10, search = '', pos='' } = req.query;
+            let { page = 1, limit = 10, search = '', pos = '' } = req.query;
 
             const user = req.user;
-            if (!['pusat'].includes(user.role)) {
+            if (!['pusat', 'controller'].includes(user.role)) {
                 pos = user.pos_id;
             }
 

@@ -16,7 +16,7 @@ export default class UserController {
             } = req.query;
 
             const currentUser = req.user;
-            if (currentUser && !['pusat'].includes(currentUser.role)) {
+            if (currentUser && !['pusat', 'controller'].includes(currentUser.role)) {
                 pos = currentUser.pos_id;
             }
             const pagination = await User.findAll({

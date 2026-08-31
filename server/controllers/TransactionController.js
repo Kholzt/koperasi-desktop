@@ -21,9 +21,9 @@ export default class TransactionController {
                 pos = null,
                 isPusatAdmin
             } = req.query;
-            
+
             const user = req.user;
-            if (!['pusat'].includes(user.role)) {
+            if (!['pusat', 'controller'].includes(user.role)) {
                 pos = user.pos_id;
             }
 
@@ -136,7 +136,7 @@ export default class TransactionController {
         }
 
         try {
-            const { category_id, pos_id, description, transaction_type, nominal, date, user, resource, meta, reason, status,descriptionBeforeUpdate } = req.body;
+            const { category_id, pos_id, description, transaction_type, nominal, date, user, resource, meta, reason, status, descriptionBeforeUpdate } = req.body;
             const now = new Date();
             const transactionDate = date ?? now;
 
@@ -157,7 +157,7 @@ export default class TransactionController {
 
                 const totalNewAmount = Number(cleanExisting) + Number(cleanNominal);
 
-                await Transaction.update({ amount: totalNewAmount , description}, existingTransaction.id);
+                await Transaction.update({ amount: totalNewAmount, description }, existingTransaction.id);
                 await Transaction.createLog({
                     id_transaksi: existingTransaction.id,
                     updated_by: user,

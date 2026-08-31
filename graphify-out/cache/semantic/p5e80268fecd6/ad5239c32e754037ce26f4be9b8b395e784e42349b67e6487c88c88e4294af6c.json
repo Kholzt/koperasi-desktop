@@ -1,0 +1,1 @@
+{"nodes": [{"id": "migration", "label": "Database Migration Script", "file_type": "code", "source_file": "migration.txt", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null, "rationale": "SQL script for altering members table to add NIK and No KK columns.", "verification": "unverified"}], "edges": [], "hyperedges": []}

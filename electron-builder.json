@@ -14,7 +14,11 @@
             "from": "dist-electron/server",
             "to": "server"
         },
-        "!*.env"
+        "!*.env",
+        "!*.md",
+        "!graphify-out/*",
+        "!docs/*",
+        "!.graphify/*"
     ],
     "extraFiles": [
         {

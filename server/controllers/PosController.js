@@ -21,7 +21,7 @@ export default class PosController {
             } = req.query;
 
             const user = req.user;
-            if (!['pusat'].includes(user.role)) {
+            if (!['pusat', 'controller'].includes(user.role)) {
                 pos = user.pos_id;
             }
 
@@ -200,7 +200,7 @@ export default class PosController {
             }
             const oldData = await PosModel.findById(id);
             console.log(oldData[0]);
-            
+
             const {
                 oldValue,
                 newValue

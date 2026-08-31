@@ -11,7 +11,7 @@ export default class AreaController {
             const offset = (parseInt(page) - 1) * parseInt(limit);
 
             const user = req.user;
-            if (!['pusat'].includes(user.role)) {
+            if (!['pusat', 'controller'].includes(user.role)) {
                 pos = user.pos_id;
             }
 

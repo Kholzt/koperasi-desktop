@@ -20,7 +20,7 @@ export default class LoanController {
             const offset = (pageInt - 1) * limitInt;
 
             const user = req.user;
-            if (!['pusat'].includes(user.role)) {
+            if (!['pusat', 'controller'].includes(user.role)) {
                 pos = user.pos_id;
             }
 

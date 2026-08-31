@@ -10,7 +10,7 @@ export default class ScheduleController {
             let { page = 1, limit = 10, day, status = "aktif", pos = null } = req.query;
 
             const user = req.user;
-            if (!['pusat'].includes(user.role)) {
+            if (!['pusat', 'controller'].includes(user.role)) {
                 pos = user.pos_id;
             }
 

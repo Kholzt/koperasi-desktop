@@ -114,12 +114,17 @@ export default class Member {
         return total > 0;
     }
 
-    static async nikExist(nik, notNull = false, ignoreId = null) {
+    static async nikExist(nik, notNull = false, ignoreId = null, postId = null) {
         const query = db('members')
             .where("nik", nik)
+        if (postId) {
+            query.where("pos_id", postId)
+        }
+        // Ambil data anggota yang terhapus
         if (notNull) {
             query.whereNotNull("deleted_at");
         } else {
+            // Ambil data anggota yang tidak terhapus
             query.whereNull("deleted_at");
         }
         if (ignoreId) {
@@ -129,9 +134,12 @@ export default class Member {
         const [{ total }] = await query.count('* as total');
         return total > 0;
     }
-    static async nokkExist(no_kk, notNull = false, ignoreId = null) {
+    static async nokkExist(no_kk, notNull = false, ignoreId = null, postId = null) {
         const query = db('members')
             .where("no_kk", no_kk)
+        if (postId) {
+            query.where("pos_id", postId)
+        }
         if (notNull) {
             query.whereNotNull("deleted_at");
         } else {
@@ -183,7 +191,7 @@ export default class Member {
 
     static async resolveDuplicateSequences() {
         const areasWithDuplicates = await db("members")
-            .select("area_id","sequence_number")
+            .select("area_id", "sequence_number")
             .whereNull("deleted_at")
             .groupBy("area_id", "sequence_number")
             .havingRaw("count(*) > 1");

@@ -15,7 +15,7 @@ export default class MemberController {
             const offset = (parseInt(page) - 1) * parseInt(limit);
 
             const user = req.user;
-            if (!['pusat'].includes(user.role)) {
+            if (!['pusat', 'controller'].includes(user.role)) {
                 pos = user.pos_id;
             }
 
@@ -140,20 +140,20 @@ export default class MemberController {
 
         try {
             const { complete_name, area_id, address, nik, no_kk, pos_id, description } = req.body;
-            const nikExist = await Member.nikExist(nik, false);
+            const nikExist = await Member.nikExist(nik, false, null, pos_id);
             if (nikExist) {
                 return res.status(400).json({
                     errors: { nik: "Nik sudah ada" },
                 });
             }
-            const nokkExist = await Member.nikExist(no_kk, false);
+            const nokkExist = await Member.nokkExist(no_kk, false, null, pos_id);
             if (nokkExist) {
                 return res.status(400).json({
                     errors: { no_kk: "No KK sudah ada" },
                 });
             }
-
-            const nikExistDelete = await Member.nikExist(nik, true);
+            // ambil anggota yang pernah terhapus
+            const nikExistDelete = await Member.nikExist(nik, true, null, pos_id);
 
             const member = await Member.getSequenceNumber(area_id);
             // res.status(500).json(member);
@@ -176,7 +176,7 @@ export default class MemberController {
                 entityReff: ACTIVITY_ENTITY.MEMBER,
                 entityId: memberId,
                 description: `Menambahkan anggota ${complete_name}`,
-                newValue: { complete_name, area_id, address, nik, no_kk, pos_id, description ,sequence_number},
+                newValue: { complete_name, area_id, address, nik, no_kk, pos_id, description, sequence_number },
             }).catch(err => {
                 console.error('Failed to log activity:', err);
             });
@@ -210,13 +210,13 @@ export default class MemberController {
         try {
             const { id } = req.params;
             const { nik, no_kk, complete_name, area_id, address, pos_id, description } = req.body;
-            const nikExist = await Member.nikExist(nik, false, id);
+            const nikExist = await Member.nikExist(nik, false, id, pos_id);
             if (nikExist) {
                 return res.status(400).json({
                     errors: { nik: "Nik sudah ada" },
                 });
             }
-            const nokkExist = await Member.nikExist(no_kk, false, id);
+            const nokkExist = await Member.nokkExist(no_kk, false, id, pos_id);
             if (nokkExist) {
                 return res.status(400).json({
                     errors: { no_kk: "No KK sudah ada" },

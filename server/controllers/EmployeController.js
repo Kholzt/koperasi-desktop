@@ -11,7 +11,7 @@ export default class EmployeController {
             let { page = 1, limit = 10, search = "", status = "aktif", pos = null } = req.query;
 
             const user = req.user;
-            if (!['pusat'].includes(user.role)) {
+            if (!['pusat', 'controller'].includes(user.role)) {
                 pos = user.pos_id;
             }
 
