@@ -11,7 +11,7 @@ import path from "node:path";
 import "../server/Server.js";
 import log from "electron-log/main";
 log.initialize();
-
+app.disableHardwareAcceleration();
 
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app-data', privileges: { standard: true, secure: true, supportFetchAPI: true } }
@@ -54,7 +54,8 @@ function createWindow() {
     icon: "./public/images/logo/logo.jpg",
     webPreferences: {
       nodeIntegration: false,
-    contextIsolation: true,
+      contextIsolation: true,
+      backgroundThrottling: true,
       preload: path.join(__dirname, "preload.mjs"),
     },
   });
@@ -94,8 +95,10 @@ ipcMain.handle("open-file", async (event, filePath) => {
   shell.showItemInFolder(filePath);
 });
 
-app.commandLine.appendSwitch('disable-http-cache');
 app.commandLine.appendSwitch('disable-site-isolation-trials');
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=256');
+app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling,MediaSessionService');
+app.commandLine.appendSwitch('disable-dev-shm-usage');
 
 app.whenReady().then(() => {
   protocol.handle('app-data', (request) => {

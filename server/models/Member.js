@@ -24,6 +24,7 @@ export default class Member {
                     .orWhere('m.nik', 'like', `%${search}%`)
                     .orWhere('m.no_kk', 'like', `%${search}%`)
                     .orWhere('m.sequence_number', 'like', `%${search}%`)
+                    .orWhere('nama_pos', 'like', `%${search}%`)
             })
             .modify(qb => {
                 if (pos) qb.where('m.pos_id', pos);

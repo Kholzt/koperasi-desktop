@@ -41,15 +41,15 @@ const loadEnvConfig = () => {
     // Jika ada .env di root, salin ke AppData (agar selanjutnya bisa dibaca dari AppData)
     if (fs.existsSync(rootEnvPath)) {
         fs.copyFileSync(rootEnvPath, appDataEnvPath);
-        console.log('🔄 .env disalin dari Root ke AppData');
+        console.log('.env disalin dari Root ke AppData');
     }
 
     // Load config dari AppData (override true memastikan variabel ditimpa dengan yang terbaru)
     if (fs.existsSync(appDataEnvPath)) {
         dotenv.config({ path: appDataEnvPath, override: true });
-        console.log('✅ Config loaded from AppData:', appDataEnvPath);
+        console.log('Config loaded from AppData:', appDataEnvPath);
     } else {
-        console.log('⚠️ File .env tidak ditemukan di Root maupun AppData!');
+        console.log('File .env tidak ditemukan di Root maupun AppData!');
     }
 };
 
@@ -135,21 +135,21 @@ export function exportDB() {
     const files = fs.readdirSync(dir).filter(file => file.endsWith('.sql'));
 
     const now = new Date();
-    const fortyNineDaysAgo = new Date(now);
-    fortyNineDaysAgo.setDate(now.getDate() - 49);
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(now.getDate() - 7);
 
     const isRecentExists = files.some(file => {
         const match = file.match(/(\d{4})-(\d{2})-(\d{2})/);
         if (match) {
             const [_, year, month, day] = match;
             const fileDate = new Date(`${year}-${month}-${day}`);
-            return fileDate >= fortyNineDaysAgo;
+            return fileDate >= sevenDaysAgo;
         }
         return false;
     });
 
     if (isRecentExists) {
-        console.log('⏭️ Backup sudah ada dalam 7 minggu terakhir.');
+        console.log('Backup sudah ada dalam 7 hari terakhir.',dir);
         return;
     }
 

@@ -328,7 +328,9 @@ export default class MemberController {
         try {
             const { nik } = req.params;
             const { ignoreId } = req.query;
-            const exist = await Member.nikExist(nik, false, ignoreId);
+            const user = req.user;
+
+            const exist = await Member.nikExist(nik, false, ignoreId,user.pos_id);
             res.status(200).json({
                 message: "Nik sudah ada",
                 nikExist: exist,
@@ -341,7 +343,9 @@ export default class MemberController {
         try {
             const { no_kk } = req.params;
             const { ignoreId } = req.query;
-            const exist = await Member.nokkExist(no_kk, false, ignoreId);
+            const user = req.user;
+
+            const exist = await Member.nokkExist(no_kk, false, ignoreId,user.pos_id);
             res.status(200).json({
                 message: "No kk sudah ada",
                 no_kkExist: exist,
