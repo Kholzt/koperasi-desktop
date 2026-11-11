@@ -2,6 +2,8 @@ import db, { transaction } from "../config/db";
 
 export default class Member {
     static async findAll({ offset, limit, search, pos = null }) {
+        const safeOffset = Math.max(0, parseInt(offset) || 0);
+        const safeLimit = Math.max(1, parseInt(limit) || 10);
         const rows = await db('members as m')
             .join('areas as a', 'm.area_id', 'a.id')
             .select(
@@ -31,8 +33,8 @@ export default class Member {
             })
             .leftJoin("pos", "m.pos_id", "pos.id")
             .orderBy('m.created_at', 'desc')
-            .limit(parseInt(limit))
-            .offset(offset);
+            .limit(safeLimit)
+            .offset(safeOffset);
 
         // Query total count
         const [{ total }] = await db('members as m')

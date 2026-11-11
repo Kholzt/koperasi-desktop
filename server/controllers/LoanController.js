@@ -116,9 +116,8 @@ export default class LoanController {
     static async getCode(req, res) {
         try {
             const { id } = req.params;
-            const rows = await db("pinjaman").where("anggota_id", id).whereNull("deleted_at");
-            const member = await db("members").select("sequence_number").where("id", id).first();
-            console.log(rows);
+            const member = await db("members").select("sequence_number","pos_id").where("id", id).first();
+            const rows = await db("pinjaman").where("anggota_id", id).where('pos_id',member.pos_id).whereNull("deleted_at");
             let num = rows.length + 1;
             const roman = [
                 ["M", 1000],

@@ -12,7 +12,9 @@ export default class MemberController {
             await Member.resolveDuplicateSequences();
 
             let { page = 1, limit = 10, search = "", pos = null } = req.query;
-            const offset = (parseInt(page) - 1) * parseInt(limit);
+            const parsedPage = Math.max(1, parseInt(page) || 1);
+            const parsedLimit = Math.max(1, parseInt(limit) || 10);
+            const offset = Math.max(0, (parsedPage - 1) * parsedLimit);
 
             const user = req.user;
             if (!['pusat', 'controller'].includes(user.role)) {
@@ -20,7 +22,7 @@ export default class MemberController {
             }
 
             // Query data dengan join dan filter search
-            const { rows, total } = await Member.findAll({ offset, search, limit, pos });
+            const { rows, total } = await Member.findAll({ offset, search, limit: parsedLimit, pos });
 
             const memberIds = rows.map(r => r.member_id);
             const pinjamanRecords = memberIds.length > 0 ? await db("pinjaman")
