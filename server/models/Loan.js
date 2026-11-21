@@ -191,13 +191,23 @@ export default class Loan {
     });
   }
   static async existLoan(anggota_id, kode, excludeId) {
-    const member = await db("members").where("id", anggota_id).first();
+    const member = await db("members").select("pos_id").where("id", anggota_id).first();
+    if (!member) return null;
+
     const loan = db("pinjaman")
       .where("kode", kode)
-      .join("members", "pinjaman.anggota_id", "members.id")
-      .where("members.area_id", member.area_id)
-      .whereNull("pinjaman.deleted_at");
-    if (excludeId) loan.andWhereNot("pinjaman.id", excludeId);
+      .where("anggota_id", anggota_id)
+      .where(function () {
+        if (member.pos_id) {
+          this.where("pos_id", member.pos_id).orWhereNull("pos_id");
+        }
+      })
+      .whereNull("deleted_at");
+
+    if (excludeId) {
+      loan.andWhereNot("id", excludeId);
+    }
+
     return await loan.first();
   }
 
@@ -304,16 +314,13 @@ export default class Loan {
 
   static async resolveDuplicateKode() {
     const loanWithDuplicates = await db("pinjaman")
-      .select("kode", "anggota_id")
+      .select("kode", "anggota_id", "pos_id")
       .whereNull("deleted_at")
-      .groupBy("kode", "anggota_id")
+      .groupBy("kode", "anggota_id", "pos_id")
       .havingRaw("count(*) > 1");
 
     if (loanWithDuplicates.length === 0) return;
 
-    const keys = [
-      ...new Set(loanWithDuplicates.map((a) => `${a.kode}|${a.anggota_id}`)),
-    ];
     const roman = [
       ["M", 1000],
       ["CM", 900],
@@ -331,31 +338,41 @@ export default class Loan {
     ];
 
     await transaction(async () => {
-      for (const key of keys) {
-        const [kode, anggotaId] = key.split("|");
-
-        const pinjaman = await db("pinjaman")
-          .where("kode", kode)
-          .where("anggota_id", anggotaId)
+      for (const item of loanWithDuplicates) {
+        const pinjamanQuery = db("pinjaman")
+          .where("kode", item.kode)
+          .where("anggota_id", item.anggota_id)
           .whereNull("deleted_at")
           .orderBy("created_at", "asc")
           .orderBy("id", "asc");
-        for (let i = 0; i < pinjaman.length; i++) {
-          const p = pinjaman[i];
-          let result = "";
-          let num = i + 1;
 
-          // let romanVal = member.sequence_number;
+        if (item.pos_id) {
+          pinjamanQuery.where("pos_id", item.pos_id);
+        } else {
+          pinjamanQuery.whereNull("pos_id");
+        }
+
+        const pinjamanList = await pinjamanQuery;
+
+        for (let i = 0; i < pinjamanList.length; i++) {
+          const p = pinjamanList[i];
+          let num = i + 1;
+          let result = "";
+
           for (const [letter, value] of roman) {
             while (num >= value) {
               result += letter;
               num -= value;
             }
           }
+
           if (p.kode && p.kode.includes("/")) {
-            const [prefix, numberStr] = p.kode.split("/");
+            const parts = p.kode.split("/");
+            const numberStr = parts.slice(1).join("/");
             const newKode = `${result}/${numberStr}`;
-            await db("pinjaman").where("id", p.id).update({ kode: newKode });
+            if (p.kode !== newKode) {
+              await db("pinjaman").where("id", p.id).update({ kode: newKode });
+            }
           }
         }
       }

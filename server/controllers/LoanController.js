@@ -117,7 +117,14 @@ export default class LoanController {
         try {
             const { id } = req.params;
             const member = await db("members").select("sequence_number","pos_id").where("id", id).first();
-            const rows = await db("pinjaman").where("anggota_id", id).where('pos_id',member.pos_id).whereNull("deleted_at");
+            const rows = await db("pinjaman")
+                .where("anggota_id", id)
+                .where(function() {
+                    if (member?.pos_id) {
+                        this.where("pos_id", member.pos_id).orWhereNull("pos_id");
+                    }
+                })
+                .whereNull("deleted_at");
             let num = rows.length + 1;
             const roman = [
                 ["M", 1000],
