@@ -192,16 +192,12 @@ export default class Loan {
   }
   static async existLoan(anggota_id, kode, excludeId) {
     const member = await db("members").select("pos_id").where("id", anggota_id).first();
-    if (!member) return null;
+    if (!member || !member.pos_id) return null;
 
     const loan = db("pinjaman")
       .where("kode", kode)
       .where("anggota_id", anggota_id)
-      .where(function () {
-        if (member.pos_id) {
-          this.where("pos_id", member.pos_id).orWhereNull("pos_id");
-        }
-      })
+      .where("pos_id", member.pos_id)
       .whereNull("deleted_at");
 
     if (excludeId) {
@@ -312,59 +308,102 @@ export default class Loan {
       );
   }
 
+  static _sequenceRealigned = false;
+
+  static _toRoman(num) {
+    const roman = [
+      ["M", 1000], ["CM", 900], ["D", 500], ["CD", 400],
+      ["C", 100], ["XC", 90], ["L", 50], ["XL", 40],
+      ["X", 10], ["IX", 9], ["V", 5], ["IV", 4], ["I", 1],
+    ];
+    let res = "";
+    for (const [letter, val] of roman) {
+      while (num >= val) {
+        res += letter;
+        num -= val;
+      }
+    }
+    return res;
+  }
+
+  static async realignSequenceKode(targetPosId = null, targetAnggotaId = null) {
+    const pairsQuery = db("pinjaman")
+      .select("anggota_id", "pos_id")
+      .whereNotNull("pos_id")
+      .whereNull("deleted_at");
+
+    if (targetPosId) pairsQuery.where("pos_id", targetPosId);
+    if (targetAnggotaId) pairsQuery.where("anggota_id", targetAnggotaId);
+
+    const pairs = await pairsQuery.groupBy("anggota_id", "pos_id");
+    if (pairs.length === 0) return { updatedCount: 0, affectedMembers: 0 };
+
+    let updatedCount = 0;
+    let affectedMembers = 0;
+
+    await transaction(async () => {
+      for (const pair of pairs) {
+        const loans = await db("pinjaman")
+          .where("anggota_id", pair.anggota_id)
+          .where("pos_id", pair.pos_id)
+          .whereNull("deleted_at")
+          .orderBy("created_at", "asc")
+          .orderBy("id", "asc")
+          .select("id", "kode");
+
+        let memberHasChange = false;
+
+        for (let i = 0; i < loans.length; i++) {
+          const item = loans[i];
+          const correctRoman = Loan._toRoman(i + 1);
+          const parts = (item.kode || "").split("/");
+          const currentRoman = parts[0];
+          const seq = parts.slice(1).join("/");
+
+          if (currentRoman !== correctRoman && seq) {
+            await db("pinjaman")
+              .where("id", item.id)
+              .update({ kode: `${correctRoman}/${seq}` });
+            updatedCount++;
+            memberHasChange = true;
+          }
+        }
+
+        if (memberHasChange) affectedMembers++;
+      }
+    });
+
+    return { updatedCount, affectedMembers };
+  }
+
   static async resolveDuplicateKode() {
+    if (!Loan._sequenceRealigned) {
+      await Loan.realignSequenceKode();
+      Loan._sequenceRealigned = true;
+    }
+
     const loanWithDuplicates = await db("pinjaman")
       .select("kode", "anggota_id", "pos_id")
+      .whereNotNull("pos_id")
       .whereNull("deleted_at")
       .groupBy("kode", "anggota_id", "pos_id")
       .havingRaw("count(*) > 1");
 
     if (loanWithDuplicates.length === 0) return;
 
-    const roman = [
-      ["M", 1000],
-      ["CM", 900],
-      ["D", 500],
-      ["CD", 400],
-      ["C", 100],
-      ["XC", 90],
-      ["L", 50],
-      ["XL", 40],
-      ["X", 10],
-      ["IX", 9],
-      ["V", 5],
-      ["IV", 4],
-      ["I", 1],
-    ];
-
     await transaction(async () => {
       for (const item of loanWithDuplicates) {
-        const pinjamanQuery = db("pinjaman")
+        const pinjamanList = await db("pinjaman")
           .where("kode", item.kode)
           .where("anggota_id", item.anggota_id)
+          .where("pos_id", item.pos_id)
           .whereNull("deleted_at")
           .orderBy("created_at", "asc")
           .orderBy("id", "asc");
 
-        if (item.pos_id) {
-          pinjamanQuery.where("pos_id", item.pos_id);
-        } else {
-          pinjamanQuery.whereNull("pos_id");
-        }
-
-        const pinjamanList = await pinjamanQuery;
-
         for (let i = 0; i < pinjamanList.length; i++) {
           const p = pinjamanList[i];
-          let num = i + 1;
-          let result = "";
-
-          for (const [letter, value] of roman) {
-            while (num >= value) {
-              result += letter;
-              num -= value;
-            }
-          }
+          const result = Loan._toRoman(i + 1);
 
           if (p.kode && p.kode.includes("/")) {
             const parts = p.kode.split("/");

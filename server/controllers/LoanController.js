@@ -117,13 +117,12 @@ export default class LoanController {
         try {
             const { id } = req.params;
             const member = await db("members").select("sequence_number","pos_id").where("id", id).first();
+            if (!member || !member.pos_id) {
+                return res.status(400).json({ error: "Anggota belum memiliki POS yang valid" });
+            }
             const rows = await db("pinjaman")
                 .where("anggota_id", id)
-                .where(function() {
-                    if (member?.pos_id) {
-                        this.where("pos_id", member.pos_id).orWhereNull("pos_id");
-                    }
-                })
+                .where("pos_id", member.pos_id)
                 .whereNull("deleted_at");
             let num = rows.length + 1;
             const roman = [
@@ -152,7 +151,7 @@ export default class LoanController {
             // }
             // const romanLength = result;
             // const code = `${romanLength}/${num}`;
-            let result = "";
+            let result = "";    
             // let romanVal = member.sequence_number;
             for (const [letter, value] of roman) {
                 while (num >= value) {
@@ -466,6 +465,9 @@ export default class LoanController {
                 }
 
                 await Loan.softDelete(id);
+                if (pinjaman.pos_id) {
+                    await Loan.realignSequenceKode(pinjaman.pos_id, pinjaman.anggota_id);
+                }
 
                 const group = await Loan.getGroupNameByIdPinjaman(id);
 
